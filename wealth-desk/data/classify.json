@@ -1,0 +1,42 @@
+[
+ {
+  "symbol": "GOLDBEES",
+  "asset_class": "Gold"
+ },
+ {
+  "symbol": "GOLDCASE",
+  "asset_class": "Gold"
+ },
+ {
+  "symbol": "SILVERBEES",
+  "asset_class": "Gold"
+ },
+ {
+  "symbol": "LIQUIDCASE",
+  "asset_class": "Liquid / cash"
+ },
+ {
+  "symbol": "LIQUIDBEES",
+  "asset_class": "Liquid / cash"
+ },
+ {
+  "symbol": "NIFTYBEES",
+  "asset_class": "Equity funds & ETFs"
+ },
+ {
+  "symbol": "JUNIORBEES",
+  "asset_class": "Equity funds & ETFs"
+ },
+ {
+  "symbol": "MON100",
+  "asset_class": "Equity funds & ETFs"
+ },
+ {
+  "symbol": "INF0R8F01216",
+  "asset_class": "Equity funds & ETFs"
+ },
+ {
+  "symbol": "JIOFIN",
+  "asset_class": "Direct stocks"
+ }
+]

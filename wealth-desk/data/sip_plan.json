@@ -1,0 +1,20 @@
+[
+ {
+  "bucket": "Core equity",
+  "instrument": "Zerodha Life Cycle Fund 2041 (Coin SIP)",
+  "amount_inr": 10000,
+  "why": "Already held. Auto-rebalances across LargeMidcap 250, gilts and gold."
+ },
+ {
+  "bucket": "Core equity",
+  "instrument": "NIFTYBEES (Nifty 50 ETF)",
+  "amount_inr": 5000,
+  "why": "Lowest-cost large-cap core. Buy on the 1st trading day of the month."
+ },
+ {
+  "bucket": "Satellite",
+  "instrument": "Direct stock from the order-win watchlist",
+  "amount_inr": 2500,
+  "why": "Only when a dashboard idea triggers. Otherwise park it in LIQUIDCASE."
+ }
+]

@@ -1,0 +1,62 @@
+[
+ {
+  "tradingsymbol": "GOLDBEES",
+  "exchange": "NSE",
+  "instrument_token": 3693569,
+  "isin": "INF204KB17I5",
+  "product": "CNC",
+  "quantity": 54,
+  "t1_quantity": 0,
+  "average_price": 117.641481,
+  "last_price": 121,
+  "close_price": 121,
+  "pnl": 181.36002600000006,
+  "day_change": 0,
+  "day_change_percentage": 0
+ },
+ {
+  "tradingsymbol": "GOLDCASE",
+  "exchange": "BSE",
+  "instrument_token": 139297796,
+  "isin": "INF0R8F01042",
+  "product": "CNC",
+  "quantity": 253,
+  "t1_quantity": 0,
+  "average_price": 23.610948,
+  "last_price": 23.04,
+  "close_price": 23.04,
+  "pnl": -144.44984400000033,
+  "day_change": 0,
+  "day_change_percentage": 0
+ },
+ {
+  "tradingsymbol": "JIOFIN",
+  "exchange": "BSE",
+  "instrument_token": 139248644,
+  "isin": "INE758E01017",
+  "product": "CNC",
+  "quantity": 20,
+  "t1_quantity": 0,
+  "average_price": 237.25,
+  "last_price": 217.9,
+  "close_price": 217.9,
+  "pnl": -386.9999999999999,
+  "day_change": 0,
+  "day_change_percentage": 0
+ },
+ {
+  "tradingsymbol": "LIQUIDCASE",
+  "exchange": "NSE",
+  "instrument_token": 5568001,
+  "isin": "INF0R8F01034",
+  "product": "CNC",
+  "quantity": 461,
+  "t1_quantity": 0,
+  "average_price": 116.102255,
+  "last_price": 116.34,
+  "close_price": 116.34,
+  "pnl": 109.60044500000178,
+  "day_change": 0,
+  "day_change_percentage": 0
+ }
+]

@@ -1,0 +1,22 @@
+[
+ {
+  "asset_class": "Equity funds & ETFs",
+  "target_pct": 0.65,
+  "role": "Core wealth engine. Index ETFs and the 2041 Life Cycle fund."
+ },
+ {
+  "asset_class": "Direct stocks",
+  "target_pct": 0.1,
+  "role": "Satellite bets on catalysts (tenders, order wins). Max 3% per stock."
+ },
+ {
+  "asset_class": "Gold",
+  "target_pct": 0.1,
+  "role": "Hedge against rupee weakness and equity drawdowns."
+ },
+ {
+  "asset_class": "Liquid / cash",
+  "target_pct": 0.15,
+  "role": "Dry powder for dips. Keep your emergency fund separately."
+ }
+]

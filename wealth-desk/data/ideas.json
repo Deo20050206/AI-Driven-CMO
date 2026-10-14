@@ -1,0 +1,62 @@
+[
+ {
+  "rank": 1,
+  "stance": "Buy gradually",
+  "instrument": "LIQUIDCASE \u2192 NIFTYBEES / Life Cycle 2041",
+  "title": "Put idle cash to work in 4 weekly tranches",
+  "why": "58% of your money sits in a liquid fund earning ~6% a year. Nifty is ~14% below its January high after 8 straight losing weeks, its longest streak in ~25 years, and is sitting near its 200-week average. Long-term buyers usually get paid for buying fear, but crude near $100 and RBI rate hikes mean it can fall further, so stagger it.",
+  "how": "Sell ~\u20b99,000 of LIQUIDCASE each Monday for 4 weeks (Oct 19, 26, Nov 2, 9) and buy NIFTYBEES with it, or add the same to the Life Cycle 2041 fund on Coin. If Nifty closes below 21,800, do the next two tranches together.",
+  "amount_inr": 36000,
+  "horizon": "3+ years",
+  "confidence": "Medium",
+  "review_by": "2026-11-09"
+ },
+ {
+  "rank": 2,
+  "stance": "Hold",
+  "instrument": "JIOFIN",
+  "title": "Hold through tomorrow's Q2 results. Don't add before them.",
+  "why": "Results and the analyst call are on Oct 15. Q1 profit was up ~156% year on year, but the stock is 8% below your buy price and results days often swing it 5\u20138% either way. The position is small (under 5%), so the risk is contained.",
+  "how": "Do nothing before results. After them, if core lending income keeps rising and the stock holds above \u20b9210, you can add up to \u20b93,000. If it breaks below \u20b9196 (the lower circuit level), reassess the thesis rather than averaging down.",
+  "amount_inr": 0,
+  "horizon": "1\u20133 years",
+  "confidence": "Medium",
+  "review_by": "2026-10-16"
+ },
+ {
+  "rank": 3,
+  "stance": "Hold",
+  "instrument": "GOLDBEES + GOLDCASE",
+  "title": "Gold is above target. Don't add to it this month.",
+  "why": "Gold is 13% of the portfolio against a 10% target. A weak rupee (~96/$) has supported it, and it hedges the equity slide well, so there's no need to sell. Two gold ETFs doing the same job adds clutter but costs little.",
+  "how": "No new gold buys until it drifts back toward 10%. Future gold buys go into GOLDBEES only.",
+  "amount_inr": 0,
+  "horizon": "Ongoing",
+  "confidence": "High",
+  "review_by": "2026-11-14"
+ },
+ {
+  "rank": 4,
+  "stance": "Watch",
+  "instrument": "IRCON, BEL, BEML",
+  "title": "Order-win watchlist (satellite, max \u20b93,000 each)",
+  "why": "Government order flow is strong: IRCON won an \u20b9862 cr railway EPC order (Oct 12, stock +6%), BEL announced \u20b9730 cr in new defence orders, and BEML is targeting a \u20b924,000 cr order book. These are real catalysts, but PSU stocks often run up before the news and fade after it.",
+  "how": "Don't chase a gap-up on order-win days. Consider a small position only on a 2\u20133 day pullback after the news, and keep all direct stocks combined under 10% of the portfolio.",
+  "amount_inr": 0,
+  "horizon": "6\u201318 months",
+  "confidence": "Low",
+  "review_by": "2026-10-21"
+ },
+ {
+  "rank": 5,
+  "stance": "Avoid",
+  "instrument": "F&O, intraday, tips",
+  "title": "Skip options, leverage and 'multibagger' tips",
+  "why": "SEBI data shows about 9 in 10 retail F&O traders lose money. High-return targets like 6% a month only come from strategies that can wipe out capital. Your edge is time and steady monthly additions.",
+  "how": "Keep every trade CNC (delivery) only.",
+  "amount_inr": 0,
+  "horizon": "Always",
+  "confidence": "High",
+  "review_by": "2026-12-31"
+ }
+]
