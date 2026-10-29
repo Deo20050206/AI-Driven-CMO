@@ -1,149 +1,135 @@
 <style>
-  /* Wealth Desk v3: full-bleed, iPhone-first. Apple-style glass over a daily painted finance artwork. */
+  /* Wealth Desk: minimal. One typeface, four sizes, colour only for gains and losses, white space instead of boxes. */
   #dash-root { --dash-gutter: 0; }
   .wd-shell {
-    --wd-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, var(--font-anthropic-sans), sans-serif;
-    --wd-glass: color-mix(in srgb, var(--color-bg) 30%, transparent);
-    --wd-glass-strong: color-mix(in srgb, var(--color-bg) 62%, transparent);
-    --wd-hair: color-mix(in srgb, var(--color-fg) 14%, transparent);
-    --wd-edge: color-mix(in srgb, #fff 16%, transparent);
-    --wd-r: 22px;
+    --wd-font: var(--font-anthropic-sans);
+    --wd-serif: var(--font-anthropic-serif);
+    --wd-sub: color-mix(in srgb, var(--color-fg) 55%, transparent);
+    --wd-hair: color-mix(in srgb, var(--color-fg) 10%, transparent);
     position: relative; isolation: isolate; overflow: hidden; min-height: 100%;
-    padding-inline: max(16px, env(safe-area-inset-left, 0px), min(4vw, 56px));
-    padding-block: 14px 44px;
-    font: 100%/1.45 var(--wd-font); color: var(--color-fg);
+    padding-inline: max(20px, env(safe-area-inset-left, 0px), min(6vw, 72px));
+    padding-block: 20px 56px;
+    font: 100%/1.45 var(--wd-font); color: var(--color-fg); background: var(--color-bg);
     -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   }
   .wd-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
-  .wd { max-width: 1680px; margin-inline: auto; display: grid; gap: 22px; }
+  .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: 40px; }
   .wd p { margin: 0; }
-  .wd h1 { font-size: clamp(1.75rem, 4.6vw, 2.25rem); line-height: 1.08; font-weight: 700; letter-spacing: -.02em; margin: 0; }
-  .wd h2 { font-size: clamp(1.2rem, 2.4vw, 1.4rem); line-height: 1.2; font-weight: 700; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+  .wd h1 { font-family: var(--wd-serif); font-size: 2rem; line-height: 1.1; font-weight: 400; margin: 0; }
+  .wd h2 { font-size: 1.15rem; line-height: 1.25; font-weight: 600; letter-spacing: -.01em; margin: 0; }
   .wd h3 { font-size: .95rem; font-weight: 600; margin: 0; }
-  .wd-muted { color: color-mix(in srgb, var(--color-fg) 68%, transparent); font-size: .82rem; line-height: 1.35; font-weight: 500; }
-  .wd-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; }
+  .wd-muted { color: var(--wd-sub); font-size: .82rem; line-height: 1.4; }
+  .wd-row { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
   .wd-good { color: var(--color-ok); } .wd-bad { color: var(--color-bad); } .wd-warn { color: var(--color-warn); }
 
-  /* Large title with the segmented control beside it */
-  .wd-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 22px; padding-top: 4px; }
-  .wd-titlebox { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
-  .wd-seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: var(--wd-glass); border: .5px solid var(--wd-hair);
-    box-shadow: inset 0 .5px 0 var(--wd-edge); -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
-    overflow-x: auto; scrollbar-width: none; max-width: 100%; }
+  .wd-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 24px; }
+  .wd-titlebox { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+  .wd-seg { display: flex; gap: 22px; overflow-x: auto; scrollbar-width: none; max-width: 100%; }
   .wd-seg::-webkit-scrollbar { display: none; }
-  .wd-seg button { font: inherit; font-size: .9rem; font-weight: 600; color: var(--color-fg); background: transparent; border: 0; border-radius: 9px;
-    padding: 8px 15px; min-height: 36px; cursor: pointer; white-space: nowrap; transition: background .18s ease-out, transform .1s ease-out; }
-  .wd-seg button[aria-selected="true"] { background: var(--wd-glass-strong); box-shadow: 0 1px 4px rgba(0,0,0,.22), inset 0 .5px 0 var(--wd-edge); }
-  .wd-seg button:active, .wd-press:active { transform: scale(.97); }
-  .wd-seg button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
-  @media (max-width: 720px) { .wd-seg { width: 100%; } .wd-seg button { flex: 1 0 auto; padding-inline: 10px; } }
+  .wd-seg button { font: inherit; font-size: .95rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px;
+    cursor: pointer; white-space: nowrap; border-bottom: 1.5px solid transparent; transition: color .15s ease-out; }
+  .wd-seg button[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+  .wd-seg button:active { opacity: .6; }
+  .wd-seg button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+  @media (max-width: 720px) { .wd-top { gap: 10px; } .wd-seg { width: 100%; gap: 20px; } }
 
-  .wd-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px;
-    background: color-mix(in srgb, currentColor 14%, transparent); white-space: nowrap; }
-  .wd-pill.wd-neutral { color: color-mix(in srgb, var(--color-fg) 70%, transparent); }
-  .wd-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .wd-pill { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600; white-space: nowrap; }
+  .wd-pill.wd-neutral { color: var(--wd-sub); font-weight: 500; }
+  .wd-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
 
-  /* Glass: barely-there, thicker for bigger surfaces */
-  .wd-glass { background: var(--wd-glass); border: .5px solid var(--wd-hair); border-radius: var(--wd-r); box-shadow: inset 0 .5px 0 var(--wd-edge), 0 10px 30px rgba(0,0,0,.12);
-    -webkit-backdrop-filter: blur(22px) saturate(170%); backdrop-filter: blur(22px) saturate(170%); padding: 18px; display: grid; gap: 12px; align-content: start; min-width: 0; }
-  @media (prefers-reduced-transparency: reduce) { .wd-shell { --wd-glass: color-mix(in srgb, var(--color-bg) 92%, transparent); } .wd-glass, .wd-seg { backdrop-filter: none; -webkit-backdrop-filter: none; } }
-  @media (prefers-contrast: more) { .wd-shell { --wd-glass: var(--color-bg); --wd-hair: var(--color-fg); } }
+  /* No boxes: sections breathe, a hairline separates them */
+  .wd-glass { display: grid; gap: 14px; align-content: start; min-width: 0; padding-top: 22px; border-top: 1px solid var(--wd-hair); }
+  .wd-kpis > .wd-glass, .wd-tiles > .wd-glass { padding-top: 0; border-top: 0; }
   .wd-section { display: grid; gap: 10px; }
-  .wd-page { display: grid; gap: 22px; will-change: transform; touch-action: pan-y; }
-  .wd-grid2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+  .wd-page { display: grid; gap: 40px; touch-action: pan-y; }
+  .wd-grid2 { display: grid; gap: 40px 56px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
 
-  .wd-take { font-size: clamp(1.05rem, 2.3vw, 1.3rem); line-height: 1.4; max-width: 64ch; font-weight: 600; letter-spacing: -.005em; text-shadow: 0 1px 12px color-mix(in srgb, var(--color-bg) 70%, transparent); }
-  .wd-kpis { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.5rem), 1fr)); }
-  @media (max-width: 560px) { .wd-kpis { grid-template-columns: 1fr 1fr; } }
-  .wd-kpi { display: grid; gap: 4px; padding: 14px 16px; }
-  .wd-big { font-size: clamp(1.35rem, 3vw, 1.75rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.015em; line-height: 1.1; }
-  .wd .wd-big b { font-weight: 700; }
+  .wd-take { font-size: 1.15rem; line-height: 1.45; max-width: 60ch; font-weight: 400; color: var(--color-fg); }
+  .wd-kpis { display: grid; gap: 22px 32px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 640px) { .wd-kpis { grid-template-columns: 1fr 1fr; } }
+  .wd-kpi { display: grid; gap: 2px; }
+  .wd-big { font-family: var(--wd-serif); font-size: 1.6rem; font-weight: 400; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .wd .wd-big b { font-weight: 400; }
 
-  /* Bare charts sit directly on the artwork */
-  .wd-chart { position: relative; min-height: 200px; }
+  .wd-chart { position: relative; min-height: 180px; }
   .wd-chart svg { display: block; overflow: visible; }
-  .wd-chart-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; }
-  .wd-chart-head .wd-big { font-size: clamp(1.9rem, 5vw, 2.6rem); letter-spacing: -.025em; text-shadow: 0 1px 14px color-mix(in srgb, var(--color-bg) 70%, transparent); }
+  .wd-chart-head { display: grid; gap: 2px; }
+  .wd-chart-head .wd-big { font-size: clamp(2.2rem, 7vw, 3rem); }
 
-  /* Opportunity */
-  .wd-opp { gap: 16px; padding: 20px; }
-  .wd-opp-sym { font-size: clamp(1.75rem, 4.4vw, 2.2rem); font-weight: 800; letter-spacing: -.025em; line-height: 1.05; }
-  .wd-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-  .wd-level { display: grid; gap: 3px; padding: 12px 12px 10px; border-radius: 16px; background: color-mix(in srgb, var(--color-bg) 26%, transparent); border: .5px solid var(--wd-hair); }
-  .wd-level .wd-v { font-size: clamp(1.1rem, 2.6vw, 1.35rem); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
-  .wd-facts { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: .9rem; font-variant-numeric: tabular-nums; }
-  .wd-facts b { font-weight: 700; }
-  .wd-ladder { position: relative; height: 48px; margin-inline: 6px; }
-  .wd-rail { position: absolute; left: 0; right: 0; top: 22px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--color-bad), color-mix(in srgb, var(--color-fg) 25%, transparent) 46%, var(--color-ok)); opacity: .7; }
-  .wd-mark { position: absolute; top: 16px; width: 2px; height: 18px; background: var(--color-fg); border-radius: 1px; }
-  .wd-lbl { position: absolute; top: 35px; transform: translateX(-50%); font-size: .7rem; font-weight: 600; color: color-mix(in srgb, var(--color-fg) 65%, transparent); white-space: nowrap; }
-  .wd-now { position: absolute; top: 0; transform: translateX(-50%); font-size: .75rem; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .wd-now-dot { position: absolute; top: 18px; width: 14px; height: 14px; border-radius: 50%; transform: translateX(-50%); background: var(--color-fg); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-bg) 70%, transparent); }
-  .wd details { border-top: .5px solid var(--wd-hair); padding-top: 8px; }
-  .wd summary { cursor: pointer; font-weight: 600; font-size: .95rem; min-height: 40px; display: flex; align-items: center; list-style: none; }
+  /* Opportunity: the one thing on the page with a surface */
+  .wd-opp { gap: 18px; padding: 22px; border: 0; border-radius: 18px; background: color-mix(in srgb, var(--color-fg) 4%, transparent); }
+  .wd-opp-sym { font-family: var(--wd-serif); font-size: 1.9rem; font-weight: 400; line-height: 1.1; }
+  .wd-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+  .wd-level { display: grid; gap: 2px; }
+  .wd-level .wd-v { font-family: var(--wd-serif); font-size: 1.4rem; font-weight: 400; font-variant-numeric: tabular-nums; }
+  .wd-facts { display: flex; flex-wrap: wrap; gap: 4px 20px; font-size: .88rem; font-variant-numeric: tabular-nums; color: var(--wd-sub); }
+  .wd-facts b { font-weight: 600; color: var(--color-fg); }
+  .wd-ladder { position: relative; height: 40px; margin-inline: 4px; }
+  .wd-rail { position: absolute; left: 0; right: 0; top: 18px; height: 2px; border-radius: 1px; background: var(--wd-hair); }
+  .wd-mark { position: absolute; top: 13px; width: 1.5px; height: 12px; background: var(--wd-sub); }
+  .wd-lbl { position: absolute; top: 28px; transform: translateX(-50%); font-size: .7rem; color: var(--wd-sub); white-space: nowrap; }
+  .wd-now { position: absolute; top: -2px; transform: translateX(-50%); font-size: .72rem; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .wd-now-dot { position: absolute; top: 14px; width: 10px; height: 10px; border-radius: 50%; transform: translateX(-50%); background: var(--color-fg); }
+  .wd details { padding-top: 4px; }
+  .wd summary { cursor: pointer; font-size: .9rem; color: var(--wd-sub); min-height: 36px; display: flex; align-items: center; list-style: none; }
   .wd summary::-webkit-details-marker { display: none; }
-  .wd summary::after { content: "›"; margin-left: auto; transition: transform .2s ease-out; font-size: 1.3rem; color: color-mix(in srgb, var(--color-fg) 55%, transparent); }
+  .wd summary::after { content: "›"; margin-left: 6px; transition: transform .2s ease-out; }
   .wd details[open] summary::after { transform: rotate(90deg); }
-  .wd-prose { line-height: 1.5; max-width: 70ch; font-size: .95rem; }
-  .wd-kv { display: grid; gap: 12px; margin-top: 6px; }
+  .wd-prose { line-height: 1.5; max-width: 66ch; font-size: .95rem; }
+  .wd-kv { display: grid; gap: 14px; }
 
-  /* Tables */
+  /* Tables as quiet lists */
   .wd-tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  .wd table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .9rem; }
-  .wd th, .wd td { text-align: left; padding: 11px 6px; border-bottom: .5px solid var(--wd-hair); white-space: nowrap; vertical-align: middle; }
-  .wd th { color: color-mix(in srgb, var(--color-fg) 62%, transparent); font-weight: 600; font-size: .72rem; letter-spacing: .02em; text-transform: uppercase; }
+  .wd table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: .92rem; }
+  .wd th, .wd td { text-align: left; padding: 12px 8px 12px 0; border-bottom: 1px solid var(--wd-hair); white-space: nowrap; vertical-align: baseline; }
+  .wd th { color: var(--wd-sub); font-weight: 500; font-size: .78rem; padding-top: 0; }
   .wd tr:last-child td { border-bottom: 0; }
   .wd .wd-r { text-align: right; }
   .wd td.wd-wrap { white-space: normal; min-width: 13rem; }
-  .wd td.wd-name { font-weight: 600; }
-  @media (max-width: 560px) { .wd-hide-sm { display: none; } .wd table { font-size: .84rem; } .wd th, .wd td { padding-inline: 4px; } }
+  .wd td.wd-name { font-weight: 500; }
+  @media (max-width: 560px) { .wd-hide-sm { display: none; } .wd table { font-size: .88rem; } }
 
   .wd-meter { display: grid; gap: 6px; }
-  .wd-meter-top { display: flex; justify-content: space-between; gap: 8px; font-size: .84rem; font-variant-numeric: tabular-nums; }
-  .wd-track { position: relative; height: 8px; border-radius: 4px; background: color-mix(in srgb, var(--color-fg) 14%, transparent); }
-  .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 4px; }
-  .wd-tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--color-fg); border-radius: 1px; }
-  .wd-stack { display: grid; gap: 14px; }
+  .wd-meter-top { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; font-variant-numeric: tabular-nums; }
+  .wd-track { position: relative; height: 4px; border-radius: 2px; background: var(--wd-hair); }
+  .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; }
+  .wd-tick { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--color-fg); }
+  .wd-stack { display: grid; gap: 16px; }
 
-  .wd-pnlbar { display: grid; grid-template-columns: minmax(6.5rem, 9rem) 1fr; gap: 10px; align-items: center; font-size: .84rem; font-variant-numeric: tabular-nums; }
-  .wd-axis { position: relative; height: 22px; }
-  .wd-zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--color-fg); opacity: .35; }
-  .wd-bar { position: absolute; top: 4px; height: 14px; border-radius: 5px; opacity: .85; }
-  .wd-val { position: absolute; top: 2px; white-space: nowrap; font-weight: 600; }
+  .wd-pnlbar { display: grid; grid-template-columns: minmax(6.5rem, 9rem) 1fr; gap: 12px; align-items: center; font-size: .86rem; font-variant-numeric: tabular-nums; }
+  .wd-axis { position: relative; height: 18px; }
+  .wd-zero { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--wd-hair); }
+  .wd-bar { position: absolute; top: 6px; height: 6px; border-radius: 3px; opacity: .9; }
+  .wd-val { position: absolute; top: 0; white-space: nowrap; }
 
   .wd-feed { display: grid; }
-  .wd-item { display: grid; grid-template-columns: 4.6rem 1fr; gap: 12px; padding-block: 11px; border-bottom: .5px solid var(--wd-hair); }
+  .wd-item { display: grid; grid-template-columns: 4.6rem 1fr; gap: 14px; padding-block: 12px; border-bottom: 1px solid var(--wd-hair); }
   .wd-item:last-child { border-bottom: 0; }
-  .wd-item-date { font-variant-numeric: tabular-nums; font-size: .75rem; color: color-mix(in srgb, var(--color-fg) 62%, transparent); display: grid; gap: 2px; align-content: start; font-weight: 600; }
-  .wd-item-body { display: grid; gap: 4px; min-width: 0; font-size: .9rem; }
-  .wd-item-body a { color: inherit; }
-  .wd-soon { box-shadow: inset 3px 0 0 var(--color-warn); padding-left: 10px; }
-  .wd-tiles { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
-  @media (max-width: 560px) { .wd-tiles { grid-template-columns: 1fr 1fr; } }
-  .wd-tile { display: grid; gap: 2px; padding: 12px 14px; }
-  .wd-tile .wd-v { font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+  .wd-item-date { font-variant-numeric: tabular-nums; font-size: .78rem; color: var(--wd-sub); display: grid; gap: 2px; align-content: start; }
+  .wd-item-body { display: grid; gap: 3px; min-width: 0; font-size: .92rem; }
+  .wd-item-body a { color: inherit; text-decoration: none; font-weight: 500; }
+  .wd-soon .wd-item-date { color: var(--color-warn); }
+  .wd-tiles { display: grid; gap: 22px 32px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  @media (max-width: 640px) { .wd-tiles { grid-template-columns: 1fr 1fr; } }
+  .wd-tile { display: grid; gap: 2px; }
+  .wd-tile .wd-v { font-family: var(--wd-serif); font-size: 1.4rem; font-weight: 400; font-variant-numeric: tabular-nums; }
 
-  /* Tooltips: hover on desktop, tap on iPhone; they grow out of what you touched */
-  [data-tip] { cursor: help; text-decoration: underline dotted color-mix(in srgb, var(--color-fg) 45%, transparent); text-underline-offset: 3px; }
-  .wd-pill[data-tip], .wd-axis[data-tip], h2[data-tip] { text-decoration: none; }
-  .wd-tipbox { position: absolute; z-index: 30; max-width: min(300px, calc(100% - 32px)); padding: 10px 13px; border-radius: 14px; font-size: .84rem; line-height: 1.4;
-    background: var(--wd-glass-strong); border: .5px solid var(--wd-hair); box-shadow: 0 12px 32px rgba(0,0,0,.28), inset 0 .5px 0 var(--wd-edge);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%); pointer-events: none; transform-origin: var(--tip-origin, top left); }
-  .wd-tipbox b { display: block; font-weight: 700; margin-bottom: 2px; }
-  @media (prefers-reduced-motion: no-preference) { .wd-tipbox:not([hidden]) { animation: wdTip .16s ease-out; } }
-  @keyframes wdTip { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
-  .wd-ctip { position: absolute; pointer-events: none; background: var(--wd-glass-strong); border: .5px solid var(--wd-hair); border-radius: 12px;
-    -webkit-backdrop-filter: blur(24px); backdrop-filter: blur(24px); box-shadow: 0 8px 24px rgba(0,0,0,.25); padding: 7px 11px; font-size: .78rem; font-variant-numeric: tabular-nums; white-space: nowrap; z-index: 5; }
-  .wd-ctip span { color: color-mix(in srgb, var(--color-fg) 65%, transparent); display: block; }
+  [data-tip] { cursor: help; }
+  .wd-tipbox { position: absolute; z-index: 30; max-width: min(280px, calc(100% - 40px)); padding: 10px 12px; border-radius: 12px; font-size: .82rem; line-height: 1.4;
+    background: var(--cds-surface-popover); border: 1px solid var(--wd-hair); box-shadow: 0 8px 24px rgba(0,0,0,.18); pointer-events: none; transform-origin: var(--tip-origin, top left); }
+  .wd-tipbox b { display: block; font-weight: 600; margin-bottom: 2px; }
+  @media (prefers-reduced-motion: no-preference) { .wd-tipbox:not([hidden]) { animation: wdTip .14s ease-out; } }
+  @keyframes wdTip { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: none; } }
+  .wd-ctip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--wd-hair); border-radius: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,.16); padding: 6px 10px; font-size: .76rem; font-variant-numeric: tabular-nums; white-space: nowrap; z-index: 5; }
+  .wd-ctip span { color: var(--wd-sub); display: block; }
 
-  .wd-banner { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: .9rem; padding: 12px 16px; }
-  .wd-banner a { color: inherit; font-weight: 700; }
-  .wd-failed { display: flex; align-items: center; justify-content: center; gap: .5em; color: color-mix(in srgb, var(--color-fg) 60%, transparent); font-size: .82rem; min-height: inherit; }
-  .wd-failed::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--color-bad); }
+  .wd-banner { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; font-size: .9rem; }
+  .wd-banner a { color: inherit; font-weight: 600; }
+  .wd-failed { display: flex; align-items: center; justify-content: center; color: var(--wd-sub); font-size: .82rem; min-height: inherit; }
   [data-dash-source-state=empty] { color: transparent; }
   [data-dash-source-state=refreshing] { opacity: .6; transition: opacity var(--cds-dur-slow); }
-  .wd-foot { font-size: .75rem; color: color-mix(in srgb, var(--color-fg) 60%, transparent); line-height: 1.5; max-width: 80ch; }
-  @media (prefers-reduced-motion: reduce) { .wd-page { will-change: auto; } }
+  .wd-foot { font-size: .75rem; color: var(--wd-sub); line-height: 1.5; max-width: 72ch; }
 </style>
 
 <div class="wd-shell" id="wd-shell">
@@ -155,8 +141,8 @@
       <span class="wd-pill wd-neutral" id="kite-chip" data-tip="Kite connection|Live: holdings, prices and cash come straight from your Kite account. Saved: the last snapshot Claude stored, shown when Kite is logged out."><span class="wd-dot"></span><span id="kite-chip-text">Connecting</span></span>
     </div>
     <nav class="wd-seg" role="tablist" aria-label="Sections">
-      <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Today</button>
-      <button role="tab" id="tab-portfolio" data-tab="portfolio" aria-selected="false">Review</button>
+      <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Home</button>
+      <button role="tab" id="tab-portfolio" data-tab="portfolio" aria-selected="false">Portfolio</button>
       <button role="tab" id="tab-pnl" data-tab="pnl" aria-selected="false">P&amp;L</button>
       <button role="tab" id="tab-market" data-tab="market" aria-selected="false">Market</button>
       <button role="tab" id="tab-track" data-tab="track" aria-selected="false">Scorecard</button>
@@ -334,7 +320,6 @@
     </div>
   </section>
 
-  <p class="wd-foot" id="wd-theme"></p>
   <p class="wd-foot">Research for Dev's own use, not SEBI-registered advice. Claude never places orders. Stop-losses limit damage but can gap. A 10% target in 20 sessions will often be missed.</p>
 </div>
 </div>
@@ -751,26 +736,26 @@
     const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img');
     const vals = pts.flatMap((p) => (opt.putIn ? [p.v, p.i] : [p.v]));
     const ext = d3.extent(vals), pad = (ext[1] - ext[0]) * 0.12 || ext[1] * 0.02;
-    const ys = d3.scaleLinear([ext[0] - pad, ext[1] + pad], [H - 24, 14]).nice(4);
+    const ys = d3.scaleLinear([ext[0] - pad, ext[1] + pad], [H - 24, 14]).nice(3);
     const fmtY = opt.fmtY || lakh;
     const probe = svg.append('text').attr('font-size', 11).text(fmtY(ys.domain()[1])); const tw = probe.node().getComputedTextLength(); probe.remove();
     const m = { l: tw + 8, r: 12 };
     const xs = d3.scaleUtc(d3.extent(pts, (p) => p.x), [m.l, W - m.r]);
     const ink = 'var(--color-fg)';
-    ys.ticks(4).forEach((t) => {
-      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(t)).attr('y2', ys(t)).attr('stroke', ink).attr('stroke-opacity', 0.12);
-      svg.append('text').attr('x', m.l - 6).attr('y', ys(t)).attr('dy', '.32em').attr('text-anchor', 'end').attr('font-size', 11).attr('font-weight', 600).attr('fill', ink).attr('fill-opacity', 0.7).text(fmtY(t));
+    ys.ticks(3).forEach((t) => {
+
+      svg.append('text').attr('x', m.l - 6).attr('y', ys(t)).attr('dy', '.32em').attr('text-anchor', 'end').attr('font-size', 11).attr('fill', ink).attr('fill-opacity', 0.45).text(fmtY(t));
     });
-    xs.ticks(Math.min(pts.length, Math.max(2, Math.floor((W - m.l) / 80)))).forEach((t) => svg.append('text').attr('x', xs(t)).attr('y', H - 4).attr('text-anchor', 'middle').attr('font-size', 11).attr('font-weight', 600).attr('fill', ink).attr('fill-opacity', 0.7).text(opt.fmtX ? opt.fmtX(t) : dayFmt(t)));
+    xs.ticks(Math.min(pts.length, Math.max(2, Math.floor((W - m.l) / 80)))).forEach((t) => svg.append('text').attr('x', xs(t)).attr('y', H - 4).attr('text-anchor', 'middle').attr('font-size', 11).attr('fill', ink).attr('fill-opacity', 0.45).text(opt.fmtX ? opt.fmtX(t) : dayFmt(t)));
     const color = opt.color || 'var(--color-fg)';
     const gid = 'g' + box.id;
     const g = svg.append('defs').append('linearGradient').attr('id', gid).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
     [[0, .28], [.6, .06], [1, 0]].forEach(([o, a]) => g.append('stop').attr('offset', o).attr('style', `stop-color:${opt.fill || dash.colors[0]};stop-opacity:${a}`));
-    svg.append('path').datum(pts).attr('fill', `url(#${gid})`).attr('d', d3.area().x((d) => xs(d.x)).y0(H - 24).y1((d) => ys(d.v)).curve(d3.curveMonotoneX));
+
     if (opt.putIn) svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', ink).attr('stroke-opacity', 0.55).attr('stroke-width', 1.5).attr('stroke-dasharray', '5 5').attr('d', d3.line().x((d) => xs(d.x)).y((d) => ys(d.i)).curve(d3.curveStepAfter));
     if (opt.ref != null) svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(opt.ref)).attr('y2', ys(opt.ref)).attr('stroke', ink).attr('stroke-opacity', 0.5).attr('stroke-dasharray', '4 4');
-    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', 'var(--color-bg)').attr('stroke-opacity', 0.35).attr('stroke-width', 6).attr('stroke-linejoin', 'round').attr('d', d3.line().x((d) => xs(d.x)).y((d) => ys(d.v)).curve(d3.curveMonotoneX));
-    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2.5).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line().x((d) => xs(d.x)).y((d) => ys(d.v)).curve(d3.curveMonotoneX));
+
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', color).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line().x((d) => xs(d.x)).y((d) => ys(d.v)).curve(d3.curveMonotoneX));
     if (opt.flows) pts.filter((p) => p.flow).forEach((p) => {
       const up = p.flow > 0, x = xs(p.x), y = ys(p.v) + (up ? 18 : -18);
       svg.append('path').attr('d', d3.symbol(d3.symbolTriangle, 80)()).attr('transform', `translate(${x},${y}) rotate(${up ? 0 : 180})`).attr('fill', up ? 'var(--color-ok)' : 'var(--color-bad)');
@@ -928,145 +913,33 @@
 </script>
 
 <script>
-  // ---------- Daily artwork ----------
-  // A still, painted piece of abstract finance art, new every day. Seeded by the date: six compositions
-  // x six palettes x per-day variation, so the same day always looks the same and no two days match.
-  // Still, not animated: Apple's guidance is to avoid full-screen moving backgrounds.
+  // ---------- Daily background ----------
+  // One quiet colour wash, a different pair of hues every day. Nothing moves, nothing competes with the numbers.
   (function () {
-    const shell = document.getElementById('wd-shell'), cv = document.getElementById('wd-bg'), cap = document.getElementById('wd-theme');
+    const shell = document.getElementById('wd-shell'), cv = document.getElementById('wd-bg');
     if (!shell || !cv) return;
     const ctx = cv.getContext('2d');
     const day = new Date().toISOString().slice(0, 10), dayN = Math.floor(Date.parse(day) / 864e5);
-    const PAL = [
-      { name: 'Midnight gold', dark: ['#070b18', '#131b38', '#22184a'], light: ['#f4f1ea', '#e7ecf6', '#efe6f4'], ink: ['#f5c26b', '#e98a4c', '#5eead4', '#a78bfa'] },
-      { name: 'Aurora', dark: ['#03110f', '#06252a', '#0b1f33'], light: ['#eef7f3', '#e6f3f6', '#eef0fb'], ink: ['#34d399', '#22d3ee', '#a78bfa', '#f0abfc'] },
-      { name: 'Dusk coral', dark: ['#140a17', '#2a1230', '#3a1626'], light: ['#fbf0ef', '#f6ebf5', '#fdf2ea'], ink: ['#fb7185', '#f59e0b', '#c084fc', '#fde68a'] },
-      { name: 'Ink and copper', dark: ['#0b0b0d', '#1b1714', '#231a12'], light: ['#f6f3ee', '#efe9e1', '#f3eee6'], ink: ['#d97706', '#fbbf24', '#e7e5e4', '#b45309'] },
-      { name: 'Deep ocean', dark: ['#020b17', '#06213d', '#0b1a44'], light: ['#eef5fb', '#e7eefb', '#edf3fa'], ink: ['#38bdf8', '#818cf8', '#e0f2fe', '#2dd4bf'] },
-      { name: 'Jade market', dark: ['#04100b', '#0b2219', '#13261a'], light: ['#eff7f1', '#eef5ea', '#f5f6e9'], ink: ['#86efac', '#facc15', '#2dd4bf', '#d9f99d'] },
-      { name: 'Rose quartz', dark: ['#120b12', '#251526', '#1d1830'], light: ['#fbf1f4', '#f3eef9', '#f9f3ee'], ink: ['#f9a8d4', '#fcd34d', '#93c5fd', '#e9d5ff'] },
-    ];
-    const COMP = ['Price ridges at first light', 'Candlestick skyline', 'Order-flow currents', 'Volatility topography', 'Liquidity bokeh', 'Compounding spiral'];
-    const comp = COMP[dayN % COMP.length], pal = PAL[dayN % PAL.length]; // 6 x 7 = 42 distinct pairings before any repeat
-    let seed = [...day].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 2166136261);
-    const rnd = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
-    const resetSeed = () => { seed = [...day].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 2166136261); };
-    const hex = (h, a) => { const n = parseInt(h.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
-    // value noise
-    const P = new Uint8Array(512); const perm = () => { const p = [...Array(256).keys()]; for (let i = 255; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [p[i], p[j]] = [p[j], p[i]]; } for (let i = 0; i < 512; i++) P[i] = p[i & 255]; };
-    const fade = (t) => t * t * t * (t * (t * 6 - 15) + 10), lerp = (a, b, t) => a + (b - a) * t;
-    const grad = (h, x, y) => ((h & 1) ? -x : x) + ((h & 2) ? -y : y);
-    const noise = (x, y) => { const X = Math.floor(x) & 255, Y = Math.floor(y) & 255; x -= Math.floor(x); y -= Math.floor(y); const u = fade(x), v = fade(y);
-      return lerp(lerp(grad(P[P[X] + Y], x, y), grad(P[P[X + 1] + Y], x - 1, y), u), lerp(grad(P[P[X] + Y + 1], x, y - 1), grad(P[P[X + 1] + Y + 1], x - 1, y - 1), u), v); };
-    const fbm = (x, y) => noise(x, y) * 0.6 + noise(x * 2.1, y * 2.1) * 0.28 + noise(x * 4.3, y * 4.3) * 0.12;
-
-    function isDark() { const c = getComputedStyle(shell).backgroundColor === 'rgba(0, 0, 0, 0)' ? getComputedStyle(document.getElementById('dash-root') || document.body).backgroundColor : getComputedStyle(shell).backgroundColor;
-      const m = (c.match(/\d+/g) || [0, 0, 0]).map(Number); return (m[0] * 299 + m[1] * 587 + m[2] * 114) / 1000 < 128; }
-
+    // Hue pairs chosen to stay calm in both light and dark; the day picks the pair and nudges the hues.
+    const PAIRS = [[38, 200], [160, 250], [345, 30], [210, 280], [140, 45], [260, 320], [190, 120]];
+    const [h1, h2] = PAIRS[dayN % PAIRS.length].map((h, i) => (h + ((dayN * (i ? 7 : 11)) % 24) - 12 + 360) % 360);
+    const pos = [(dayN * 37) % 100 / 100, (dayN * 61 + 40) % 100 / 100];
+    const isDark = () => matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
     function paint() {
-      resetSeed(); perm();
       const dpr = Math.min(window.devicePixelRatio || 1, 2), W = shell.clientWidth, H = shell.clientHeight;
       if (!W || !H) return;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const dark = isDark(), base = dark ? pal.dark : pal.light, ink = pal.ink, A = dark ? 1 : 0.55;
-      const VH = Math.min(H, Math.max(760, W * 0.75)); // the composition lives in the first screen; below it the palette continues
-      // ground
-      const g = ctx.createLinearGradient(0, 0, W * 0.4, H); g.addColorStop(0, base[0]); g.addColorStop(0.5, base[1]); g.addColorStop(1, base[2]);
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-      // two soft colour fields
-      [[0.2 + rnd() * 0.3, 0.15 + rnd() * 0.2, ink[0]], [0.65 + rnd() * 0.25, 0.35 + rnd() * 0.3, ink[1]]].forEach(([x, y, c]) => {
-        const r = Math.max(W, VH) * (0.55 + rnd() * 0.2), rg = ctx.createRadialGradient(x * W, y * VH, 0, x * W, y * VH, r);
-        rg.addColorStop(0, hex(c, 0.22 * A)); rg.addColorStop(1, hex(c, 0)); ctx.fillStyle = rg; ctx.fillRect(0, 0, W, H);
-      });
-      const walk = (n, vol, start) => { const o = []; let v = start; for (let i = 0; i < n; i++) { v += (rnd() - 0.5) * vol + (fbm(i * 0.05, rnd()) * vol * 0.4); v = Math.min(0.95, Math.max(0.05, v)); o.push(v); } return o; };
-
-      if (comp === 'Price ridges at first light') {
-        const sx = 0.25 + rnd() * 0.5, sy = 0.28 + rnd() * 0.1, sr = Math.min(W, VH) * 0.11;
-        const sun = ctx.createRadialGradient(sx * W, sy * VH, 0, sx * W, sy * VH, sr * 5);
-        sun.addColorStop(0, hex(ink[0], 0.75 * A)); sun.addColorStop(0.18, hex(ink[0], 0.3 * A)); sun.addColorStop(1, hex(ink[0], 0)); ctx.fillStyle = sun; ctx.fillRect(0, 0, W, VH);
-        for (let k = 0; k < 6; k++) {
-          const pts = walk(140, 0.05 + k * 0.006, 0.45 + rnd() * 0.15), baseY = VH * (0.42 + k * 0.1), amp = VH * (0.28 - k * 0.02);
-          ctx.beginPath(); ctx.moveTo(0, H);
-          pts.forEach((v, i) => ctx.lineTo((i / 139) * W, baseY - v * amp));
-          ctx.lineTo(W, H); ctx.closePath();
-          const fill = ctx.createLinearGradient(0, baseY - amp, 0, H);
-          fill.addColorStop(0, hex(ink[(k + 2) % 4], (0.1 + k * 0.05) * A)); fill.addColorStop(0.5, hex(base[2], 0.6 + k * 0.06)); fill.addColorStop(1, base[1]);
-          ctx.fillStyle = fill; ctx.fill();
-          ctx.beginPath(); pts.forEach((v, i) => { const x = (i / 139) * W, y = baseY - v * amp; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.strokeStyle = hex(ink[k % 2 ? 1 : 0], (0.5 - k * 0.06) * A); ctx.lineWidth = 1.4; ctx.shadowColor = hex(ink[0], 0.6 * A); ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
-        }
-      } else if (comp === 'Candlestick skyline') {
-        const n = Math.round(W / 14), bw = W / n; let p = 0.45;
-        for (let layer = 0; layer < 3; layer++) {
-          p = 0.4 + rnd() * 0.2;
-          for (let i = 0; i < n; i++) {
-            const o = p; p = Math.min(0.92, Math.max(0.08, p + (rnd() - 0.48) * 0.07)); const c = p, hi = Math.max(o, c) + rnd() * 0.03, lo = Math.min(o, c) - rnd() * 0.03;
-            const up = c >= o, col = up ? ink[layer === 2 ? 0 : 2] : ink[1], x = i * bw + bw / 2, yOf = (v) => VH * (0.95 - v * (0.55 + layer * 0.12));
-            const al = (0.12 + layer * 0.16) * A;
-            ctx.strokeStyle = hex(col, al); ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x, yOf(hi)); ctx.lineTo(x, yOf(lo)); ctx.stroke();
-            ctx.fillStyle = hex(col, al * (up ? 1 : 0.8));
-            const y1 = yOf(Math.max(o, c)), y2 = yOf(Math.min(o, c)); ctx.fillRect(x - bw * 0.32, y1, bw * 0.64, Math.max(1.5, y2 - y1));
-          }
-        }
-        const glow = ctx.createLinearGradient(0, VH * 0.55, 0, VH); glow.addColorStop(0, hex(ink[0], 0)); glow.addColorStop(1, hex(ink[0], 0.18 * A)); ctx.fillStyle = glow; ctx.fillRect(0, VH * 0.55, W, VH * 0.45);
-      } else if (comp === 'Order-flow currents') {
-        const lines = Math.round((W * VH) / 900), sc = 0.0022 + rnd() * 0.0015;
-        for (let i = 0; i < lines; i++) {
-          let x = rnd() * W, y = rnd() * VH; const col = ink[i % 4]; ctx.beginPath(); ctx.moveTo(x, y);
-          for (let s = 0; s < 60; s++) { const a = fbm(x * sc, y * sc) * Math.PI * 3; x += Math.cos(a) * 3.2; y += Math.sin(a) * 3.2; ctx.lineTo(x, y); }
-          ctx.strokeStyle = hex(col, (0.05 + rnd() * 0.12) * A); ctx.lineWidth = 0.6 + rnd() * 0.9; ctx.stroke();
-        }
-      } else if (comp === 'Volatility topography') {
-        const cell = 8, cols = Math.ceil(W / cell) + 1, rows = Math.ceil(VH / cell) + 1, sc = 0.0028 + rnd() * 0.002, f = [];
-        for (let j = 0; j < rows; j++) { f[j] = []; for (let i = 0; i < cols; i++) f[j][i] = fbm(i * cell * sc, j * cell * sc); }
-        const levels = 16;
-        for (let L = 0; L < levels; L++) {
-          const t = -0.55 + (L / levels) * 1.1; ctx.beginPath();
-          for (let j = 0; j < rows - 1; j++) for (let i = 0; i < cols - 1; i++) {
-            const a = f[j][i], b = f[j][i + 1], c = f[j + 1][i + 1], d = f[j + 1][i], x = i * cell, y = j * cell;
-            const pts = [];
-            const edge = (v1, v2, x1, y1, x2, y2) => { if ((v1 < t) !== (v2 < t)) { const k = (t - v1) / (v2 - v1); pts.push([x1 + (x2 - x1) * k, y1 + (y2 - y1) * k]); } };
-            edge(a, b, x, y, x + cell, y); edge(b, c, x + cell, y, x + cell, y + cell); edge(c, d, x + cell, y + cell, x, y + cell); edge(d, a, x, y + cell, x, y);
-            if (pts.length >= 2) { ctx.moveTo(pts[0][0], pts[0][1]); ctx.lineTo(pts[1][0], pts[1][1]); if (pts.length === 4) { ctx.moveTo(pts[2][0], pts[2][1]); ctx.lineTo(pts[3][0], pts[3][1]); } }
-          }
-          ctx.strokeStyle = hex(ink[L % 3], (L % 4 === 0 ? 0.45 : 0.18) * A); ctx.lineWidth = L % 4 === 0 ? 1.3 : 0.8; ctx.stroke();
-        }
-      } else if (comp === 'Liquidity bokeh') {
-        for (let i = 0; i < 70; i++) {
-          const x = rnd() * W, y = rnd() * VH, r = 8 + Math.pow(rnd(), 2) * Math.min(W, VH) * 0.12, c = ink[i % 4];
-          const rg = ctx.createRadialGradient(x, y, r * 0.2, x, y, r); rg.addColorStop(0, hex(c, 0.22 * A)); rg.addColorStop(0.85, hex(c, 0.12 * A)); rg.addColorStop(1, hex(c, 0));
-          ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, r, 0, 6.283); ctx.fill();
-        }
-        for (let k = 0; k < 3; k++) {
-          const pts = walk(160, 0.04, 0.5); ctx.beginPath();
-          pts.forEach((v, i) => { const x = (i / 159) * W, y = VH * (0.3 + k * 0.2) - (v - 0.5) * VH * 0.3; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
-          ctx.strokeStyle = hex(ink[k], 0.55 * A); ctx.lineWidth = 1.6; ctx.shadowColor = hex(ink[k], 0.9 * A); ctx.shadowBlur = 14; ctx.stroke(); ctx.shadowBlur = 0;
-        }
-      } else {
-        const cx = W * (0.55 + rnd() * 0.3), cy = VH * (0.3 + rnd() * 0.2), phi = (1 + Math.sqrt(5)) / 2, R = Math.max(W, VH) * 0.9;
-        for (let i = 0; i < 900; i++) {
-          const a = i * 2 * Math.PI / (phi * phi), r = Math.sqrt(i / 900) * R * 0.55, x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r * 0.82;
-          const s = 1 + (i / 900) * 5, c = ink[i % 4];
-          ctx.fillStyle = hex(c, (0.15 + 0.35 * (1 - i / 900)) * A); ctx.beginPath(); ctx.arc(x, y, s, 0, 6.283); ctx.fill();
-        }
-        for (let k = 1; k < 9; k++) { ctx.strokeStyle = hex(ink[k % 4], 0.1 * A); ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(cx, cy, k * R * 0.07, k * R * 0.07 * 0.82, 0, 0, 6.283); ctx.stroke(); }
-      }
-      // film grain for a printed feel
-      const gn = Math.round((W * Math.min(H, 1600)) / 140);
-      for (let i = 0; i < gn; i++) { ctx.fillStyle = dark ? `rgba(255,255,255,${rnd() * 0.05})` : `rgba(0,0,0,${rnd() * 0.04})`; ctx.fillRect(rnd() * W, rnd() * Math.min(H, 1600), 1, 1); }
-      // legibility veil: stronger behind the top text, fading lower, then easing into the page below the art
-      const veil = ctx.createLinearGradient(0, 0, 0, H);
-      const vb = dark ? '0,0,0' : '255,255,255';
-      veil.addColorStop(0, `rgba(${vb},${dark ? 0.32 : 0.45})`); veil.addColorStop(Math.min(0.35, VH / H * 0.4), `rgba(${vb},${dark ? 0.12 : 0.25})`);
-      veil.addColorStop(Math.min(0.95, VH / H), `rgba(${vb},${dark ? 0.25 : 0.4})`); veil.addColorStop(1, `rgba(${vb},${dark ? 0.45 : 0.6})`);
-      ctx.fillStyle = veil; ctx.fillRect(0, 0, W, H);
-      if (cap) cap.textContent = `Today's artwork: "${comp}" in ${pal.name}. A new piece is painted every day.`;
+      ctx.clearRect(0, 0, W, H);
+      const dark = isDark(), VH = Math.min(H, 900), a = dark ? 0.16 : 0.12;
+      const glow = (x, y, r, h) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `hsla(${h},${dark ? 70 : 80}%,${dark ? 55 : 60}%,${a})`); g.addColorStop(1, `hsla(${h},70%,55%,0)`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
+      glow(W * (0.1 + pos[0] * 0.5), VH * 0.05, Math.max(W, VH) * 0.7, h1);
+      glow(W * (0.5 + pos[1] * 0.5), VH * 0.35, Math.max(W, VH) * 0.6, h2);
     }
-    let tmr = 0, lastW = 0, lastH = 0;
-    const schedule = () => { clearTimeout(tmr); tmr = setTimeout(() => { if (Math.abs(shell.clientWidth - lastW) > 4 || Math.abs(shell.clientHeight - lastH) > 80) { lastW = shell.clientWidth; lastH = shell.clientHeight; paint(); } }, 120); };
-    new ResizeObserver(schedule).observe(shell);
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { lastW = 0; schedule(); });
-    new MutationObserver(() => { lastW = 0; schedule(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    paint(); lastW = shell.clientWidth; lastH = shell.clientHeight;
+    let tmr = 0, lw = 0, lh = 0;
+    const later = () => { clearTimeout(tmr); tmr = setTimeout(() => { if (Math.abs(shell.clientWidth - lw) > 4 || Math.abs(shell.clientHeight - lh) > 80) { lw = shell.clientWidth; lh = shell.clientHeight; paint(); } }, 120); };
+    new ResizeObserver(later).observe(shell);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { lw = 0; later(); });
+    new MutationObserver(() => { lw = 0; later(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    paint(); lw = shell.clientWidth; lh = shell.clientHeight;
   })();
 </script>
