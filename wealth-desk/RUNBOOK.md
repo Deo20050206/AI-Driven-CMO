@@ -17,9 +17,34 @@ Five pages, swipe or tap between them:
 - **Market**: index tiles, Nifty chart, 3-day market review, catalysts, signals.
 - **Scorecard**: every idea scored against real prices.
 
-Page files live in the dashboard's store, mirrored in this folder: `index.html` → `files/index.html`, `art.js` → `files/art.js`
-(the daily wallpaper: a new matte scene each date, such as a city at night, coastline, peaks, plant, a word in arrows or window light on a wall; drawn on the first screen with its ground colour carried down the whole page, theme-aware, no network). Publish a page change with
-ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`. The accepted v1 page is kept at `versions/v1/index.html`.
+Page files live in the dashboard's store, mirrored in this folder: `index.html` → `files/index.html`, `art.js` → `files/art.js`.
+Publish a page change with ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`. The accepted v1 page
+is kept at `versions/v1/index.html`.
+
+## Wallpapers (keep adding new ones)
+The background is one of Dev's chosen images, a different one each day: dark images in dark mode, light ones in light mode.
+The page dims dark images and softens the top so the text stays readable. If no image loads, `art.js` draws a scene instead.
+- `wallpapers/index.json` (dataset `wallpapers`) lists every image: id, name, tone (dark/light), added, source, url.
+- Each image is its own small dataset `wp_N` (file `wallpapers/wp_N.json`, one row with a JPEG data URL), so only today's loads.
+- Sources Dev picked are in `wallpapers/src/`.
+
+**Habit, every week (Mondays) and whenever Dev sends or drops images:**
+1. **Dev's images first.** Images pasted in chat, or new files in `~/Documents/Claude/Projects/` (or `Projects/Wallpapers/`)
+   on Dev's Mac when it is attached, are always added. From the Mac: shrink with `sips -s format jpeg -s formatOptions 55
+   --resampleWidth 600`, then push them to `wealth-desk/wallpapers/src/` on this branch with `gh api -X PUT .../contents/...`
+   and pull here.
+2. **Then find 2 new ones yourself** that match Dev's taste. His board: dark matte phone wallpapers with a big empty sky and
+   one quiet subject low down (night city with a few lit windows, plant silhouette, coastline with a line of surf, misty
+   valleys, a lone snow peak, wildflowers or a small bouquet on black, the Chrome dino on a horizon), and for light mode warm
+   interiors in window light (a vase with a sprig, a succulent, a desk), line-drawn mountains, a desert tree at sunset.
+   Portrait, minimal, no text, no people, no logos. Use only images whose license allows this use (Unsplash or Pexels
+   licence, public domain); never Pinterest pins, which are other people's uploads. Record the photographer and page in
+   `--source` and `--url`. If those sites are blocked, say so in the brief and skip this step.
+3. `python wallpapers/add.py IMAGE... [--name ...] [--source ...] [--url ...]` writes `wp_N.json` and updates `index.json`.
+4. Upload each new `wp_N.json` and `index.json` with Artifact publish (`asset: true`, the dashboard url). Then one ArtifactData
+   batch: `set datasets/wp_N` (`kind: file`, `fixed: true`, title "Wallpaper: <name>") and `update datasets/wallpapers` with the
+   new `source.url` and `updated`. Commit `wallpapers/` and push.
+5. Keep the rotation fresh: past 30 images per tone, remove the oldest you added yourself (never Dev's) from `index.json`.
 
 Kite login: when live holdings fail, the page shows a **Log in to Kite** button (the connector's `login` link) and **Refresh**;
 the card disappears once live holdings load. If only Kite's cash call fails, the status reads "Live · cash saved".

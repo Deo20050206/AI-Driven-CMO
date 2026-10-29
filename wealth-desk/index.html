@@ -186,7 +186,7 @@
 </style>
 
 <div class="wd-shell" id="wd-shell">
-<canvas class="wd-bg" id="wd-bg" aria-hidden="true" data-source="wp_1"></canvas>
+<canvas class="wd-bg" id="wd-bg" aria-hidden="true" data-source="wallpapers"></canvas>
 <div class="wd" id="wd">
   <header class="wd-top" id="top">
     <div class="wd-titlebox">
@@ -1107,15 +1107,20 @@
     // The Claude app's frame grows with the page, so nothing can be pinned to the screen. Instead the scene
     // is drawn on the first screen and its ground colour runs down the whole page, so there is never an edge.
     let lw = 0, lh = 0, raf = 0;
-    // Dev's own wallpapers, one per day. Each is its own small dataset, so only today's image loads.
-    // Add one: upload wp_N.json ([{name, width, height, src: data URL}]), add datasets/wp_N, add 'wp_N' here.
-    const WALLPAPERS = ['wp_1', 'wp_2', 'wp_3', 'wp_4'];
+    // Dev's wallpapers, one per day. The `wallpapers` list says which exist and whether each suits dark or light;
+    // each image is its own small dataset (wp_N), so only today's loads. New images only need a list entry.
     const today = () => { const n = new Date(); return Math.floor(Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) / 864e5); };
-    const wpId = WALLPAPERS[today() % WALLPAPERS.length];
-    cv.dataset.source = wpId;
-    let img = null, imgFor = '';
-    function wallpaper() {
-      const s = window.dash ? dash.data(wpId) : null;
+    let img = null, imgFor = '', wpTone = 'dark';
+    function pickWallpaper(dark) {
+      const L = window.dash ? dash.data('wallpapers') : null;
+      if (!L || L.status !== 'ok' || !L.data.length) return null;
+      const want = dark ? 'dark' : 'light', pool = L.data.filter((w) => w.tone === want), list = pool.length ? pool : L.data;
+      const w = list[today() % list.length]; wpTone = w.tone; return w.id;
+    }
+    function wallpaper(dark) {
+      const wpId = pickWallpaper(dark);
+      cv.dataset.source = wpId ? 'wallpapers ' + wpId : 'wallpapers';
+      const s = wpId ? dash.data(wpId) : null;
       if (!s || s.status !== 'ok' || !s.data.length) return null;
       const src = s.data[0].src;
       if (imgFor !== src) { imgFor = src; img = new Image(); img.onload = () => later(true); img.src = src; }
@@ -1128,7 +1133,7 @@
       const dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(12e6 / (W * full)));
       cv.style.height = full + 'px';
       cv.width = Math.round(W * dpr); cv.height = Math.round(full * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const dark = isDark(), im = wallpaper();
+      const dark = isDark(), im = wallpaper(dark);
       if (im) {
         // cover the first screen, anchored to the bottom where these pictures keep their subject
         const k = Math.max(W / im.naturalWidth, VH / im.naturalHeight), iw = im.naturalWidth * k, ih = im.naturalHeight * k;
@@ -1137,6 +1142,9 @@
         if (dark) {
           ctx.fillStyle = 'rgba(0,0,0,0.28)'; ctx.fillRect(0, 0, W, VH);
           const g = ctx.createLinearGradient(0, 0, 0, VH * 0.45); g.addColorStop(0, 'rgba(0,0,0,0.55)'); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, VH * 0.45);
+        } else if (wpTone === 'light') {
+          ctx.fillStyle = 'rgba(250,249,245,0.22)'; ctx.fillRect(0, 0, W, VH);
+          const g = ctx.createLinearGradient(0, 0, 0, VH * 0.45); g.addColorStop(0, 'rgba(250,249,245,0.6)'); g.addColorStop(1, 'rgba(250,249,245,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, W, VH * 0.45);
         } else {
           ctx.fillStyle = 'rgba(248,246,241,0.8)'; ctx.fillRect(0, 0, W, VH);
         }
@@ -1151,7 +1159,7 @@
       }
       lw = W; lh = full;
     }
-    if (window.dash) dash.onData(() => { if (dash.data(wpId).status === 'ok' && !img) wallpaper(); });
+    if (window.dash) dash.onData(() => { if (!img || !img.complete) wallpaper(isDark()); });
     // Repaint in the same frame a size change lands, so the art is never seen stretched.
     const later = (force) => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (force || Math.abs(shell.clientWidth - lw) > 4 || shell.clientHeight !== lh) paint(); }); };
     new ResizeObserver(() => later(false)).observe(shell);
