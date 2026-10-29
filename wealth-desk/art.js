@@ -149,6 +149,126 @@
       sprig(vx, vy + 2, dark ? hsl(90, 10, 38) : hsl(100, 12, 30), 1, false);
       const bx = vx + vw * 0.75; [0, 1, 2].forEach((k) => { c.fillStyle = dark ? hsl(35, 6, 22 + k * 3) : hsl(36, 14, 93 - k * 3); c.fillRect(bx + (r() - 0.5) * 6, table - (k + 1) * H * 0.016, W * 0.3, H * 0.015); });
     },
+    valley(c, W, H, T, r, dark) {
+      // slopes folding in from both sides, mist pooling between them, one thin road winding up the valley
+      const n = 6, sky = dark ? [8, 30] : [92, 40];
+      for (let i = 0; i < n; i++) {
+        const t = i / (n - 1), L = dark ? 14 - t * 9 : 84 - t * 62, col = hsl(T.h, 14, L), fromLeft = i % 2 === 0, y0 = H * (0.5 + t * 0.32), slope = 0.35 + r() * 0.25;
+        P(c); if (fromLeft) { c.moveTo(-10, y0 - W * slope * 0.2); c.quadraticCurveTo(W * 0.35, y0 - H * 0.02, W * (0.65 + r() * 0.3), y0 + W * slope * 0.55); c.lineTo(-10, H); }
+        else { c.moveTo(W + 10, y0 - W * slope * 0.2); c.quadraticCurveTo(W * 0.65, y0 - H * 0.02, W * (0.35 - r() * 0.3), y0 + W * slope * 0.55); c.lineTo(W + 10, H); }
+        c.closePath(); c.fillStyle = col; c.fill();
+        // mist: the next ridge fades in softly from the haze above it
+        const fog = c.createLinearGradient(0, y0 - H * 0.04, 0, y0 + H * 0.06); fog.addColorStop(0, hsl(T.h, 14, dark ? 12 : 90, dark ? 0.35 : 0.6)); fog.addColorStop(1, hsl(T.h, 14, dark ? 12 : 90, 0));
+        c.save(); c.clip(); c.fillStyle = fog; c.fillRect(0, y0 - H * 0.04, W, H * 0.1); c.restore();
+      }
+      P(c).moveTo(W * 0.42, H * 0.86); c.bezierCurveTo(W * 0.6, H * 0.82, W * 0.5, H * 0.77, W * 0.8, H * 0.72); c.lineWidth = 1.1; c.strokeStyle = T.lit + (dark ? '0.3)' : '0.5)'); c.stroke();
+    },
+    succulent(c, W, H, T, r, dark) {
+      // warm wall, sun falling through in diagonal bands, a potted succulent on a ledge
+      const wall = c.createLinearGradient(0, 0, W, H); wall.addColorStop(0, dark ? hsl(28, 10, 12) : hsl(32, 40, 90)); wall.addColorStop(1, dark ? hsl(28, 8, 8) : hsl(28, 30, 82)); c.fillStyle = wall; c.fillRect(0, 0, W, H);
+      c.save(); if ('filter' in c) c.filter = 'blur(6px)';
+      const beam = dark ? 'rgba(210,200,180,0.05)' : 'rgba(255,236,205,0.6)', sh = dark ? 'rgba(0,0,0,0.25)' : 'rgba(150,110,80,0.14)', a = -0.55 - r() * 0.2;
+      c.translate(W * 0.5, H * 0.4); c.rotate(a); c.fillStyle = beam; c.fillRect(-W * 1.5, -H * 0.06, W * 3, H * 0.32); c.fillStyle = sh; c.fillRect(-W * 1.5, H * 0.02, W * 3, H * 0.018); c.fillRect(-W * 1.5, H * 0.17, W * 3, H * 0.012); c.restore();
+      const ledge = H * 0.88; c.fillStyle = dark ? hsl(28, 10, 15) : hsl(30, 30, 85); c.fillRect(0, ledge, W, H - ledge);
+      const px = W * (0.6 + r() * 0.15), pw = W * 0.24, ph = H * 0.08, py = ledge - ph;
+      for (let i = 0; i < 11; i++) { const ang = -PI / 2 + (i - 5) * 0.2 + (r() - 0.5) * 0.08, len = H * (0.06 + (1 - Math.abs(i - 5) / 5) * 0.07); const tx = px + Math.cos(ang) * len * 1.3, ty = py + Math.sin(ang) * len * 1.3;
+        P(c).moveTo(px - 6, py + 2); c.quadraticCurveTo((px + tx) / 2 - 4, (py + ty) / 2, tx, ty); c.quadraticCurveTo((px + tx) / 2 + 4, (py + ty) / 2, px + 6, py + 2); c.closePath(); c.fillStyle = dark ? hsl(100, 10, 22 + (i % 3) * 3) : hsl(95, 18, 42 + (i % 3) * 6); c.fill(); }
+      P(c).moveTo(px - pw / 2, py); c.lineTo(px + pw / 2, py); c.quadraticCurveTo(px + pw / 2, py + ph, px, py + ph); c.quadraticCurveTo(px - pw / 2, py + ph, px - pw / 2, py); c.closePath(); c.fillStyle = dark ? hsl(30, 8, 26) : hsl(36, 30, 94); c.fill();
+    },
+    inkPeaks(c, W, H, T, r, dark) {
+      // fine-line mountains with hatching, a thin arc of sun behind the tallest peak, drifting snow lines
+      const ink = dark ? 'rgba(230,226,216,0.55)' : 'rgba(40,44,52,0.7)', base = H * (0.78 + r() * 0.04), peaks = [];
+      for (let i = 0; i < 5; i++) peaks.push([W * (i + 0.5) / 5 + (r() - 0.5) * W * 0.1, base - H * (0.06 + r() * (i === 2 ? 0.12 : 0.08))]);
+      const top = peaks.reduce((m, p) => (p[1] < m[1] ? p : m));
+      P(c).arc(top[0], top[1] + H * 0.03, W * 0.2, PI * 1.05, PI * 1.95); c.lineWidth = 1; c.strokeStyle = ink; c.stroke();
+      peaks.forEach(([x, y], i) => {
+        const w = W * (0.22 + r() * 0.1); P(c).moveTo(x - w, base); c.lineTo(x, y); c.lineTo(x + w, base); c.closePath(); c.fillStyle = T.skyLow; c.fill(); c.lineWidth = 1; c.strokeStyle = ink; c.stroke();
+        c.save(); P(c).moveTo(x, y); c.lineTo(x + w, base); c.lineTo(x + w * 0.1, base); c.closePath(); c.clip(); c.lineWidth = 0.5; for (let k = -H; k < H; k += 3.2) { P(c).moveTo(x - w, y + k); c.lineTo(x + w, y + k - w * 0.9); c.strokeStyle = ink; c.stroke(); } c.restore();
+        P(c).moveTo(x, y); c.lineTo(x + w * 0.12, y + (base - y) * 0.5); c.lineTo(x + w * 0.05, base); c.lineWidth = 0.8; c.strokeStyle = ink; c.stroke();
+      });
+      c.fillStyle = T.skyLow; c.fillRect(0, base, W, H - base);
+      for (let k = 0; k < 5; k++) { const y = base + 8 + k * (H - base) / 5; P(c).moveTo(-10, y); c.bezierCurveTo(W * 0.3, y - 10 - r() * 10, W * 0.6, y + 8, W + 10, y - 6); c.lineWidth = 0.8; c.strokeStyle = ink; c.stroke(); }
+    },
+    desertTree(c, W, H, T, r, dark) {
+      // a soft sunset over pale sand, distant hills, one bare tree, ripples in the sand
+      const sky = c.createLinearGradient(0, 0, W * 0.3, H * 0.75);
+      if (dark) { sky.addColorStop(0, hsl(230, 14, 9)); sky.addColorStop(0.7, hsl(20, 22, 16)); sky.addColorStop(1, hsl(32, 35, 24)); }
+      else { sky.addColorStop(0, hsl(40, 25, 95)); sky.addColorStop(0.55, hsl(20, 60, 88)); sky.addColorStop(0.85, hsl(38, 85, 78)); }
+      c.fillStyle = sky; c.fillRect(0, 0, W, H);
+      c.save(); if ('filter' in c) c.filter = 'blur(18px)'; for (let i = 0; i < 4; i++) { P(c).ellipse(W * (0.3 + r() * 0.7), H * (0.3 + r() * 0.35), W * (0.4 + r() * 0.3), H * 0.035, -0.15, 0, TAU); c.fillStyle = dark ? 'rgba(120,90,80,0.12)' : 'rgba(225,175,165,0.35)'; c.fill(); } c.restore();
+      const hz = H * (0.76 + r() * 0.03), n = ridge(r, 3);
+      P(c).moveTo(0, hz); for (let x = 0; x <= W; x += 4) c.lineTo(x, hz - Math.max(0, n(x / W)) * H * 0.04); c.lineTo(W, hz); c.closePath(); c.fillStyle = dark ? hsl(25, 12, 18) : hsl(25, 20, 74); c.fill();
+      c.fillStyle = dark ? hsl(30, 12, 14) : hsl(32, 22, 86); c.fillRect(0, hz, W, H - hz);
+      for (let y = hz + 8; y < H; y += 7 + (y - hz) * 0.08) { P(c).moveTo(-10, y); for (let x = 0; x <= W + 10; x += 24) c.quadraticCurveTo(x + 6, y - 2 - r() * 2, x + 12, y); c.lineWidth = 0.8; c.strokeStyle = dark ? 'rgba(0,0,0,0.25)' : 'rgba(120,95,70,0.14)'; c.stroke(); }
+      const tx = W * (0.55 + r() * 0.2), ink = dark ? hsl(25, 15, 6) : hsl(20, 15, 18); c.strokeStyle = ink; c.lineCap = 'round';
+      const br = (x, y, len, a, d) => { if (d <= 0) return; const ex = x + Math.cos(a) * len, ey = y + Math.sin(a) * len; P(c).moveTo(x, y); c.lineTo(ex, ey); c.lineWidth = Math.max(0.5, d * 0.7); c.stroke(); br(ex, ey, len * 0.74, a - 0.3 - r() * 0.35, d - 1); br(ex, ey, len * 0.74, a + 0.3 + r() * 0.35, d - 1); if (d < 4 && r() > 0.5) br(ex, ey, len * 0.6, a + (r() - 0.5), d - 2); };
+      br(tx, hz + 2, H * 0.06, -PI / 2, 8);
+    },
+    wildflowers(c, W, H, T, r, dark) {
+      // thin stems rising from below, small pale flowers and buds, almost lost in the dark
+      const ink = dark ? 'rgba(160,170,140,0.5)' : 'rgba(90,100,80,0.55)', petal = dark ? 'rgba(236,232,220,0.85)' : 'rgba(255,255,255,0.95)', ctr = dark ? 'rgba(210,190,120,0.9)' : 'rgba(190,160,80,0.9)';
+      const bx = W * (0.15 + r() * 0.5), n = 9 + Math.floor(r() * 6);
+      for (let i = 0; i < n; i++) {
+        const x0 = bx + (r() - 0.5) * W * 0.3, tx = x0 + (r() - 0.5) * W * 0.35, ty = H * (0.42 + r() * 0.4);
+        P(c).moveTo(x0, H + 5); c.quadraticCurveTo(x0 + (tx - x0) * 0.2, (H + ty) / 2, tx, ty); c.lineWidth = 0.9; c.strokeStyle = ink; c.stroke();
+        if (r() > 0.35) { for (let k = 0; k < 8; k++) { const a = (k / 8) * TAU; P(c).ellipse(tx + Math.cos(a) * 4, ty + Math.sin(a) * 2.6, 3, 1.4, a, 0, TAU); c.fillStyle = petal; c.fill(); } P(c).arc(tx, ty, 2.2, 0, TAU); c.fillStyle = ctr; c.fill(); }
+        else { P(c).arc(tx, ty, 2.6, 0, TAU); c.fillStyle = petal; c.fill(); }
+      }
+    },
+    lonePeak(c, W, H, T, r, dark) {
+      // one snow peak floating in the middle of an empty field, lit from the left
+      const x = W * (0.45 + r() * 0.1), y = H * (0.52 + r() * 0.06), w = W * (0.38 + r() * 0.08), h = H * (0.12 + r() * 0.04);
+      const snow = dark ? 'rgba(225,228,232,0.85)' : 'rgba(255,255,255,0.95)', rock = dark ? hsl(T.h, 6, 16) : hsl(T.h, 8, 62), shade = dark ? hsl(T.h, 6, 10) : hsl(T.h, 8, 48);
+      const g = c.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, rock); g.addColorStop(1, dark ? hsl(T.h, 6, 9, 0) : hsl(T.h, 8, 80, 0));
+      fillPoly(c, [[x - w, y + h], [x - w * 0.35, y + h * 0.35], [x - w * 0.2, y + h * 0.45], [x, y], [x + w * 0.28, y + h * 0.4], [x + w * 0.42, y + h * 0.3], [x + w, y + h]], g);
+      fillPoly(c, [[x, y], [x + w * 0.28, y + h * 0.4], [x + w * 0.1, y + h * 0.9], [x + w * 0.05, y + h * 0.4]], shade);
+      fillPoly(c, [[x, y], [x - w * 0.12, y + h * 0.3], [x - w * 0.04, y + h * 0.26], [x - w * 0.02, y + h * 0.4], [x + w * 0.06, y + h * 0.22], [x + w * 0.1, y + h * 0.15]], snow);
+      fillPoly(c, [[x - w * 0.35, y + h * 0.35], [x - w * 0.45, y + h * 0.5], [x - w * 0.3, y + h * 0.45]], snow);
+      fillPoly(c, [[x + w * 0.42, y + h * 0.3], [x + w * 0.36, y + h * 0.42], [x + w * 0.48, y + h * 0.38]], snow);
+      for (let k = 0; k < 7; k++) { const sx = x - w * 0.5 + r() * w, sy = y + h * (0.45 + r() * 0.3); P(c).moveTo(sx, sy); c.lineTo(sx + (r() - 0.3) * w * 0.15, sy + h * 0.25); c.lineWidth = 0.8; c.strokeStyle = snow.replace(/[\d.]+\)$/, '0.35)'); c.stroke(); }
+    },
+    blinds(c, W, H, T, r, dark) {
+      // a pale wall with window light broken into soft panes, a desk edge, a laptop corner and a glass
+      c.fillStyle = dark ? hsl(40, 3, 12) : hsl(40, 6, 86); c.fillRect(0, 0, W, H);
+      c.save(); if ('filter' in c) c.filter = 'blur(8px)';
+      const col = dark ? 'rgba(220,220,210,0.05)' : 'rgba(255,255,255,0.55)', ox = W * (0.05 + r() * 0.2), sk = -0.25 - r() * 0.2;
+      c.translate(ox, 0); c.transform(1, sk, 0, 1, 0, 0);
+      for (let i = 0; i < 3; i++) for (let j = 0; j < 7; j++) if (r() > 0.15) { c.fillStyle = col; c.fillRect(i * W * 0.28, H * 0.05 + j * H * 0.11, W * 0.2, H * 0.085); }
+      c.restore();
+      const desk = H * 0.86; P(c).moveTo(0, desk); c.lineTo(W, desk + 6); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fillStyle = dark ? hsl(40, 3, 16) : hsl(40, 6, 92); c.fill();
+      fillPoly(c, [[W * 0.42, desk - H * 0.02], [W * 0.95, desk - H * 0.03], [W * 0.95, desk - H * 0.0], [W * 0.42, desk + 2]], dark ? hsl(0, 0, 5) : hsl(0, 0, 14));
+      fillPoly(c, [[-4, desk - H * 0.1], [W * 0.18, desk - H * 0.11], [W * 0.21, desk + 4], [-4, desk + 6]], dark ? hsl(220, 4, 24) : hsl(220, 6, 96));
+      const gx = W * (0.6 + r() * 0.1), gw = W * 0.06, gh = H * 0.06; c.fillStyle = dark ? 'rgba(200,200,200,0.12)' : 'rgba(255,255,255,0.6)'; c.fillRect(gx, desk - gh + 4, gw, gh);
+      c.fillStyle = dark ? 'rgba(140,105,80,0.5)' : 'rgba(160,120,90,0.55)'; c.fillRect(gx + 1, desk - gh * 0.3 + 4, gw - 2, gh * 0.3 - 1);
+      c.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'; c.lineWidth = 0.6; for (let x = gx + 3; x < gx + gw; x += 3) { P(c).moveTo(x, desk - gh + 6); c.lineTo(x, desk + 2); c.stroke(); }
+    },
+    bouquet(c, W, H, T, r, dark) {
+      // a small loose bouquet laid on the dark, white blooms with a few dusty pinks
+      const x = W * (0.45 + r() * 0.1), y = H * (0.48 + r() * 0.05), s = Math.min(W, H) * 0.22;
+      const stem = dark ? 'rgba(130,150,120,0.7)' : 'rgba(90,110,80,0.7)', white = dark ? 'rgba(240,236,224,0.92)' : 'rgba(255,255,255,0.98)', pinks = ['rgba(205,150,160,0.9)', 'rgba(150,70,90,0.85)', 'rgba(225,175,180,0.9)'];
+      const heads = []; for (let i = 0; i < 16; i++) { const a = -PI / 2 + (r() - 0.5) * 1.3, l = s * (0.45 + r() * 0.5); heads.push([x + Math.cos(a) * l, y - s * 0.1 + Math.sin(a) * l]); }
+      heads.forEach(([hx, hy]) => { P(c).moveTo(x + (r() - 0.5) * 4, y + s * 0.75); c.quadraticCurveTo(x, y + s * 0.1, hx, hy); c.lineWidth = 0.8; c.strokeStyle = stem; c.stroke(); });
+      for (let i = 0; i < 5; i++) { const lx = x + (r() - 0.5) * s * 0.5, ly = y + s * (r() * 0.3); c.save(); c.translate(lx, ly); c.rotate((r() - 0.5) * 2); P(c).ellipse(0, 0, 2.5, 8, 0, 0, TAU); c.fillStyle = stem; c.fill(); c.restore(); }
+      heads.forEach(([hx, hy], i) => {
+        if (i % 4 === 0) { for (let k = 0; k < 6; k++) { const a = (k / 6) * TAU + i; P(c).ellipse(hx + Math.cos(a) * 4, hy + Math.sin(a) * 4, 4.5, 3.2, a, 0, TAU); c.fillStyle = white; c.fill(); } }
+        else if (i % 4 === 1) { P(c).arc(hx, hy, 3.6, 0, TAU); c.fillStyle = pick(r, pinks); c.fill(); }
+        else for (let k = 0; k < 4; k++) { P(c).arc(hx + (r() - 0.5) * 7, hy + (r() - 0.5) * 7, 1.4, 0, TAU); c.fillStyle = white; c.fill(); }
+      });
+    },
+    curtainPlant(c, W, H, T, r, dark) {
+      // a dim room: light through a curtain falls on the wall in soft vertical folds, a snake plant on the table casts its shadow
+      c.fillStyle = dark ? hsl(30, 3, 11) : hsl(35, 6, 84); c.fillRect(0, 0, W, H);
+      const top = H * (0.34 + r() * 0.05), bot = H * 0.74, rx = W * (0.6 + r() * 0.15);
+      c.save(); if ('filter' in c) c.filter = 'blur(3px)';
+      for (let x = 0; x < rx; x += 5) { const k = 0.5 + 0.5 * Math.sin(x * 0.09 + r() * 0.6); c.fillStyle = dark ? `rgba(215,200,180,${0.06 + k * 0.08})` : `rgba(255,250,240,${0.25 + k * 0.35})`; c.fillRect(x, top, 5.5, bot - top); }
+      c.restore();
+      const table = H * 0.72; P(c).moveTo(0, table + H * 0.06); c.lineTo(W, table - H * 0.02); c.lineTo(W, H); c.lineTo(0, H); c.closePath(); c.fillStyle = dark ? hsl(30, 3, 15) : hsl(35, 6, 90); c.fill();
+      const px = W * (0.66 + r() * 0.08), pw = W * 0.2, ph = H * 0.1, py = table + H * 0.02 - ph;
+      const leaves = (bx, by, col, sc) => { for (let i = 0; i < 6; i++) { const a = -PI / 2 + (i - 2.5) * 0.28, l = H * (0.06 + (i % 3) * 0.025) * sc, tx = bx + Math.cos(a) * l, ty = by + Math.sin(a) * l; P(c).moveTo(bx - 5 * sc, by); c.quadraticCurveTo((bx + tx) / 2 - 7 * sc, (by + ty) / 2, tx, ty); c.quadraticCurveTo((bx + tx) / 2 + 7 * sc, (by + ty) / 2, bx + 5 * sc, by); c.closePath(); c.fillStyle = col; c.fill(); } };
+      c.save(); if ('filter' in c) c.filter = 'blur(2px)'; leaves(px - W * 0.28, py - H * 0.02, dark ? 'rgba(0,0,0,0.35)' : 'rgba(60,55,50,0.2)', 0.9); c.fillStyle = dark ? 'rgba(0,0,0,0.3)' : 'rgba(60,55,50,0.16)'; c.fillRect(px - W * 0.28 - pw * 0.4, py, pw * 0.8, ph * 0.8); c.restore();
+      leaves(px, py + 2, dark ? hsl(110, 10, 18) : hsl(110, 14, 30), 1);
+      c.fillStyle = dark ? hsl(35, 4, 30) : hsl(35, 8, 95); c.fillRect(px - pw / 2, py, pw, ph); P(c).ellipse(px, py, pw / 2, 4, 0, 0, TAU); c.fillStyle = dark ? hsl(35, 4, 20) : hsl(35, 8, 80); c.fill();
+    },
   };
   const NAMES = Object.keys(SCENES);
 
