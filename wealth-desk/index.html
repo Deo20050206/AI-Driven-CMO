@@ -13,7 +13,7 @@
     -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   }
   .wd-shell [hidden] { display: none !important; }
-  .wd-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
+  .wd-bg { position: absolute; top: 0; left: 0; width: 100%; z-index: -1; pointer-events: none; display: block; }
   .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: 40px; }
   .wd p { margin: 0; }
   .wd h1 { font-family: var(--wd-serif); font-size: 2rem; line-height: 1.1; font-weight: 400; margin: 0; }
@@ -1104,20 +1104,31 @@
     if (!shell || !cv || !window.wdArt) return;
     const ctx = cv.getContext('2d');
     const isDark = () => matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
-    // A wallpaper pinned to the screen: it stays still while the page scrolls or the tab changes.
-    // Repaint only when the screen's size or the theme changes.
+    // The Claude app's frame grows with the page, so nothing can be pinned to the screen. Instead the scene
+    // is drawn on the first screen and its ground colour runs down the whole page, so there is never an edge.
+    let lw = 0, lh = 0, raf = 0;
     function paint() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2), W = cv.clientWidth, H = cv.clientHeight;
-      if (!W || !H) return;
-      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const W = shell.clientWidth, full = shell.clientHeight;
+      if (!W || !full) return;
+      const VH = Math.min(window.screen && screen.height ? screen.height : 844, 1000, full);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2, Math.sqrt(12e6 / (W * full)));
+      cv.style.height = full + 'px';
+      cv.width = Math.round(W * dpr); cv.height = Math.round(full * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const now = new Date(), day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 864e5);
-      window.wdArt.paint(ctx, W, H, H, day, isDark());
+      window.wdArt.paint(ctx, W, VH, VH, day, isDark());
+      if (full > VH) {
+        const row = ctx.getImageData(0, Math.max(0, Math.round((VH - 2) * dpr)), cv.width, 1).data;
+        let rr = 0, gg = 0, bb = 0; const n = row.length / 4;
+        for (let i = 0; i < row.length; i += 4) { rr += row[i]; gg += row[i + 1]; bb += row[i + 2]; }
+        ctx.fillStyle = `rgb(${Math.round(rr / n)},${Math.round(gg / n)},${Math.round(bb / n)})`; ctx.fillRect(0, VH - 1, W, full - VH + 1);
+      }
+      lw = W; lh = full;
     }
-    let tmr = 0, lw = 0, lh = 0;
-    const later = (force) => { clearTimeout(tmr); tmr = setTimeout(() => { if (force || Math.abs(cv.clientWidth - lw) > 4 || Math.abs(cv.clientHeight - lh) > 120) { lw = cv.clientWidth; lh = cv.clientHeight; paint(); } }, 120); };
-    new ResizeObserver(() => later(false)).observe(cv);
+    // Repaint in the same frame a size change lands, so the art is never seen stretched.
+    const later = (force) => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (force || Math.abs(shell.clientWidth - lw) > 4 || shell.clientHeight !== lh) paint(); }); };
+    new ResizeObserver(() => later(false)).observe(shell);
     matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => later(true));
     new MutationObserver(() => later(true)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    paint(); lw = cv.clientWidth; lh = cv.clientHeight;
+    paint();
   })();
 </script>

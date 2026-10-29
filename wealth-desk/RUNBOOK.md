@@ -18,7 +18,7 @@ Five pages, swipe or tap between them:
 - **Scorecard**: every idea scored against real prices.
 
 Page files live in the dashboard's store, mirrored in this folder: `index.html` → `files/index.html`, `art.js` → `files/art.js`
-(the daily wallpaper: a new matte scene each date, such as a city at night, coastline, peaks, plant, a word in arrows or window light on a wall; pinned to the screen, theme-aware, no network). Publish a page change with
+(the daily wallpaper: a new matte scene each date, such as a city at night, coastline, peaks, plant, a word in arrows or window light on a wall; drawn on the first screen with its ground colour carried down the whole page, theme-aware, no network). Publish a page change with
 ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`. The accepted v1 page is kept at `versions/v1/index.html`.
 
 Kite login: when live holdings fail, the page shows a **Log in to Kite** button (the connector's `login` link) and **Refresh**;
