@@ -13,7 +13,7 @@
     -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   }
   .wd-shell [hidden] { display: none !important; }
-  .wd-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
+  .wd-bg { position: absolute; top: 0; left: 0; width: 100%; z-index: -1; pointer-events: none; display: block; }
   .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: 40px; }
   .wd p { margin: 0; }
   .wd h1 { font-family: var(--wd-serif); font-size: 2rem; line-height: 1.1; font-weight: 400; margin: 0; }
@@ -1104,18 +1104,20 @@
     if (!shell || !cv || !window.wdArt) return;
     const ctx = cv.getContext('2d');
     const isDark = () => matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
+    // Repaint only when the width or theme changes: switching tabs changes the page's length, never the art.
     function paint() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2), W = shell.clientWidth, H = shell.clientHeight;
-      if (!W || !H) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2), W = shell.clientWidth, H = Math.min(window.innerHeight || 900, 900);
+      if (!W) return;
+      cv.style.height = H + 'px';
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const now = new Date(), day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 864e5);
-      window.wdArt.paint(ctx, W, H, Math.min(H, window.innerHeight || 900, 900), day, isDark());
+      window.wdArt.paint(ctx, W, H, H, day, isDark());
     }
-    let tmr = 0, lw = 0, lh = 0;
-    const later = () => { clearTimeout(tmr); tmr = setTimeout(() => { if (Math.abs(shell.clientWidth - lw) > 4 || Math.abs(shell.clientHeight - lh) > 80) { lw = shell.clientWidth; lh = shell.clientHeight; paint(); } }, 120); };
-    new ResizeObserver(later).observe(shell);
-    matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { lw = 0; later(); });
-    new MutationObserver(() => { lw = 0; later(); }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    paint(); lw = shell.clientWidth; lh = shell.clientHeight;
+    let tmr = 0, lw = 0;
+    const later = (force) => { clearTimeout(tmr); tmr = setTimeout(() => { if (force || Math.abs(shell.clientWidth - lw) > 4) { lw = shell.clientWidth; paint(); } }, 120); };
+    new ResizeObserver(() => later(false)).observe(shell);
+    matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => later(true));
+    new MutationObserver(() => later(true)).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    paint(); lw = shell.clientWidth;
   })();
 </script>
