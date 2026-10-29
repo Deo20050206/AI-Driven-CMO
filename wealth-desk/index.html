@@ -98,26 +98,29 @@
   .wd-stack { display: grid; gap: 16px; }
 
   /* Segmented toggle: responds on press */
-  .wd-toggle { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: color-mix(in srgb, var(--color-fg) 7%, transparent); }
-  .wd-toggle button { font: inherit; font-size: .78rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; border-radius: 7px; padding: 5px 10px; min-height: 30px; cursor: pointer; transition: transform 100ms ease-out; }
-  .wd-toggle button[aria-pressed="true"] { color: var(--color-fg); background: var(--color-bg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
-  .wd-toggle button:active { transform: scale(.96); }
+  .wd-toggle { display: inline-flex; gap: 14px; }
+  .wd-toggle button { font: inherit; font-size: .82rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; border-bottom: 1.5px solid transparent;
+    padding: 4px 0; min-height: 32px; cursor: pointer; transition: color .15s ease-out; }
+  .wd-toggle button[aria-pressed="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); }
+  .wd-toggle button:active { opacity: .6; }
 
   /* Allocation heatmap (treemap): size = money, colour = move */
   .wd-tree { position: relative; height: clamp(240px, 56vw, 360px); }
-  .wd-cell { position: absolute; border-radius: 6px; overflow: hidden; padding: 8px 9px; display: grid; align-content: start; gap: 1px;
+  .wd-cell { position: absolute; box-sizing: border-box; border-radius: 6px; overflow: hidden; padding: 8px 9px; display: grid; align-content: start; gap: 1px;
     font-size: .78rem; font-variant-numeric: tabular-nums; line-height: 1.25; transition: transform 100ms ease-out; }
   .wd-cell:active { transform: scale(.98); }
   .wd-cell b { font-weight: 600; font-size: .86rem; letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .wd-cell .wd-cell-sub { color: var(--wd-sub); }
+  .wd-cell .wd-cell-sub { color: color-mix(in srgb, var(--color-fg) 75%, transparent); }
+  .wd-tree + .wd-tree-foot { margin-top: 10px; }
+  .wd-tree-foot { display: grid; gap: 6px; }
   .wd-scale { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--wd-sub); font-variant-numeric: tabular-nums; }
-  .wd-scale i { display: block; width: 96px; height: 6px; border-radius: 3px; }
+  .wd-scale i { display: block; width: 72px; height: 4px; border-radius: 2px; }
 
   /* Risk budget: bullet bars, stacked by holding */
   .wd-bullet { display: grid; gap: 6px; }
-  .wd-btrack { position: relative; height: 10px; border-radius: 5px; background: var(--wd-hair); }
-  .wd-bseg { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
-  .wd-btrack .wd-tick { top: -4px; bottom: -4px; }
+  .wd-btrack { position: relative; height: 6px; border-radius: 3px; background: var(--wd-hair); }
+  .wd-bseg { position: absolute; top: 0; bottom: 0; border-radius: 3px; }
+  .wd-btrack .wd-tick { top: -5px; bottom: -5px; }
   .wd-legend { display: grid; gap: 8px; padding-top: 4px; }
   .wd-lrow { display: grid; grid-template-columns: 10px 1fr auto auto; gap: 10px; align-items: center; font-size: .84rem; font-variant-numeric: tabular-nums; }
   .wd-sw { width: 10px; height: 10px; border-radius: 3px; }
@@ -270,7 +273,7 @@
         </div>
       </div>
       <div class="wd-tree" id="alloc" data-source="positions_LL"></div>
-      <div class="wd-row"><span class="wd-muted" data-tip="Stages|Under ₹2L the whole portfolio is the trading pool. From ₹2L, 30% moves into a stable core; from ₹5L, 50%.">Build stage: the whole portfolio is the trading pool</span><span class="wd-scale" id="alloc-scale"></span></div>
+      <div class="wd-tree-foot"><span class="wd-scale" id="alloc-scale"></span><span class="wd-muted" data-tip="Stages|Under ₹2L the whole portfolio is the trading pool. From ₹2L, 30% moves into a stable core; from ₹5L, 50%.">Build stage: the whole portfolio is the trading pool</span></div>
     </div>
     <div class="wd-grid2">
       <div class="wd-glass" id="risk-card">
@@ -433,7 +436,7 @@
       inputs: ['positions_' + k, 'portfolio_review', 'opportunity'],
       fn: (positions, review, opportunity) => {
         const total = positions.reduce((a, r) => a + r.value, 0);
-        const rows = review.filter((v) => v.sl != null && v.verdict !== 'Exit').map((v) => {
+        const rows = review.filter((v) => v.sl != null).map((v) => {
           const p = positions.find((x) => x.symbol === v.symbol);
           const keep = v.verdict === 'Trim' && v.keep_qty ? v.keep_qty : p ? p.qty : 0;
           const risk = p ? Math.max(p.ltp - v.sl, 0) * keep : 0;
@@ -778,7 +781,7 @@
   }
   // ---------- Portfolio: heatmap, risk budget, mix ----------
   const CLASS_ORDER = ['Direct stocks', 'Gold', 'Core funds & ETFs', 'Liquid / cash'];
-  const classColor = (k) => { const i = CLASS_ORDER.indexOf(k); return dash.colors[(i < 0 ? CLASS_ORDER.length : i) % dash.colors.length]; };
+  const classColor = (k) => { const i = CLASS_ORDER.indexOf(k); return `color-mix(in srgb, ${dash.colors[(i < 0 ? CLASS_ORDER.length : i) % dash.colors.length]} 75%, var(--color-bg))`; };
   const NEUTRAL = 'color-mix(in srgb, var(--color-fg) 7%, var(--color-bg))';
   // Diverging: red ← neutral grey → green, deeper with the size of the move, capped at ±span
   const heatFill = (p, span) => {
@@ -795,7 +798,10 @@
   function alloc(s) {
     const box = document.getElementById('alloc'), P = D('positions_' + s), sc = document.getElementById('alloc-scale');
     box.dataset.source = 'positions_' + s;
+    if (tipFor && box.contains(tipFor)) hideTip();
+    if (P.status === 'error') { sc.replaceChildren(); return failed(box); }
     if (P.status !== 'ok') { box.replaceChildren(); sc.replaceChildren(); return; }
+    if (!P.data.some((d) => d.value > 0)) { sc.replaceChildren(); return box.replaceChildren(el('div', 'wd-failed', 'No holdings yet')); }
     const W = box.clientWidth, H = box.clientHeight;
     if (!W || !H) return;
     const today = heat === 'today', span = today ? 0.03 : 0.2;
@@ -804,11 +810,13 @@
     d3.treemap().size([W, H]).paddingInner((n) => (n.depth === 0 ? 5 : 2)).round(true)(root);
     const total = root.value;
     box.replaceChildren(...root.leaves().map((n) => {
-      const r = n.data, p = today ? r.day_pct : r.pnl_pct, w = n.x1 - n.x0, h = n.y1 - n.y0;
+      const r = n.data, unknown = today && r.prev_missing, p = unknown ? 0 : today ? r.day_pct : r.pnl_pct, w = n.x1 - n.x0, h = n.y1 - n.y0;
+      const move = unknown ? '—' : pctS(p, today ? 2 : 1);
       const c = el('div', 'wd-cell'); c.dataset.key = r.symbol;
       Object.assign(c.style, { left: n.x0 + 'px', top: n.y0 + 'px', width: w + 'px', height: h + 'px', background: heatFill(p, span) });
-      if (w > 56 && h > 38) c.append(el('b', null, nameOf(r)), el('span', null, pctS(p, today ? 2 : 1)));
-      if (w > 56 && h > 70) c.append(el('span', 'wd-cell-sub', pct(r.value / total, 0) + ' · ' + lakh(r.value)));
+      if (w >= 90 && h >= 56) c.append(el('b', null, nameOf(r)), el('span', null, move));
+      else if (w >= 58 && h >= 34) c.append(el('b', null, move));
+      if (w >= 90 && h >= 76) c.append(el('span', 'wd-cell-sub', pct(r.value / total, 0) + ' · ' + lakh(r.value)));
       tip(c, nameOf(r), `${r.asset_class}. ${inr.format(r.value)}, ${pct(r.value / total)} of holdings. ` +
         (today ? (r.prev_missing ? 'Funds update once a day.' : `Today ${pctS(r.day_pct, 2)} (${inrS(r.day_pnl)}).`) : `Since bought ${pctS(r.pnl_pct)} (${inrS(r.pnl)}).`));
       return c;
@@ -821,7 +829,8 @@
   function bullet(label, used, cap, segs, note, t) {
     const w = el('div', 'wd-bullet'), top = el('div', 'wd-meter-top');
     const lab = el('span', null, label); if (t) tip(lab, label, t);
-    top.append(lab, el('span', used > cap ? 'wd-bad' : 'wd-muted', `${pct(used)} of ${pct(cap, 1)} limit`));
+    const state = used > cap ? 'bad' : used > cap * 0.8 ? 'warn' : '';
+    top.append(lab, el('span', state ? 'wd-' + state : 'wd-muted', `${pct(used)} / ${+(cap * 100).toFixed(1)}%`));
     const scale = Math.max(cap * 1.4, used * 1.1), tr = el('div', 'wd-btrack');
     let x = 0;
     segs.forEach((sg) => {
@@ -829,7 +838,7 @@
       const b = el('div', 'wd-bseg');
       b.style.left = (x / scale) * 100 + '%';
       b.style.width = `max(3px, calc(${(sg.w / scale) * 100}% - 2px))`;
-      b.style.background = sg.bg;
+      b.style.background = state ? sg.bg.replace(/var\(--color-fg\) \d+%/, `var(--color-${state}) 100%`) : sg.bg;
       if (sg.tip) tip(b, sg.tip[0], sg.tip[1]);
       x += sg.w; tr.append(b);
     });
@@ -840,10 +849,12 @@
   }
   function risk(s) {
     const box = document.getElementById('risk-meters'), R = D('risk_' + s), DDs = D('nav_drawdown');
-    box.dataset.source = 'risk_' + s + ' nav_drawdown';
+    box.dataset.source = 'risk_' + s + ' nav_drawdown positions_' + s + ' portfolio_review';
+    if (R.status === 'error') return failed(box);
     if (R.status !== 'ok') { box.replaceChildren(); return; }
-    // Colour follows the holding (its place in the review), not its size
-    const rows = R.data.map((r, i) => ({ ...r, color: dash.colors[i % dash.colors.length] })).filter((r) => r.risk > 0);
+    // One ink, shaded by the holding's place in the review; the idea is the same ink hatched. Colour is kept for near or over a limit.
+    const INK = [70, 50, 35, 25];
+    const rows = R.data.map((r, i) => ({ ...r, color: `color-mix(in srgb, var(--color-fg) ${INK[i % INK.length]}%, transparent)` })).filter((r) => r.risk > 0);
     const fill = (r) => (r.kind === 'holding' ? r.color : `repeating-linear-gradient(135deg, ${r.color} 0 3px, transparent 3px 6px)`);
     const total = d3.sum(rows, (r) => r.risk_pct);
     const big = rows.reduce((m, r) => (!m || r.risk_pct > m.risk_pct ? r : m), null);
@@ -855,26 +866,32 @@
       row.append(sw, el('span', null, r.symbol + (r.kind !== 'holding' ? ' (idea)' : '')), el('span', 'wd-muted', inr.format(r.risk)), el('span', r.risk_pct > 0.025 ? 'wd-bad' : null, pct(r.risk_pct, 2)));
       legend.append(row);
     });
+    const P = D('positions_' + s), RV = D('portfolio_review');
+    const noStop = P.status === 'ok' && RV.status === 'ok'
+      ? P.data.filter((p) => p.value > 0 && !RV.data.some((v) => v.symbol === p.symbol && v.sl != null)).map(nameOf) : [];
+    if (noStop.length) legend.append(el('span', 'wd-muted', `No stop-loss, so not counted: ${noStop.join(', ')}`));
     box.replaceChildren(
       bullet('All stop-losses together', total, 0.08, rows.map((r) => ({ w: r.risk_pct, bg: fill(r), tip: segTip(r) })), '',
         'Add up what every holding would lose at its stop-loss, plus the open idea if you buy it. Must stay under 8%.'),
       legend,
       bullet('Biggest single stop', big ? big.risk_pct : 0, 0.025, big ? [{ w: big.risk_pct, bg: fill(big), tip: segTip(big) }] : [], big ? big.symbol : 'No stops set',
         'No one trade may cost more than 2.5% of the portfolio.'),
-      bullet('Drop from best day', dd, 0.10, [{ w: dd, bg: dd > 0.07 ? 'var(--color-warn)' : 'color-mix(in srgb, var(--color-fg) 45%, transparent)' }], 'New ideas pause at 10%',
+      bullet('Drop from best day', dd, 0.10, [{ w: dd, bg: 'color-mix(in srgb, var(--color-fg) 50%, transparent)' }], dd < 0.0005 ? 'At its best day. New ideas pause at 10% below it.' : 'New ideas pause at 10%',
         'How far the portfolio sits below its best day, with deposits taken out so adding cash never hides a loss.'),
     );
   }
   function mix(s) {
     const box = document.getElementById('mix'), P = D('positions_' + s);
     box.dataset.source = 'positions_' + s;
+    if (P.status === 'error') return failed(box);
     if (P.status !== 'ok') { box.replaceChildren(); return; }
+    if (!P.data.some((d) => d.value > 0)) return box.replaceChildren(el('div', 'wd-failed', 'No holdings yet'));
     const by = d3.groups(P.data.filter((d) => d.value > 0), (d) => d.asset_class)
       .map(([k, v]) => ({ k, v: d3.sum(v, (d) => d.value), names: v.sort((a, b) => b.value - a.value).map(nameOf) })).sort((a, b) => b.v - a.v);
-    const total = d3.sum(by, (d) => d.v), R = 72;
+    const total = d3.sum(by, (d) => d.v), R = 60;
     const svg = d3.create('svg').attr('viewBox', `${-R} ${-R} ${2 * R} ${2 * R}`).attr('width', 2 * R).attr('height', 2 * R).attr('role', 'img')
       .attr('aria-label', 'Holdings by asset class: ' + by.map((d) => `${d.k} ${pct(d.v / total, 0)}`).join(', '));
-    const arc = d3.arc().innerRadius(R * 0.72).outerRadius(R).cornerRadius(4).padAngle(by.length > 1 ? 0.03 : 0);
+    const arc = d3.arc().innerRadius(R * 0.86).outerRadius(R).cornerRadius(2).padAngle(by.length > 1 ? 0.03 : 0);
     svg.selectAll('path').data(d3.pie().sort(null).value((d) => d.v)(by)).join('path').attr('d', arc).attr('fill', (d) => classColor(d.data.k))
       .attr('data-tip', (d) => `${d.data.k}|${inr.format(d.data.v)}, ${pct(d.data.v / total)} of holdings: ${d.data.names.join(', ')}.`);
     svg.append('text').attr('class', 'wd-mix-center').attr('text-anchor', 'middle').attr('dy', '0.1em').attr('fill', 'currentColor').text(lakh(total));
@@ -1006,7 +1023,7 @@
     const rows = [...P.data].sort((a, b) => b.pnl - a.pnl);
     const max = Math.max(1, ...rows.map((r) => Math.abs(r.pnl)));
     const neg = rows.some((r) => r.pnl < 0), pos = rows.some((r) => r.pnl > 0);
-    const zero = neg && pos ? 45 : neg ? 92 : 8, span = neg && pos ? 40 : 80;
+    const zero = neg && pos ? 45 : neg ? 75 : 8, span = neg && pos ? 28 : 60;
     box.replaceChildren(...rows.map((r) => {
       const row = el('div', 'wd-pnlbar'); row.append(el('span', null, nameOf(r)));
       const ax = el('div', 'wd-axis'), z = el('div', 'wd-zero'), b = el('div', 'wd-bar'), v = el('div', 'wd-val ' + tone(r.pnl), inrS(r.pnl));
