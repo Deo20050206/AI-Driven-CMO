@@ -12,6 +12,7 @@
     font: 100%/1.45 var(--wd-font); color: var(--color-fg); background: var(--color-bg);
     -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
   }
+  .wd-shell [hidden] { display: none !important; }
   .wd-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
   .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: 40px; }
   .wd p { margin: 0; }
@@ -96,6 +97,43 @@
   .wd-tick { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--color-fg); }
   .wd-stack { display: grid; gap: 16px; }
 
+  /* Segmented toggle: responds on press */
+  .wd-toggle { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; background: color-mix(in srgb, var(--color-fg) 7%, transparent); }
+  .wd-toggle button { font: inherit; font-size: .78rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; border-radius: 7px; padding: 5px 10px; min-height: 30px; cursor: pointer; transition: transform 100ms ease-out; }
+  .wd-toggle button[aria-pressed="true"] { color: var(--color-fg); background: var(--color-bg); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .wd-toggle button:active { transform: scale(.96); }
+
+  /* Allocation heatmap (treemap): size = money, colour = move */
+  .wd-tree { position: relative; height: clamp(240px, 56vw, 360px); }
+  .wd-cell { position: absolute; border-radius: 6px; overflow: hidden; padding: 8px 9px; display: grid; align-content: start; gap: 1px;
+    font-size: .78rem; font-variant-numeric: tabular-nums; line-height: 1.25; transition: transform 100ms ease-out; }
+  .wd-cell:active { transform: scale(.98); }
+  .wd-cell b { font-weight: 600; font-size: .86rem; letter-spacing: -.005em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wd-cell .wd-cell-sub { color: var(--wd-sub); }
+  .wd-scale { display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--wd-sub); font-variant-numeric: tabular-nums; }
+  .wd-scale i { display: block; width: 96px; height: 6px; border-radius: 3px; }
+
+  /* Risk budget: bullet bars, stacked by holding */
+  .wd-bullet { display: grid; gap: 6px; }
+  .wd-btrack { position: relative; height: 10px; border-radius: 5px; background: var(--wd-hair); }
+  .wd-bseg { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+  .wd-btrack .wd-tick { top: -4px; bottom: -4px; }
+  .wd-legend { display: grid; gap: 8px; padding-top: 4px; }
+  .wd-lrow { display: grid; grid-template-columns: 10px 1fr auto auto; gap: 10px; align-items: center; font-size: .84rem; font-variant-numeric: tabular-nums; }
+  .wd-sw { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* Holdings mix: donut by asset class */
+  .wd-mix { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; }
+  @media (max-width: 520px) { .wd-mix { grid-template-columns: 1fr; justify-items: center; gap: 24px; } }
+  .wd-mix svg { display: block; overflow: visible; }
+  .wd-mix svg path { transition: opacity .15s ease-out; }
+  .wd-mix svg path:active { opacity: .75; }
+  .wd-mixlist { display: grid; gap: 12px; min-width: 0; width: 100%; }
+  .wd-mixrow { display: grid; grid-template-columns: 10px 1fr auto; gap: 4px 10px; align-items: baseline; font-size: .88rem; font-variant-numeric: tabular-nums; }
+  .wd-mixrow .wd-sw { align-self: center; }
+  .wd-mixrow .wd-muted { grid-column: 2 / -1; }
+  .wd-mix-center { font-family: var(--wd-serif); font-size: 1.25rem; letter-spacing: -.01em; }
+
   .wd-pnlbar { display: grid; grid-template-columns: minmax(6.5rem, 9rem) 1fr; gap: 12px; align-items: center; font-size: .86rem; font-variant-numeric: tabular-nums; }
   .wd-axis { position: relative; height: 18px; }
   .wd-zero { position: absolute; top: -2px; bottom: -2px; width: 1px; background: var(--wd-hair); }
@@ -124,8 +162,18 @@
     box-shadow: 0 6px 18px rgba(0,0,0,.16); padding: 6px 10px; font-size: .76rem; font-variant-numeric: tabular-nums; white-space: nowrap; z-index: 5; }
   .wd-ctip span { color: var(--wd-sub); display: block; }
 
-  .wd-banner { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; font-size: .9rem; }
-  .wd-banner a { color: inherit; font-weight: 600; }
+  /* Kite login: shown only while Kite is logged out, gone as soon as live data arrives */
+  .wd-banner { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; padding: 16px 18px; border: 0; border-radius: 16px;
+    background: color-mix(in srgb, var(--color-warn) 10%, transparent); }
+  .wd-banner-text { display: grid; gap: 2px; font-size: .92rem; min-width: 0; flex: 1 1 14rem; }
+  .wd-banner-text b { font-weight: 600; }
+  .wd-banner-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .wd-btn { font: inherit; font-size: .9rem; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px;
+    border-radius: 22px; border: 0; cursor: pointer; text-decoration: none; color: var(--color-bg); background: var(--color-fg); transition: transform 100ms ease-out, opacity .15s ease-out; }
+  .wd-btn:active { transform: scale(.97); }
+  .wd-btn-quiet { color: var(--color-fg); background: color-mix(in srgb, var(--color-fg) 9%, transparent); }
+  .wd-btn[disabled] { opacity: .5; cursor: default; }
+  .wd-btn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
   .wd-failed { display: flex; align-items: center; justify-content: center; color: var(--wd-sub); font-size: .82rem; min-height: inherit; }
   [data-dash-source-state=empty] { color: transparent; }
   [data-dash-source-state=refreshing] { opacity: .6; transition: opacity var(--cds-dur-slow); }
@@ -149,10 +197,15 @@
     </nav>
   </header>
 
-  <div class="wd-glass wd-banner" id="kite-banner" hidden>
-    <span>Kite isn't connected, so you're seeing the last saved figures.</span>
-    <a id="kite-login-link" href="https://kite.zerodha.com" target="_blank" rel="noopener noreferrer" hidden>Log in to Kite</a>
-    <span class="wd-muted">Or say "log in to Kite" in Claude, then refresh.</span>
+  <div class="wd-glass wd-banner" id="kite-banner" role="status" hidden>
+    <div class="wd-banner-text">
+      <b id="kite-banner-title">Kite is logged out</b>
+      <span class="wd-muted" id="kite-banner-sub">You're seeing the last saved figures. Log in, come back here, then tap Refresh.</span>
+    </div>
+    <div class="wd-banner-actions">
+      <a class="wd-btn" id="kite-login-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Log in to Kite</a>
+      <button class="wd-btn wd-btn-quiet" id="kite-refresh" type="button">Refresh</button>
+    </div>
   </div>
 
   <!-- TODAY -->
@@ -208,28 +261,37 @@
         </table>
       </div>
     </div>
+    <div class="wd-glass" id="alloc-card">
+      <div class="wd-row">
+        <h2 data-tip="Where the money sits|Each box is one holding. Bigger box, more money in it. Green boxes are up, red are down; the deeper the colour, the bigger the move. Tap a box for the numbers.">Where the money sits</h2>
+        <div class="wd-toggle" id="alloc-mode" role="group" aria-label="Colour boxes by">
+          <button type="button" data-mode="since" aria-pressed="true">Since bought</button>
+          <button type="button" data-mode="today" aria-pressed="false">Today</button>
+        </div>
+      </div>
+      <div class="wd-tree" id="alloc" data-source="positions_LL"></div>
+      <div class="wd-row"><span class="wd-muted" data-tip="Stages|Under ₹2L the whole portfolio is the trading pool. From ₹2L, 30% moves into a stable core; from ₹5L, 50%.">Build stage: the whole portfolio is the trading pool</span><span class="wd-scale" id="alloc-scale"></span></div>
+    </div>
     <div class="wd-grid2">
       <div class="wd-glass" id="risk-card">
-        <h2 data-tip="Risk budget|What you'd lose if every stop-loss were hit. Each idea may risk up to 2.5% of the portfolio; all together up to 8%. New ideas pause if the portfolio falls 10% from its peak.">Risk budget</h2>
-        <p class="wd-muted">Loss if every stop-loss hit, against your limits</p>
+        <h2 data-tip="Risk budget|Three limits keep one bad trade from hurting the whole portfolio: each stop-loss may cost at most 2.5%, all of them together at most 8%, and new ideas pause if the portfolio falls 10% from its peak.">Risk budget</h2>
         <div class="wd-stack" id="risk-meters"></div>
       </div>
-      <div class="wd-glass" id="alloc-card">
-        <h2>Where the money sits</h2>
-        <p class="wd-muted" data-tip="Stages|Under ₹2L the whole portfolio is the trading pool. From ₹2L, 30% moves into a stable core; from ₹5L, 50%.">Build stage: the whole portfolio is the trading pool</p>
-        <div class="wd-stack" id="alloc"></div>
-      </div>
-    </div>
-    <div class="wd-glass" id="holdings-card">
-      <div class="wd-row"><h2>Holdings detail</h2><span class="wd-muted" id="holdings-src"></span></div>
-      <div class="wd-tablewrap">
-        <table id="positions" data-source="positions_LL" data-row-key="symbol">
-          <thead><tr>
-            <th data-field="symbol">Holding</th><th class="wd-r" data-field="qty">Qty</th><th class="wd-r" data-field="value">Value</th>
-            <th class="wd-r" data-field="pnl">P&amp;L</th><th class="wd-r" data-field="pnl_pct">%</th><th class="wd-r" data-field="weight">Weight</th>
-          </tr></thead>
-          <tbody></tbody>
-        </table>
+      <div class="wd-glass" id="mix-card">
+        <div class="wd-row"><h2>Holdings mix</h2><span class="wd-muted" id="holdings-src"></span></div>
+        <div class="wd-mix" id="mix" data-source="positions_LL"></div>
+        <details>
+          <summary>Every holding, line by line</summary>
+          <div class="wd-tablewrap">
+            <table id="positions" data-source="positions_LL" data-row-key="symbol">
+              <thead><tr>
+                <th data-field="symbol">Holding</th><th class="wd-r" data-field="qty">Qty</th><th class="wd-r wd-hide-sm" data-field="invested">Avg</th>
+                <th class="wd-r" data-field="ltp">Price</th><th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="weight">Weight</th>
+              </tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -360,7 +422,7 @@
           const invested = r.qty * r.avg, value = r.qty * r.ltp;
           return { symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, asset_class: cls[r.symbol] || 'Direct stocks', invested, value,
             pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0,
-            day_pnl: r.prev ? (r.ltp - r.prev) * r.qty : 0, day_pct: r.prev ? r.ltp / r.prev - 1 : 0 };
+            day_pnl: r.prev ? (r.ltp - r.prev) * r.qty : 0, day_pct: r.prev ? r.ltp / r.prev - 1 : 0, prev_missing: !r.prev };
         });
         const total = rows.reduce((a, r) => a + r.value, 0);
         return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
@@ -419,6 +481,20 @@
       return [{ closed: closed.length, open: trades.length - closed.length,
         win_rate: closed.length ? wins.length / closed.length : null,
         avg_r: closed.length ? closed.reduce((s, t) => s + (t.r || 0), 0) / closed.length : null }];
+    },
+  });
+  dash.calc('nav_drawdown', {
+    title: 'Drop from peak', description: 'Daily portfolio value with deposits and withdrawals taken out (time-weighted), and how far the latest day sits below the best day.',
+    inputs: ['nav_history'],
+    fn: (nav) => {
+      const rows = [...nav].sort((a, b) => (a.date < b.date ? -1 : 1));
+      let idx = 1, peak = 1;
+      for (let i = 1; i < rows.length; i++) {
+        const prev = rows[i - 1].value;
+        if (prev > 0) idx *= (rows[i].value - (rows[i].flow || 0)) / prev;
+        peak = Math.max(peak, idx);
+      }
+      return [{ index: idx, peak, drawdown: idx / peak - 1 }];
     },
   });
   dash.calc('nifty_stats', {
@@ -538,21 +614,46 @@
   })();
 
   // ---------- Header status ----------
+  // Kite login: the button opens Kite's own login page (the Kite app on iPhone). Back here, Refresh reloads every
+  // Kite feed; once live holdings arrive the banner disappears by itself.
+  const KITE_FEEDS = ['holdings', 'mf_holdings', 'margins', 'market', 'idea_quotes'];
+  let loginTapped = false, refreshing = false;
+  document.getElementById('kite-login-link').addEventListener('click', () => {
+    loginTapped = true;
+    const r = document.getElementById('kite-refresh');
+    r.textContent = "I've logged in · Refresh"; r.classList.remove('wd-btn-quiet');
+    document.getElementById('kite-login-link').classList.add('wd-btn-quiet');
+  });
+  document.getElementById('kite-refresh').addEventListener('click', (e) => {
+    refreshing = true; e.currentTarget.disabled = true; e.currentTarget.textContent = 'Refreshing…';
+    KITE_FEEDS.forEach((id) => dash.refresh(id));
+    dash.refresh('kite_login');
+  });
   function kiteStatus() {
     const h = D('holdings'), chip = document.getElementById('kite-chip'), t = document.getElementById('kite-chip-text'), banner = document.getElementById('kite-banner');
+    const btn = document.getElementById('kite-refresh'), link = document.getElementById('kite-login-link');
     chip.classList.remove('wd-good', 'wd-warn', 'wd-neutral');
-    if (h.status === 'ok') {
-      const all = D('mf_holdings').status === 'ok' && D('margins').status === 'ok';
-      chip.classList.add(all ? 'wd-good' : 'wd-warn'); t.textContent = all ? 'Live' : 'Live · partly saved'; banner.hidden = true; return;
+    if (refreshing && !KITE_FEEDS.some((id) => D(id).status === 'loading' || D(id).refreshing)) {
+      refreshing = false; btn.disabled = false; btn.textContent = loginTapped ? "I've logged in · Refresh" : 'Refresh';
     }
-    if (h.status === 'loading') { chip.classList.add('wd-neutral'); t.textContent = 'Connecting'; banner.hidden = true; return; }
+    if (h.status === 'ok' && !h.refreshing) {
+      const all = D('mf_holdings').status === 'ok' && D('margins').status === 'ok';
+      chip.classList.add(all ? 'wd-good' : 'wd-warn'); t.textContent = all ? 'Live' : 'Live · cash saved';
+      chip.dataset.tip = all ? 'Kite connection|Holdings, funds and cash are live from your Kite account.'
+        : "Kite connection|Holdings are live. Kite's cash call didn't answer, so cash is the last saved figure.";
+      banner.hidden = true; loginTapped = false; return;
+    }
+    if (h.status === 'loading' || h.refreshing) { chip.classList.add('wd-neutral'); t.textContent = 'Connecting'; return; }
     chip.classList.add('wd-warn'); t.textContent = 'Saved'; banner.hidden = false;
-    const lg = D('kite_login'), link = document.getElementById('kite-login-link');
+    const lg = D('kite_login');
     if (lg.status === 'ok') {
       const text = typeof lg.data === 'string' ? lg.data : JSON.stringify(lg.data);
-      const m = text.match(/https:\/\/mcp\.kite\.trade\/authorize\?[^\s)"'\]]+/);
+      const m = text.match(/https:\/\/[^\s)"'\]]*kite\.trade\/[^\s)"'\]]+/);
       if (m) { link.href = m[0]; link.hidden = false; }
     }
+    document.getElementById('kite-banner-sub').textContent = link.hidden
+      ? 'You\'re seeing the last saved figures. Say "log in to Kite" in Claude, then tap Refresh here.'
+      : (loginTapped ? 'Finished logging in? Tap Refresh to load live figures.' : "You're seeing the last saved figures. Log in, come back here, then tap Refresh.");
   }
 
   function kpis(k) {
@@ -660,8 +761,8 @@
     if (P.status !== 'ok') { body.replaceChildren(); return; }
     body.replaceChildren(...P.data.map((r) => {
       const tr = el('tr'); tr.dataset.key = r.symbol;
-      tr.append(el('td', 'wd-name', nameOf(r)), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r', inr.format(r.value)),
-        el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)), el('td', 'wd-r ' + tone(r.pnl_pct), pctS(r.pnl_pct)), el('td', 'wd-r', pct(r.weight)));
+      tr.append(el('td', 'wd-name', nameOf(r)), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r wd-hide-sm', num.format(r.qty ? r.invested / r.qty : 0)),
+        el('td', 'wd-r', num.format(r.ltp)), el('td', 'wd-r', inr.format(r.value)), el('td', 'wd-r', pct(r.weight)));
       return tr;
     }));
   }
@@ -675,38 +776,117 @@
       return tr;
     }));
   }
-  function meter(label, used, cap, note, t) {
-    const w = el('div', 'wd-meter'), top = el('div', 'wd-meter-top');
+  // ---------- Portfolio: heatmap, risk budget, mix ----------
+  const CLASS_ORDER = ['Direct stocks', 'Gold', 'Core funds & ETFs', 'Liquid / cash'];
+  const classColor = (k) => { const i = CLASS_ORDER.indexOf(k); return dash.colors[(i < 0 ? CLASS_ORDER.length : i) % dash.colors.length]; };
+  const NEUTRAL = 'color-mix(in srgb, var(--color-fg) 7%, var(--color-bg))';
+  // Diverging: red ← neutral grey → green, deeper with the size of the move, capped at ±span
+  const heatFill = (p, span) => {
+    const t = Math.min(Math.abs(p || 0) / span, 1);
+    if (t < 0.03) return NEUTRAL;
+    return `color-mix(in srgb, ${p > 0 ? 'var(--color-ok)' : 'var(--color-bad)'} ${Math.round(14 + t * 44)}%, ${NEUTRAL})`;
+  };
+  let heat = 'since';
+  document.querySelectorAll('#alloc-mode button').forEach((b) => b.addEventListener('click', () => {
+    heat = b.dataset.mode;
+    document.querySelectorAll('#alloc-mode button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+    alloc(key().em);
+  }));
+  function alloc(s) {
+    const box = document.getElementById('alloc'), P = D('positions_' + s), sc = document.getElementById('alloc-scale');
+    box.dataset.source = 'positions_' + s;
+    if (P.status !== 'ok') { box.replaceChildren(); sc.replaceChildren(); return; }
+    const W = box.clientWidth, H = box.clientHeight;
+    if (!W || !H) return;
+    const today = heat === 'today', span = today ? 0.03 : 0.2;
+    const groups = d3.groups(P.data.filter((d) => d.value > 0), (d) => d.asset_class).map(([name, children]) => ({ name, children }));
+    const root = d3.hierarchy({ children: groups }).sum((d) => d.value || 0).sort((a, b) => b.value - a.value);
+    d3.treemap().size([W, H]).paddingInner((n) => (n.depth === 0 ? 5 : 2)).round(true)(root);
+    const total = root.value;
+    box.replaceChildren(...root.leaves().map((n) => {
+      const r = n.data, p = today ? r.day_pct : r.pnl_pct, w = n.x1 - n.x0, h = n.y1 - n.y0;
+      const c = el('div', 'wd-cell'); c.dataset.key = r.symbol;
+      Object.assign(c.style, { left: n.x0 + 'px', top: n.y0 + 'px', width: w + 'px', height: h + 'px', background: heatFill(p, span) });
+      if (w > 56 && h > 38) c.append(el('b', null, nameOf(r)), el('span', null, pctS(p, today ? 2 : 1)));
+      if (w > 56 && h > 70) c.append(el('span', 'wd-cell-sub', pct(r.value / total, 0) + ' · ' + lakh(r.value)));
+      tip(c, nameOf(r), `${r.asset_class}. ${inr.format(r.value)}, ${pct(r.value / total)} of holdings. ` +
+        (today ? (r.prev_missing ? 'Funds update once a day.' : `Today ${pctS(r.day_pct, 2)} (${inrS(r.day_pnl)}).`) : `Since bought ${pctS(r.pnl_pct)} (${inrS(r.pnl)}).`));
+      return c;
+    }));
+    const g = el('i'); g.style.background = `linear-gradient(90deg, ${heatFill(-span, span)}, ${NEUTRAL}, ${heatFill(span, span)})`;
+    sc.replaceChildren(el('span', null, '−' + pct(span, 0)), g, el('span', null, '+' + pct(span, 0)));
+  }
+  new ResizeObserver(() => { if (current === 'portfolio') alloc(key().em); }).observe(document.getElementById('alloc'));
+
+  function bullet(label, used, cap, segs, note, t) {
+    const w = el('div', 'wd-bullet'), top = el('div', 'wd-meter-top');
     const lab = el('span', null, label); if (t) tip(lab, label, t);
-    top.append(lab, el('span', used > cap ? 'wd-bad' : 'wd-muted', `${pct(used)} of ${pct(cap, 1)}${note ? ' · ' + note : ''}`));
-    const tr = el('div', 'wd-track'), f = el('div', 'wd-fill'), tk = el('div', 'wd-tick');
-    const scale = Math.max(cap * 1.5, used * 1.1);
-    f.style.width = Math.min(used / scale, 1) * 100 + '%';
-    f.style.background = used > cap ? 'var(--color-bad)' : dash.colors[0];
-    tk.style.left = `calc(${(cap / scale) * 100}% - 1px)`;
-    tr.append(f, tk); w.append(top, tr); return w;
+    top.append(lab, el('span', used > cap ? 'wd-bad' : 'wd-muted', `${pct(used)} of ${pct(cap, 1)} limit`));
+    const scale = Math.max(cap * 1.4, used * 1.1), tr = el('div', 'wd-btrack');
+    let x = 0;
+    segs.forEach((sg) => {
+      if (!(sg.w > 0)) return;
+      const b = el('div', 'wd-bseg');
+      b.style.left = (x / scale) * 100 + '%';
+      b.style.width = `max(3px, calc(${(sg.w / scale) * 100}% - 2px))`;
+      b.style.background = sg.bg;
+      if (sg.tip) tip(b, sg.tip[0], sg.tip[1]);
+      x += sg.w; tr.append(b);
+    });
+    const tk = el('div', 'wd-tick'); tk.style.left = `calc(${(cap / scale) * 100}% - 1px)`; tr.append(tk);
+    w.append(top, tr);
+    if (note) w.append(el('span', 'wd-muted', note));
+    return w;
   }
   function risk(s) {
-    const box = document.getElementById('risk-meters'), R = D('risk_' + s);
-    box.dataset.source = 'risk_' + s;
+    const box = document.getElementById('risk-meters'), R = D('risk_' + s), DDs = D('nav_drawdown');
+    box.dataset.source = 'risk_' + s + ' nav_drawdown';
     if (R.status !== 'ok') { box.replaceChildren(); return; }
-    const total = R.data.reduce((a, r) => a + r.risk_pct, 0);
-    box.replaceChildren(meter('All stops together', total, 0.08, '', 'Sum of every holding\'s loss to its stop, plus the open idea if you buy it. Limit 8%.'),
-      ...R.data.map((r) => meter(r.symbol + (r.kind !== 'holding' ? ' (' + r.kind + ')' : ''), r.risk_pct, 0.025, inr.format(r.risk), 'Loss if this stop is hit. Limit 2.5% each.')));
+    // Colour follows the holding (its place in the review), not its size
+    const rows = R.data.map((r, i) => ({ ...r, color: dash.colors[i % dash.colors.length] })).filter((r) => r.risk > 0);
+    const fill = (r) => (r.kind === 'holding' ? r.color : `repeating-linear-gradient(135deg, ${r.color} 0 3px, transparent 3px 6px)`);
+    const total = d3.sum(rows, (r) => r.risk_pct);
+    const big = rows.reduce((m, r) => (!m || r.risk_pct > m.risk_pct ? r : m), null);
+    const dd = DDs.status === 'ok' && DDs.data[0] ? Math.max(0, -DDs.data[0].drawdown) : 0;
+    const segTip = (r) => [r.symbol, `${inr.format(r.risk)} lost if its stop-loss is hit, ${pct(r.risk_pct, 2)} of the portfolio${r.kind !== 'holding' ? ', only if you buy the idea' : ''}.`];
+    const legend = el('div', 'wd-legend');
+    [...rows].sort((a, b) => b.risk - a.risk).forEach((r) => {
+      const row = el('div', 'wd-lrow'), sw = el('span', 'wd-sw'); sw.style.background = fill(r);
+      row.append(sw, el('span', null, r.symbol + (r.kind !== 'holding' ? ' (idea)' : '')), el('span', 'wd-muted', inr.format(r.risk)), el('span', r.risk_pct > 0.025 ? 'wd-bad' : null, pct(r.risk_pct, 2)));
+      legend.append(row);
+    });
+    box.replaceChildren(
+      bullet('All stop-losses together', total, 0.08, rows.map((r) => ({ w: r.risk_pct, bg: fill(r), tip: segTip(r) })), '',
+        'Add up what every holding would lose at its stop-loss, plus the open idea if you buy it. Must stay under 8%.'),
+      legend,
+      bullet('Biggest single stop', big ? big.risk_pct : 0, 0.025, big ? [{ w: big.risk_pct, bg: fill(big), tip: segTip(big) }] : [], big ? big.symbol : 'No stops set',
+        'No one trade may cost more than 2.5% of the portfolio.'),
+      bullet('Drop from best day', dd, 0.10, [{ w: dd, bg: dd > 0.07 ? 'var(--color-warn)' : 'color-mix(in srgb, var(--color-fg) 45%, transparent)' }], 'New ideas pause at 10%',
+        'How far the portfolio sits below its best day, with deposits taken out so adding cash never hides a loss.'),
+    );
   }
-  function alloc(s) {
-    const box = document.getElementById('alloc'), P = D('positions_' + s);
+  function mix(s) {
+    const box = document.getElementById('mix'), P = D('positions_' + s);
     box.dataset.source = 'positions_' + s;
     if (P.status !== 'ok') { box.replaceChildren(); return; }
-    const by = d3.rollups(P.data, (v) => d3.sum(v, (d) => d.value), (d) => d.asset_class).sort((a, b) => b[1] - a[1]);
-    const total = d3.sum(by, (d) => d[1]);
-    box.replaceChildren(...by.map(([k, v], i) => {
-      const w = el('div', 'wd-meter'), top = el('div', 'wd-meter-top');
-      top.append(el('span', null, k), el('span', 'wd-muted', inr.format(v) + ' · ' + pct(v / total)));
-      const tr = el('div', 'wd-track'), f = el('div', 'wd-fill');
-      f.style.width = (v / total) * 100 + '%'; f.style.background = dash.colors[i % dash.colors.length];
-      tr.append(f); w.append(top, tr); return w;
-    }));
+    const by = d3.groups(P.data.filter((d) => d.value > 0), (d) => d.asset_class)
+      .map(([k, v]) => ({ k, v: d3.sum(v, (d) => d.value), names: v.sort((a, b) => b.value - a.value).map(nameOf) })).sort((a, b) => b.v - a.v);
+    const total = d3.sum(by, (d) => d.v), R = 72;
+    const svg = d3.create('svg').attr('viewBox', `${-R} ${-R} ${2 * R} ${2 * R}`).attr('width', 2 * R).attr('height', 2 * R).attr('role', 'img')
+      .attr('aria-label', 'Holdings by asset class: ' + by.map((d) => `${d.k} ${pct(d.v / total, 0)}`).join(', '));
+    const arc = d3.arc().innerRadius(R * 0.72).outerRadius(R).cornerRadius(4).padAngle(by.length > 1 ? 0.03 : 0);
+    svg.selectAll('path').data(d3.pie().sort(null).value((d) => d.v)(by)).join('path').attr('d', arc).attr('fill', (d) => classColor(d.data.k))
+      .attr('data-tip', (d) => `${d.data.k}|${inr.format(d.data.v)}, ${pct(d.data.v / total)} of holdings: ${d.data.names.join(', ')}.`);
+    svg.append('text').attr('class', 'wd-mix-center').attr('text-anchor', 'middle').attr('dy', '0.1em').attr('fill', 'currentColor').text(lakh(total));
+    svg.append('text').attr('text-anchor', 'middle').attr('dy', '1.6em').attr('font-size', 11).attr('fill', 'var(--wd-sub)').text('in holdings');
+    const list = el('div', 'wd-mixlist');
+    by.forEach((d) => {
+      const row = el('div', 'wd-mixrow'), sw = el('span', 'wd-sw'); sw.style.background = classColor(d.k);
+      const v = el('span', null, pct(d.v / total, 0)); v.style.fontWeight = '600';
+      row.append(sw, el('span', null, d.k), v, el('span', 'wd-muted', lakh(d.v) + ' · ' + d.names.join(', ')));
+      list.append(row);
+    });
+    box.replaceChildren(svg.node(), list);
   }
   function table(id, dsId, cols) {
     const t = document.getElementById(id), body = t.tBodies[0], s = D(dsId);
@@ -896,7 +1076,7 @@
     const k = key(), s = k.em;
     kiteStatus(); fillMarks();
     if (current === 'today') { kpis(k.em + k.c); homeChart(k.em + k.c); ticket(); homePositions(s); }
-    if (current === 'portfolio') { review(); risk(s); alloc(s); positions(s); }
+    if (current === 'portfolio') { review(); alloc(s); risk(s); mix(s); positions(s); }
     if (current === 'pnl') {
       pnlKpis(s); historyChart(k.em + k.c); pnlBars(s);
       table('pnl-class', 'pnl_class_' + s, [['asset_class', 'wd-name'], ['invested', 'wd-r', (v) => inr.format(v)], ['value', 'wd-r', (v) => inr.format(v)], ['pnl', 'wd-r', (v) => inrS(v)], ['pnl_pct', 'wd-r', (v) => pctS(v)]]);
