@@ -58,7 +58,7 @@
   .wd-chart-head .wd-big { font-size: clamp(2.2rem, 7vw, 3rem); }
 
   /* Opportunity: the one thing on the page with a surface */
-  .wd-opp { gap: 18px; padding: 22px; border: 0; border-radius: 18px; background: color-mix(in srgb, var(--color-fg) 4%, transparent); }
+  .wd-opp { gap: 18px; padding: 22px; border: 0; border-radius: 18px; background: color-mix(in srgb, var(--color-bg) 80%, transparent); -webkit-backdrop-filter: blur(18px) saturate(140%); backdrop-filter: blur(18px) saturate(140%); }
   .wd-opp-sym { font-family: var(--wd-serif); font-size: 1.9rem; font-weight: 400; line-height: 1.1; }
   .wd-levels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
   .wd-level { display: grid; gap: 2px; }
@@ -692,6 +692,13 @@
   }
 
   // ---------- Opportunity card ----------
+  // The target's deadline: 20 trading sessions (about 4 weeks) from the day you buy. Before the trigger fires there is
+  // no buy date yet, so it says "4 weeks from entry" and the date the idea lapses if the trigger never fires.
+  function byWhen(o) {
+    const n = parseInt(o.time_stop, 10) || 20;
+    if (o.entered) { const d = new Date(o.entered); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) k++; } return 'by ' + dayFmt(d); }
+    return `in ${n} sessions`;
+  }
   function ticket(id = 'ticket', full = false) {
     const box = document.getElementById(id), s = D('opportunity'), q = D('idea_quotes');
     settle(box, s);
@@ -711,7 +718,7 @@
     lv.append(
       L('Buy at', inr.format(o.entry), live ? 'now ' + inr.format(live) : ' ', '', 'Place a limit buy at this price once the trigger fires.'),
       L('Stop-loss', inr.format(o.sl), pctS(o.sl / o.entry - 1), 'wd-bad', 'Sell automatically if the price falls here. Set it as a GTT the day you buy.'),
-      L('Target', inr.format(o.tp), pctS(o.tp / o.entry - 1), 'wd-good', 'Take profit here. Set it in the same GTT (OCO) as the stop.'));
+      L('Target', inr.format(o.tp), pctS(o.tp / o.entry - 1) + ' · ' + byWhen(o), 'wd-good', `Take profit here, within ${o.time_stop || '20 sessions after entry'}. If it isn't reached by then, sell at that day's close (time stop). Set the target in the same GTT (OCO) as the stop.`));
     const lad = el('div', 'wd-ladder');
     const lo = o.sl * 0.985, hi = o.tp * 1.015, x = (p) => Math.min(Math.max(((p - lo) / (hi - lo)) * 100, 0), 100);
     lad.append(el('div', 'wd-rail'));
@@ -725,7 +732,8 @@
     facts.append(F('Shares', String(o.qty), 'How many to buy, sized so a stop-out costs at most 2.5% of your portfolio.'),
       F('Capital', inr.format(o.cost), 'Money needed for the buy.'),
       F('At risk', inr.format(o.risk_rs) + ' · ' + pct(o.risk_pct), 'What you lose if the stop-loss is hit.'),
-      F('Reward:risk', o.rr.toFixed(2), 'Rupees you could make for each rupee you risk.'));
+      F('Reward:risk', o.rr.toFixed(2), 'Rupees you could make for each rupee you risk.'),
+      F('Horizon', `${parseInt(o.time_stop, 10) || 20} sessions (~${Math.round((parseInt(o.time_stop, 10) || 20) / 5)} weeks) after buying`, `Target or not, the idea closes ${o.time_stop || '20 sessions after entry'}. If the buy trigger hasn't fired by ${dayFmt(new Date(o.expires))}, the idea lapses.`));
     const det = el('details'); det.open = full; det.append(el('summary', null, 'Why, funding and checks'));
     const kv = el('div', 'wd-kv');
     const P = (t, v) => { const d = el('div'); d.append(el('h3', null, t), el('p', 'wd-prose wd-muted', v)); return d; };
