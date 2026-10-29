@@ -1,58 +1,58 @@
 [
  {
-  "date": "2026-10-15",
-  "event": "Jio Financial Q2 FY27 results + analyst call",
-  "affects": "JIOFIN (your holding)",
+  "date": "2026-10-30",
+  "event": "Reliance Q2 results + NCD fundraise proposal",
+  "affects": "Nifty 50 (~9% weight), Reliance group sentiment incl. JIOFIN",
   "impact": "High",
-  "what_to_do": "Hold. Don't add before results. Review on Oct 16."
+  "what_to_do": "No action. A miss could drag Nifty below 22,500 on Monday, which would make tranche 3 cheaper."
  },
  {
-  "date": "2026-10-17",
-  "event": "ICICI Bank Q2 results (board meeting, Saturday)",
-  "affects": "Nifty Bank, Nifty 50 (~8% weight)",
-  "impact": "Medium",
-  "what_to_do": "Sets the tone for banks on Monday Oct 19, which is also tranche 1 day."
- },
- {
-  "date": "2026-10-17",
-  "event": "HDFC Bank Q2 results (expected, date not confirmed)",
-  "affects": "Nifty 50 (~13% weight), your NIFTYBEES plan",
-  "impact": "Medium",
-  "what_to_do": "The CEO changes on Oct 26, so watch for guidance."
- },
- {
-  "date": "2026-10-19",
-  "event": "Tranche 1: LIQUIDCASE \u2192 NIFTYBEES (~\u20b99,000)",
+  "date": "2026-11-02",
+  "event": "Tranche 3: LIQUIDCASE \u2192 NIFTYBEES (~\u20b99,000) + November contribution",
   "affects": "Your plan",
   "impact": "Action",
-  "what_to_do": "Execute after 10:00 IST to avoid opening volatility."
+  "what_to_do": "Execute after 10:00 IST."
  },
  {
-  "date": "2026-10-23",
-  "event": "Infosys Q2 results",
-  "affects": "Nifty IT, Nifty 50",
+  "date": "2026-11-03",
+  "event": "SBI Q2 results (analyst meet 5:15 PM)",
+  "affects": "Nifty Bank, PSU banks",
   "impact": "Medium",
-  "what_to_do": "No action needed. It's a sentiment read for IT."
+  "what_to_do": "Banks have been holding the index up, so a weak SBI result removes that support."
  },
  {
-  "date": "2026-10-26",
-  "event": "Tranche 2: LIQUIDCASE \u2192 NIFTYBEES (~\u20b99,000)",
-  "affects": "Your plan",
-  "impact": "Action",
-  "what_to_do": "Skip and combine with tranche 3 if Nifty is up more than 5% from Oct 19."
+  "date": "2026-11-03",
+  "event": "US midterm elections",
+  "affects": "Global risk mood, dollar, FII flows",
+  "impact": "Medium",
+  "what_to_do": "Expect volatile sessions on Nov 4\u20135. No action needed."
  },
  {
-  "date": "2026-11-01",
-  "event": "Monthly contribution day (\u20b915\u201320k)",
+  "date": "2026-11-08",
+  "event": "Diwali Muhurat trading (1-hour session, Sunday)",
+  "affects": "Sentiment",
+  "impact": "Medium",
+  "what_to_do": "Optional: a token buy of NIFTYBEES for tradition. Volumes are thin, so use limit orders."
+ },
+ {
+  "date": "2026-11-09",
+  "event": "Tranche 4: LIQUIDCASE \u2192 NIFTYBEES (~\u20b99,000)",
   "affects": "Your plan",
   "impact": "Action",
-  "what_to_do": "Follow the monthly plan card."
+  "what_to_do": "The market is closed on Nov 10 (Balipratipada), so place the order on Nov 9."
+ },
+ {
+  "date": "2026-11-14",
+  "event": "Deadline for September-quarter results",
+  "affects": "Mid and small caps still to report",
+  "impact": "Medium",
+  "what_to_do": "Results-day swings in smaller names. Don't chase them."
  },
  {
   "date": "2026-12-04",
   "event": "RBI policy decision (MPC Dec 2\u20134)",
   "affects": "Banks, rate-sensitive stocks, liquid fund yields",
   "impact": "High",
-  "what_to_do": "After the October hike to 5.50%, another hike would hurt banks and help liquid fund returns."
+  "what_to_do": "With Brent at $115, another hike is likely to be on the table."
  }
 ]
