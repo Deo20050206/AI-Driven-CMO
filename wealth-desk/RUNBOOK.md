@@ -26,6 +26,7 @@ saying "run the Wealth Desk" in a Claude Code session that has the Zerodha Kite 
 | Market review | every 3 trading days | `market_review`, `signals`, `catalysts`, `nifty_1y` |
 | New opportunity | every 5 trading days | `opportunity`, appends to `trades` |
 | Track ideas | every run | `trades` |
+| P&L history | every run with Kite | appends a row to `nav_history`; adds detected sales to `pnl_ledger` |
 
 Nothing due → update `trades` only and finish quietly.
 
@@ -51,11 +52,15 @@ Nothing due → update `trades` only and finish quietly.
      the idea conditional on the post-results trigger. Pick one or none. Never force an idea.
    - Size it: `python engine/allocate.py state.json idea.json [size_factor]`.
    - Write `opportunity` (status Active or Conditional) and append to `trades` as `proposed`.
-7. **Publish.** For each changed file: Artifact publish (`asset: true`, the dashboard url), then
+7. **P&L.** Append `{date, value (holdings + net cash), invested (cost of holdings + net cash), unrealised,
+   realised_cum, note}` to `nav_history`. Compare today's holdings with `holdings_snap`: any quantity
+   that fell is a sale. Record it in `pnl_ledger` with `get_trades` fill prices when the sale was today,
+   otherwise the closing price that day with `estimated: true`.
+8. **Publish.** For each changed file: Artifact publish (`asset: true`, the dashboard url), then
    ArtifactData `update` of `datasets/<id>` with `source.url`, `source.name`, `updated`,
    pinned with `if_version`. Refresh `*_snap` files from today's Kite answers.
-8. **Commit** changed data files to `wealth-desk/data/` and push.
-9. **Brief Dev.** Five lines: takeaway, actions to take in Kite, the idea (or why none), anything
+9. **Commit** changed data files to `wealth-desk/data/` and push.
+10. **Brief Dev.** Five lines: takeaway, actions to take in Kite, the idea (or why none), anything
    due within 2 days, dashboard link.
 
 ## File shapes
@@ -66,6 +71,8 @@ Nothing due → update `trades` only and finish quietly.
 - `market_review`: metric, value, change, read
 - `schedule`: task, every_days, last, next
 - `notes`: key/text rows: takeaway, brief_date
+- `nav_history`: date, value, invested, unrealised, realised_cum, note
+- `pnl_ledger`: id, date, symbol, qty, buy_avg, sell_price, realised, estimated, note
 
 ## Back-test (control panel)
 Runs on Dev's Mac where the data lives (`~/Desktop/AI-India-Data/market.duckdb`):

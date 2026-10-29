@@ -1,7 +1,15 @@
 <style>
   /* Wealth Desk v2: a phone-first trading desk. Tabs: Today, Opportunity, Portfolio, Market, Track record. */
-  #dash-root { --dash-gutter: clamp(14px, 3vw, 32px); }
+  #dash-root { --dash-gutter: 0; }
+  .wd-shell { position: relative; isolation: isolate; overflow: hidden; padding-inline: clamp(14px, 3vw, 32px); padding-block: var(--cds-pad-lg) var(--cds-pad-xl); min-height: 100%; }
+  .wd-bg { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }
   .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  .wd-theme { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .wd-pnlbar { display: grid; grid-template-columns: minmax(6rem, 9rem) 1fr; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+  .wd-pnlbar .wd-axis { position: relative; height: 18px; }
+  .wd-pnlbar .wd-zero { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--cds-chart-axis); }
+  .wd-pnlbar .wd-bar { position: absolute; top: 2px; height: 14px; border-radius: 4px; }
+  .wd-pnlbar .wd-val { position: absolute; top: 1px; white-space: nowrap; }
   .wd h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
   .wd h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
   .wd h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
@@ -11,7 +19,7 @@
   .wd-headrow { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; justify-content: space-between; }
   .wd-take { line-height: 1.5; max-width: 72ch; }
   /* tabs */
-  .wd-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--color-border-line); position: sticky; top: 0; background: var(--color-bg); z-index: 2; scrollbar-width: none; }
+  .wd-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--color-border-line); position: sticky; top: 0; background: var(--color-panel); border-radius: var(--cds-radius) var(--cds-radius) 0 0; z-index: 2; scrollbar-width: none; }
   .wd-tabs button { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; color: var(--color-fg-muted); padding: 10px 12px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
   .wd-tabs button[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
   .wd-tabs button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
@@ -80,6 +88,8 @@
   .wd-foot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; max-width: 80ch; border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); }
 </style>
 
+<div class="wd-shell" id="wd-shell">
+<canvas class="wd-bg" id="wd-bg" aria-hidden="true"></canvas>
 <div class="wd">
   <header class="wd-head" id="top">
     <div class="wd-headrow">
@@ -97,40 +107,50 @@
   </div>
 
   <nav class="wd-tabs" role="tablist" aria-label="Sections">
-    <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Today</button>
-    <button role="tab" id="tab-opportunity" data-tab="opportunity" aria-selected="false">Opportunity</button>
+    <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Home</button>
     <button role="tab" id="tab-portfolio" data-tab="portfolio" aria-selected="false">Portfolio</button>
+    <button role="tab" id="tab-pnl" data-tab="pnl" aria-selected="false">P&amp;L</button>
     <button role="tab" id="tab-market" data-tab="market" aria-selected="false">Market</button>
     <button role="tab" id="tab-track" data-tab="track" aria-selected="false">Track record</button>
   </nav>
 
-  <!-- TODAY -->
+  <!-- HOME -->
   <section class="wd-page" id="today" role="tabpanel" aria-labelledby="tab-today">
     <div class="wd-kpis">
       <div class="wd-card wd-kpi"><span class="wd-muted">Portfolio value</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="value">—</b></span><span class="wd-muted">Invested <span class="kpi" data-kpi="invested">—</span></span></div>
-      <div class="wd-card wd-kpi"><span class="wd-muted">Today</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="day_pnl">—</b></span><span class="wd-muted">on holdings, vs yesterday's close</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Today</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="day_pnl">—</b></span><span class="wd-muted">vs yesterday's close</span></div>
       <div class="wd-card wd-kpi"><span class="wd-muted">Unrealised P&amp;L</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="pnl">—</b></span><span class="wd-muted"><span class="kpi" data-kpi="pnl_pct">—</span> on cost</span></div>
-      <div class="wd-card wd-kpi"><span class="wd-muted">Cash to deploy</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">Kite equity margin, net</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Cash to deploy</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">Kite equity, net</span></div>
     </div>
-    <div class="wd-grid">
-      <div class="wd-card" id="todo-card">
-        <h2>To do in Kite</h2>
-        <p class="wd-muted">From the latest portfolio review. You place every order.</p>
-        <div class="wd-todo dash-skeleton" id="todo" data-source="portfolio_review"></div>
-      </div>
-      <div class="wd-card" id="risk-card">
-        <h2>Risk budget</h2>
-        <p class="wd-muted">Loss if every stop-loss hit, against your limits</p>
-        <div class="wd-meter" id="risk-meters"></div>
-        <p class="wd-muted">Limits: 2.5% per trade · 8% across open trades · new ideas pause at −10% from peak.</p>
-      </div>
-    </div>
-  </section>
 
-  <!-- OPPORTUNITY -->
-  <section class="wd-page" id="opportunity" role="tabpanel" aria-labelledby="tab-opportunity" hidden>
+    <div class="wd-card" id="todo-card">
+      <div class="wd-headrow"><h2>Do this in Kite</h2><span class="wd-muted">You place every order</span></div>
+      <div class="wd-todo dash-skeleton" id="todo" data-source="portfolio_review"></div>
+    </div>
+
+    <div class="wd-card" id="home-holdings-card">
+      <div class="wd-headrow"><h2>My portfolio</h2><span class="wd-muted" id="home-holdings-src"></span></div>
+      <div class="wd-tablewrap">
+        <table id="home-positions" data-source="positions_LL" data-row-key="symbol">
+          <thead><tr>
+            <th data-field="symbol">Holding</th>
+            <th class="wd-r" data-field="value">Value</th>
+            <th class="wd-r" data-field="day_pct">Today</th>
+            <th class="wd-r" data-field="pnl">P&amp;L</th>
+            <th class="wd-r" data-field="pnl_pct">P&amp;L %</th>
+            <th data-field="verdict">Call</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
     <div class="wd-card wd-ticket dash-skeleton" id="ticket" data-source="opportunity"></div>
-    <p class="wd-muted">A new idea arrives every 5 trading days. Ideas target at least +10% within 20 sessions; each is sized so a stop-out costs at most 2.5% of the portfolio. Nothing here is guaranteed.</p>
+
+    <div class="wd-card" id="curve-card">
+      <div class="wd-headrow"><h2>Portfolio value</h2><span class="wd-muted">Dashed line: money put in · today's point is live</span></div>
+      <div class="wd-chart" id="curve-chart" data-source="nav_history"></div>
+    </div>
   </section>
 
   <!-- PORTFOLIO -->
@@ -163,10 +183,51 @@
           </table>
         </div>
       </div>
+      <div class="wd-card" id="risk-card">
+        <h2>Risk budget</h2>
+        <p class="wd-muted">Loss if every stop-loss hit · limits 2.5% per trade, 8% total, pause at −10% from peak</p>
+        <div class="wd-meter" id="risk-meters"></div>
+      </div>
       <div class="wd-card" id="alloc-card">
         <h2>Where the money sits</h2>
         <p class="wd-muted" id="stage-note">Build stage: the whole portfolio is the trading pool. A stable core starts at ₹2L.</p>
         <div class="wd-meter" id="alloc"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- P&L -->
+  <section class="wd-page" id="pnl" role="tabpanel" aria-labelledby="tab-pnl" hidden>
+    <div class="wd-kpis">
+      <div class="wd-card wd-kpi"><span class="wd-muted">Total P&amp;L</span><span class="wd-big"><b class="pk" data-k="total">—</b></span><span class="wd-muted">unrealised + realised since tracking began</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Unrealised</span><span class="wd-big"><b class="pk" data-k="unrealised">—</b></span><span class="wd-muted"><span class="pk" data-k="unrealised_pct">—</span> on cost</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Realised</span><span class="wd-big"><b class="pk" data-k="realised">—</b></span><span class="wd-muted">booked on sales</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Today</span><span class="wd-big"><b class="pk" data-k="day">—</b></span><span class="wd-muted">vs yesterday's close</span></div>
+    </div>
+    <div class="wd-grid">
+      <div class="wd-card" id="pnl-holding-card">
+        <h2>P&amp;L by holding</h2>
+        <p class="wd-muted">Unrealised, largest first</p>
+        <div class="wd-meter" id="pnl-bars"></div>
+      </div>
+      <div class="wd-card" id="pnl-class-card">
+        <h2>P&amp;L by asset class</h2>
+        <div class="wd-tablewrap">
+          <table id="pnl-class" data-row-key="asset_class">
+            <thead><tr><th data-field="asset_class">Class</th><th class="wd-r" data-field="invested">Invested</th><th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="pnl">P&amp;L</th><th class="wd-r" data-field="pnl_pct">%</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="wd-card" id="ledger-card">
+      <h2>Realised P&amp;L ledger</h2>
+      <p class="wd-muted">Each run records sales it detects. Estimated rows are marked: Kite's API doesn't return past fill prices.</p>
+      <div class="wd-tablewrap">
+        <table id="ledger" data-source="pnl_ledger" data-row-key="id">
+          <thead><tr><th data-field="date">Date</th><th data-field="symbol">Holding</th><th class="wd-r" data-field="qty">Qty</th><th class="wd-r" data-field="buy_avg">Bought</th><th class="wd-r" data-field="sell_price">Sold</th><th class="wd-r" data-field="realised">Realised</th><th data-field="note">Note</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </section>
@@ -223,7 +284,9 @@
     </div>
   </section>
 
+  <p class="wd-theme" id="wd-theme"></p>
   <p class="wd-foot">Research for Dev's own use, not SEBI-registered advice. Claude never places orders. Stop-losses limit damage but can gap. Returns are not guaranteed, and a 10% target in 20 sessions will often be missed.</p>
+</div>
 </div>
 
 <script>
@@ -245,42 +308,35 @@
     },
   });
 
-  // One set of calculations per source (live Kite, or the saved snapshot), so the page can fall back.
-  const mkCalcs = (sfx, H, M, MG) => {
-    dash.calc('positions_' + sfx, {
-      title: sfx === 'live' ? 'Holdings, live' : 'Holdings, saved snapshot',
+  // Each Kite feed can fail on its own, so every live/snapshot combination gets its own calculation.
+  // Key letters: holdings, mutual funds, cash (L = live, S = saved snapshot).
+  const SRC = { e: { L: 'holdings', S: 'holdings_snap' }, m: { L: 'mf_holdings', S: 'mf_snap' }, c: { L: 'margins', S: 'margins_snap' } };
+  const LS = ['L', 'S'];
+  LS.forEach((e) => LS.forEach((m) => {
+    const k = e + m;
+    dash.calc('positions_' + k, {
+      title: 'Holdings (' + (e === 'L' ? 'live' : 'snapshot') + ' stocks, ' + (m === 'L' ? 'live' : 'snapshot') + ' funds)',
       description: 'Equity and mutual fund holdings valued at last price (settled + T1 quantity), tagged by asset class.',
-      inputs: [H, M, 'classify'],
+      inputs: [SRC.e[e], SRC.m[m], 'classify'],
       fn: (holdings, mf, classify) => {
         const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
         const eq = holdings.map((h) => ({ symbol: h.tradingsymbol, name: h.tradingsymbol, qty: (h.quantity || 0) + (h.t1_quantity || 0), avg: h.average_price, ltp: h.last_price, prev: h.close_price }));
-        const funds = mf.map((m) => ({ symbol: m.tradingsymbol, name: 'Life Cycle 2041 fund', qty: m.quantity, avg: m.average_price, ltp: m.last_price, prev: null }));
+        const funds = mf.map((f) => ({ symbol: f.tradingsymbol, name: 'Life Cycle 2041 fund', qty: f.quantity, avg: f.average_price, ltp: f.last_price, prev: null }));
         const rows = [...eq, ...funds].filter((r) => r.qty > 0).map((r) => {
           const invested = r.qty * r.avg, value = r.qty * r.ltp;
           return { symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, asset_class: cls[r.symbol] || 'Direct stocks', invested, value,
             pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0,
             day_pnl: r.prev ? (r.ltp - r.prev) * r.qty : 0, day_pct: r.prev ? r.ltp / r.prev - 1 : 0 };
         });
-        const total = rows.reduce((s, r) => s + r.value, 0);
+        const total = rows.reduce((a, r) => a + r.value, 0);
         return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
       },
     });
-    dash.calc('totals_' + sfx, {
-      title: sfx === 'live' ? 'Portfolio totals, live' : 'Portfolio totals, snapshot',
-      description: 'Sums of value, cost, unrealised and today\'s P&L, plus net cash from Kite margins.',
-      inputs: ['positions_' + sfx, MG],
-      fn: (positions, margins) => {
-        const value = positions.reduce((s, r) => s + r.value, 0), invested = positions.reduce((s, r) => s + r.invested, 0);
-        const cash = margins.length ? margins[0].net : 0;
-        return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((s, r) => s + r.day_pnl, 0), cash }];
-      },
-    });
-    dash.calc('risk_' + sfx, {
-      title: sfx === 'live' ? 'Open risk, live' : 'Open risk, snapshot',
-      description: 'Loss if each reviewed stop-loss is hit, per holding and in total, as a share of portfolio value.',
-      inputs: ['positions_' + sfx, 'portfolio_review', 'opportunity'],
+    dash.calc('risk_' + k, {
+      title: 'Open risk', description: 'Loss if each reviewed stop-loss is hit, per holding, as a share of portfolio value.',
+      inputs: ['positions_' + k, 'portfolio_review', 'opportunity'],
       fn: (positions, review, opportunity) => {
-        const total = positions.reduce((s, r) => s + r.value, 0);
+        const total = positions.reduce((a, r) => a + r.value, 0);
         const rows = review.filter((v) => v.sl != null && v.verdict !== 'Exit').map((v) => {
           const p = positions.find((x) => x.symbol === v.symbol);
           const keep = v.verdict === 'Trim' && v.keep_qty ? v.keep_qty : p ? p.qty : 0;
@@ -291,9 +347,34 @@
         return rows;
       },
     });
-  };
-  mkCalcs('live', 'holdings', 'mf_holdings', 'margins');
-  mkCalcs('snap', 'holdings_snap', 'mf_snap', 'margins_snap');
+    dash.calc('pnl_class_' + k, {
+      title: 'P&L by asset class', description: 'Invested, value and unrealised P&L summed by asset class.',
+      inputs: ['positions_' + k],
+      fn: (positions) => {
+        const by = {};
+        positions.forEach((r) => { const b = (by[r.asset_class] = by[r.asset_class] || { asset_class: r.asset_class, invested: 0, value: 0 }); b.invested += r.invested; b.value += r.value; });
+        return Object.values(by).map((b) => ({ ...b, pnl: b.value - b.invested, pnl_pct: b.invested ? b.value / b.invested - 1 : 0 })).sort((a, b) => b.value - a.value);
+      },
+    });
+    dash.calc('pnl_sum_' + k, {
+      title: 'P&L summary', description: 'Unrealised P&L on holdings plus realised P&L from the ledger, and today\'s move.',
+      inputs: ['positions_' + k, 'pnl_ledger'],
+      fn: (positions, ledger) => {
+        const inv = positions.reduce((a, r) => a + r.invested, 0), val = positions.reduce((a, r) => a + r.value, 0);
+        const realised = ledger.reduce((a, r) => a + (r.realised || 0), 0);
+        return [{ unrealised: val - inv, unrealised_pct: inv ? val / inv - 1 : 0, realised, total: val - inv + realised, day: positions.reduce((a, r) => a + r.day_pnl, 0) }];
+      },
+    });
+    LS.forEach((c) => dash.calc('totals_' + k + c, {
+      title: 'Portfolio totals', description: 'Value (holdings + net cash), cost, unrealised and today\'s P&L.',
+      inputs: ['positions_' + k, SRC.c[c]],
+      fn: (positions, margins) => {
+        const value = positions.reduce((a, r) => a + r.value, 0), invested = positions.reduce((a, r) => a + r.invested, 0);
+        const cash = margins.length ? margins[0].net : 0;
+        return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((a, r) => a + r.day_pnl, 0), cash }];
+      },
+    }));
+  }));
 
   dash.calc('track_stats', {
     title: 'Track record',
@@ -335,13 +416,9 @@
   const settle = (node, s) => { if (s.status !== 'loading') node.classList.remove('dash-skeleton'); };
   const failed = (box) => { const d = el('div', 'wd-failed', 'Failed to load'); box.replaceChildren(d); };
 
-  // Pick live Kite data when it loads, else the saved snapshot.
-  const src = () => {
-    const h = D('holdings');
-    if (h.status === 'ok') return 'live';
-    if (h.status === 'loading') return D('holdings_snap').status === 'ok' ? 'snap' : null;
-    return 'snap';
-  };
+  // Per feed: live when it has loaded, else the saved snapshot.
+  const pick = (id) => (D(id).status === 'ok' ? 'L' : 'S');
+  const key = () => ({ em: pick('holdings') + pick('mf_holdings'), c: pick('margins') });
 
   // Tabs
   const tabs = [...document.querySelectorAll('.wd-tabs button')];
@@ -355,10 +432,35 @@
   };
   tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab)));
 
+  // Swipe left/right anywhere on the page to move between tabs (ignored inside sideways-scrolling tables and charts).
+  (function () {
+    const root = document.querySelector('.wd');
+    let x0 = null, y0 = null, t0 = 0;
+    root.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1 || e.target.closest('.wd-tablewrap, .wd-chart, .wd-tabs')) { x0 = null; return; }
+      x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now();
+    }, { passive: true });
+    root.addEventListener('touchend', (e) => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5 || Date.now() - t0 > 700) return;
+      const names = tabs.map((b) => b.dataset.tab), i = names.indexOf(current);
+      const next = names[Math.min(Math.max(i + (dx < 0 ? 1 : -1), 0), names.length - 1)];
+      if (next !== current) {
+        show(next);
+        document.getElementById('tab-' + next).scrollIntoView({ block: 'nearest', inline: 'center' });
+      }
+    }, { passive: true });
+  })();
+
   function kiteStatus() {
     const h = D('holdings'), chip = document.getElementById('kite-chip'), t = document.getElementById('kite-chip-text'), banner = document.getElementById('kite-banner');
     chip.classList.remove('wd-good', 'wd-warn', 'wd-neutral');
-    if (h.status === 'ok') { chip.classList.add('wd-good'); t.textContent = 'Kite live'; banner.hidden = true; return; }
+    if (h.status === 'ok') {
+      const all = D('mf_holdings').status === 'ok' && D('margins').status === 'ok';
+      chip.classList.add(all ? 'wd-good' : 'wd-warn'); t.textContent = all ? 'Kite live' : 'Kite live · some figures saved'; banner.hidden = true; return;
+    }
     if (h.status === 'loading') { chip.classList.add('wd-neutral'); t.textContent = 'Connecting to Kite…'; banner.hidden = true; return; }
     chip.classList.add('wd-warn'); t.textContent = 'Snapshot · Kite offline'; banner.hidden = false;
     const lg = D('kite_login'), link = document.getElementById('kite-login-link');
@@ -448,7 +550,7 @@
     const live = q.status === 'ok' ? (q.data.find((r) => r.instrument === 'NSE:' + o.symbol) || {}).last_price : null;
     const head = el('div', 'wd-headrow');
     const h = el('div', 'wd-head');
-    h.append(el('span', 'wd-muted', dayFmt(new Date(o.date)) + ' · ' + o.id), el('h2', null, o.symbol + ' · ' + o.name));
+    h.append(el('span', 'wd-muted', 'Investment opportunity · ' + dayFmt(new Date(o.date))), el('h2', null, o.symbol + ' · ' + o.name));
     head.append(h, el('span', 'wd-chip ' + (o.status === 'Active' ? 'wd-good' : 'wd-warn'), o.status));
     const lv = el('div', 'wd-levels');
     const L = (k, v, cls) => { const d = el('div', 'wd-level'); d.append(el('span', 'wd-muted', k), el('span', 'wd-num ' + (cls || ''), v)); return d; };
@@ -478,7 +580,7 @@
   function positions(s) {
     const t = document.getElementById('positions'), body = t.tBodies[0], P = D('positions_' + s);
     t.dataset.source = 'positions_' + s;
-    document.getElementById('holdings-src').textContent = s === 'live' ? 'Live from Kite' : 'Saved snapshot';
+    document.getElementById('holdings-src').textContent = s === 'LL' ? 'Live from Kite' : s[0] === 'L' ? 'Live stocks · saved fund values' : 'Saved snapshot';
     if (P.status !== 'ok') { body.replaceChildren(); return; }
     body.replaceChildren(...P.data.map((r) => {
       const tr = el('tr'); tr.dataset.key = r.symbol;
@@ -514,8 +616,8 @@
     }));
   }
 
-  function tiles(s) {
-    const M = D(s === 'live' && D('market').status === 'ok' ? 'market' : 'market_snap');
+  function tiles() {
+    const M = D(D('market').status === 'ok' ? 'market' : 'market_snap');
     document.querySelectorAll('.mk').forEach((n) => {
       const r = M.status === 'ok' ? M.data.find((x) => x.instrument === n.dataset.inst) : null;
       n.textContent = r ? num.format(r.last_price) : '—';
@@ -614,18 +716,120 @@
     if (key && key !== lastSymbols) { lastSymbols = key; dash.setParams({ symbols: syms }); }
   }
 
+  function homePositions(s) {
+    const t = document.getElementById('home-positions'), body = t.tBodies[0], P = D('positions_' + s), R = D('portfolio_review');
+    t.dataset.source = 'positions_' + s + ' portfolio_review';
+    document.getElementById('home-holdings-src').textContent = s === 'LL' ? 'Live from Kite' : s[0] === 'L' ? 'Live stocks · saved fund values' : 'Saved snapshot';
+    if (P.status !== 'ok') { body.replaceChildren(); return; }
+    const verdict = (sym) => (R.status === 'ok' ? (R.data.find((r) => r.symbol === sym) || {}).verdict : null);
+    const vt = { Exit: 'wd-bad', Trim: 'wd-warn', Add: 'wd-good' };
+    body.replaceChildren(...P.data.map((r) => {
+      const tr = el('tr'); tr.dataset.key = r.symbol;
+      const v = verdict(r.symbol);
+      const vc = el('td'); if (v) vc.append(el('span', 'wd-chip ' + (vt[v] || 'wd-neutral'), v));
+      tr.append(el('td', null, r.name === r.symbol ? r.symbol : 'Life Cycle 2041'), el('td', 'wd-r', inr.format(r.value)),
+        el('td', 'wd-r ' + tone(r.day_pct), r.day_pct ? pctS(r.day_pct) : '—'), el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)),
+        el('td', 'wd-r ' + tone(r.pnl_pct), pctS(r.pnl_pct)), vc);
+      return tr;
+    }));
+  }
+
+  // ---- P&L tab ----
+  function pnlKpis(em) {
+    const S = D('pnl_sum_' + em);
+    document.querySelectorAll('.pk').forEach((n) => {
+      n.dataset.source = 'pnl_sum_' + em; n.dataset.row = '0'; n.dataset.field = n.dataset.k;
+      n.classList.remove('wd-good', 'wd-bad');
+      if (S.status !== 'ok') { n.textContent = '—'; return; }
+      const v = S.data[0][n.dataset.k];
+      n.textContent = n.dataset.k === 'unrealised_pct' ? pctS(v) : inrS(v);
+      if (tone(v)) n.classList.add(tone(v));
+    });
+  }
+
+  function pnlBars(em) {
+    const box = document.getElementById('pnl-bars'), P = D('positions_' + em);
+    box.dataset.source = 'positions_' + em;
+    if (P.status !== 'ok') { box.replaceChildren(); return; }
+    const rows = [...P.data].sort((a, b) => b.pnl - a.pnl);
+    const max = Math.max(1, ...rows.map((r) => Math.abs(r.pnl)));
+    const neg = rows.some((r) => r.pnl < 0), pos = rows.some((r) => r.pnl > 0);
+    const zero = neg && pos ? 50 : neg ? 92 : 8;
+    const span = neg && pos ? 44 : 84;
+    box.replaceChildren(...rows.map((r) => {
+      const row = el('div', 'wd-pnlbar');
+      row.append(el('span', null, r.name === r.symbol ? r.symbol : 'Life Cycle 2041'));
+      const ax = el('div', 'wd-axis'), z = el('div', 'wd-zero'), b = el('div', 'wd-bar'), v = el('div', 'wd-val ' + tone(r.pnl), inrS(r.pnl) + ' · ' + pctS(r.pnl_pct));
+      const w = (Math.abs(r.pnl) / max) * span;
+      z.style.left = zero + '%';
+      b.style.width = w + '%';
+      b.style.background = r.pnl >= 0 ? 'var(--color-ok)' : 'var(--color-bad)';
+      b.style.opacity = '.75';
+      if (r.pnl >= 0) { b.style.left = zero + '%'; v.style.left = `calc(${zero + w}% + 6px)`; }
+      else { b.style.left = zero - w + '%'; v.style.right = `calc(${100 - (zero - w)}% + 6px)`; }
+      if (r.pnl >= 0 && zero + w > 70) { v.style.left = ''; v.style.right = `calc(${100 - zero}% + 6px)`; }
+      if (r.pnl < 0 && zero - w < 30) { v.style.right = ''; v.style.left = `calc(${zero}% + 6px)`; }
+      ax.append(z, b, v); row.append(ax);
+      return row;
+    }));
+  }
+
+  function curve(tk) {
+    const box = document.getElementById('curve-chart'), N = D('nav_history'), T = D('totals_' + tk);
+    box.dataset.source = 'nav_history totals_' + tk;
+    if (N.status === 'error') return failed(box);
+    if (N.status !== 'ok' || !box.clientWidth) return;
+    box.replaceChildren();
+    const pts = N.data.map((r) => ({ x: new Date(r.date), v: +r.value, i: +r.invested }));
+    if (T.status === 'ok') {
+      const t = T.data[0], today = new Date(new Date().toISOString().slice(0, 10));
+      const lastD = pts.length ? pts[pts.length - 1].x : null;
+      const live = { x: today, v: t.value, i: t.invested + (t.cash || 0), live: true };
+      if (!lastD || today > lastD) pts.push(live); else pts[pts.length - 1] = { ...live, x: lastD };
+    }
+    pts.sort((a, b) => a.x - b.x);
+    const W = box.clientWidth, H = 220;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const all = pts.flatMap((p) => [p.v, p.i]);
+    const ys = d3.scaleLinear([d3.min(all) * 0.97, d3.max(all) * 1.03], [H - 22, 12]).nice();
+    const probe = svg.append('text').attr('font-size', 12).text(inr.format(ys.domain()[1])); const tw = probe.node().getComputedTextLength(); probe.remove();
+    const m = { l: tw + 8, r: 74 };
+    const x0 = pts[0].x, x1 = pts.length > 1 ? pts[pts.length - 1].x : new Date(+x0 + 864e5);
+    const xs = d3.scaleUtc([x0, x1], [m.l, W - m.r]);
+    ys.ticks(4).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(t)).attr('y2', ys(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', m.l - 6).attr('y', ys(t)).attr('dy', '.32em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(inr.format(t));
+    });
+    xs.ticks(Math.min(pts.length, Math.max(2, Math.floor((W - m.l - m.r) / 80)))).forEach((t) => svg.append('text').attr('x', xs(t)).attr('y', H - 4).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(dayFmt(t)));
+    const area = d3.area().x((d) => xs(d.x)).y0((d) => ys(d.i)).y1((d) => ys(d.v));
+    svg.append('path').datum(pts).attr('d', area).attr('fill', pts[pts.length - 1].v >= pts[pts.length - 1].i ? 'var(--color-ok)' : 'var(--color-bad)').attr('opacity', 0.12);
+    const line = (k) => d3.line().x((d) => xs(d.x)).y((d) => ys(d[k]));
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', 'var(--cds-chart-muted)').attr('stroke-width', 2).attr('stroke-dasharray', '4 4').attr('d', line('i'));
+    svg.append('path').datum(pts).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('d', line('v'));
+    pts.forEach((p) => svg.append('circle').attr('cx', xs(p.x)).attr('cy', ys(p.v)).attr('r', p.live ? 4.5 : 3).attr('fill', dash.colors[0]));
+    const L = pts[pts.length - 1];
+    const ly = [ys(L.v), ys(L.i)]; if (Math.abs(ly[0] - ly[1]) < 14) { if (ly[0] <= ly[1]) ly[1] = ly[0] + 14; else ly[0] = ly[1] + 14; }
+    svg.append('text').attr('x', W - m.r + 6).attr('y', ly[0]).attr('dy', '.32em').attr('font-size', 12).attr('fill', 'var(--color-fg)').text('Value');
+    svg.append('text').attr('x', W - m.r + 6).attr('y', ly[1]).attr('dy', '.32em').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text('Put in');
+  }
+
   function render() {
-    const s = src() || 'snap';
+    const k = key(), s = k.em;
     kiteStatus();
     fillMarks();
-    if (current === 'today') { kpis(s); todo(); risk(s); }
-    if (current === 'opportunity') ticket();
+    if (current === 'today') { kpis(k.em + k.c); todo(); homePositions(s); ticket(); curve(k.em + k.c); }
+    if (current === 'pnl') {
+      pnlKpis(s); pnlBars(s);
+      table('pnl-class', 'pnl_class_' + s, [['asset_class'], ['invested', 'wd-r', (v) => inr.format(v)], ['value', 'wd-r', (v) => inr.format(v)], ['pnl', 'wd-r', (v) => inrS(v)], ['pnl_pct', 'wd-r', (v) => pctS(v)]]);
+      document.getElementById('pnl-class').dataset.source = 'pnl_class_' + s;
+      table('ledger', 'pnl_ledger', [['date', null, (v) => dayFmt(new Date(v))], ['symbol'], ['qty', 'wd-r'], ['buy_avg', 'wd-r', (v) => num.format(v)], ['sell_price', 'wd-r', (v, r) => num.format(v) + (r.estimated ? ' (est.)' : '')], ['realised', 'wd-r', (v) => inrS(v)], ['note', 'wd-wrap']]);
+    }
     if (current === 'portfolio') {
-      positions(s); alloc(s);
+      positions(s); alloc(s); risk(s);
       table('review', 'portfolio_review', [['symbol'], ['verdict'], ['action', 'wd-wrap'], ['reason', 'wd-wrap']]);
     }
     if (current === 'market') {
-      tiles(s); nifty(); catalysts(); signals();
+      tiles(); nifty(); catalysts(); signals();
       table('mreview', 'market_review', [['metric'], ['value'], ['change'], ['read', 'wd-wrap']]);
     }
     if (current === 'track') table('trades', 'trades', [['id'], ['symbol'], ['entry', 'wd-r', (v) => num.format(v)], ['sl', 'wd-r', (v) => num.format(v)], ['tp', 'wd-r', (v) => num.format(v)], ['status']]);
@@ -633,6 +837,173 @@
 
   dash.onData(() => { syncSymbols(); render(); });
 
-  const named = location.hash.slice(1);
-  if (tabs.some((b) => b.dataset.tab === named)) show(named, false);
+  const named = { opportunity: 'today' }[location.hash.slice(1)] || location.hash.slice(1);
+  if (named !== 'today' && tabs.some((b) => b.dataset.tab === named)) show(named, false);
+</script>
+
+<script>
+  // Daily generative backdrop: rotates every day between finance sceneries and abstract finance art.
+  // Seeded by the date, tinted by the day's Nifty move, and the sky follows the real time of day.
+  (function () {
+    const shell = document.getElementById('wd-shell'), cv = document.getElementById('wd-bg'), cap = document.getElementById('wd-theme');
+    if (!shell || !cv) return;
+    const ctx = cv.getContext('2d');
+    const day = new Date().toISOString().slice(0, 10);
+    const dayIndex = Math.floor(Date.parse(day) / 864e5);
+    let seed = [...day].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7);
+    const rand = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    const STYLES = [
+      { name: 'Bull Ridge', kind: 'scenery' }, { name: 'Candle field', kind: 'art' },
+      { name: 'Ticker City', kind: 'scenery' }, { name: 'Ridgelines', kind: 'art' },
+      { name: 'Liquidity Tide', kind: 'scenery' }, { name: 'Aurora of flows', kind: 'art' },
+      { name: 'Order-book Desert', kind: 'scenery' }, { name: 'Constellation of trades', kind: 'art' },
+      { name: 'Compounding Orbits', kind: 'art' },
+    ];
+    // Shuffle the rotation per month so the order itself changes, while each day is stable.
+    const month = day.slice(0, 7);
+    let ms = [...month].reduce((h, ch) => (h * 33 + ch.charCodeAt(0)) >>> 0, 3);
+    const order = STYLES.map((s, i) => ({ s, k: ((ms = (ms * 1103515245 + 12345) >>> 0) % 1000) + i / 10 })).sort((a, b) => a.k - b.k).map((x) => x.s);
+    const style = order[dayIndex % order.length].name;
+    const probe = document.createElement('span'); probe.style.display = 'none'; shell.append(probe);
+    const resolve = (v) => { probe.style.color = v; return getComputedStyle(probe).color; };
+    const rgba = (c, a) => { const m = c.match(/\d+(\.\d+)?/g) || [128, 128, 128]; return `rgba(${m[0]},${m[1]},${m[2]},${a})`; };
+    const mix = (c1, c2, t) => { const a = c1.match(/\d+(\.\d+)?/g).map(Number), b = c2.match(/\d+(\.\d+)?/g).map(Number); return `rgb(${a.slice(0, 3).map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; };
+    const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let mood = 0, tint, alt, fg, ok, bad, W = 0, H = 0, items = {}, t0 = performance.now(), raf = 0, last = 0;
+
+    function palette() {
+      ok = resolve('var(--color-ok)'); bad = resolve('var(--color-bad)'); fg = resolve('var(--color-fg)');
+      tint = mood > 0.002 ? ok : mood < -0.002 ? bad : resolve(dash.colors[0]);
+      alt = resolve(dash.colors[(dayIndex % 6) + 1] || dash.colors[1]);
+    }
+    function setMood() {
+      const M = dash.data(dash.data('market').status === 'ok' ? 'market' : 'market_snap');
+      const n = M.status === 'ok' ? M.data.find((r) => r.instrument === 'NSE:NIFTY 50') : null;
+      mood = n && n.prev_close ? n.last_price / n.prev_close - 1 : 0;
+      palette();
+      const word = mood > 0.002 ? `green, Nifty +${(mood * 100).toFixed(2)}%` : mood < -0.002 ? `red, Nifty ${(mood * 100).toFixed(2)}%` : 'neutral, Nifty flat';
+      if (cap) cap.textContent = `Today's backdrop: ${style} (${word}). A new scene every day.`;
+    }
+
+    // A seeded random walk: the shape of a price chart, reused as mountains, skylines and dunes.
+    const walk = (n, vol, drift) => { const out = []; let v = 0.5; for (let i = 0; i < n; i++) { v = Math.min(0.95, Math.max(0.05, v + (rand() - 0.5) * vol + drift)); out.push(v); } return out; };
+
+    function build() {
+      const r = rand;
+      items = {
+        ridges: [0, 1, 2, 3].map((k) => walk(90, 0.09 - k * 0.015, mood * 0.6)),
+        clouds: Array.from({ length: 5 }, () => ({ x: r(), y: 0.08 + r() * 0.25, w: 0.12 + r() * 0.18, s: 0.004 + r() * 0.01 })),
+        towers: Array.from({ length: 42 }, () => ({ h: 0.18 + r() * 0.5, w: 0.6 + r() * 0.8, lit: Array.from({ length: 30 }, () => r() < 0.35), ph: r() * 6 })),
+        waves: Array.from({ length: 6 }, (_, i) => ({ f: 1 + r() * 2.5, ph: r() * 6.28, amp: 0.015 + r() * 0.03, sp: 0.2 + r() * 0.4, y: 0.55 + i * 0.075 })),
+        dunes: [0, 1, 2].map(() => walk(60, 0.05, 0)),
+        bars: Array.from({ length: 70 }, () => ({ b: r(), a: r() })),
+        lines: Array.from({ length: 14 }, (_, i) => ({ y: (i + 1) / 15, f: 1.5 + r() * 3, ph: r() * 6.28, amp: 0.02 + r() * 0.05, sp: 0.05 + r() * 0.15 })),
+        blobs: Array.from({ length: 6 }, (_, i) => ({ x: r(), y: r(), rad: 0.25 + r() * 0.35, sx: (r() - 0.5) * 0.02, sy: (r() - 0.5) * 0.02, c: i % 2 })),
+        candles: (() => { let p = 0.5; return Array.from({ length: 90 }, () => { const o = p; p = Math.min(0.9, Math.max(0.1, p + (r() - 0.5 + mood * 4) * 0.06)); return { o, c: p, h: Math.max(o, p) + r() * 0.03, l: Math.min(o, p) - r() * 0.03 }; }); })(),
+        stars: Array.from({ length: 46 }, () => ({ x: r(), y: r(), vx: (r() - 0.5) * 0.01, vy: (r() - 0.5) * 0.01 })),
+        orbits: Array.from({ length: 7 }, (_, i) => ({ R: 0.08 + i * 0.07, n: 6 + i * 3, sp: (0.06 - i * 0.006) * (i % 2 ? -1 : 1), ph: r() * 6.28 })),
+      };
+    }
+
+    function size() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = shell.clientWidth; H = shell.clientHeight;
+      cv.width = Math.max(1, W * dpr); cv.height = Math.max(1, H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    // Sky follows the real hour: dawn, day, dusk, night. Low alpha keeps text readable.
+    function sky(viewH) {
+      const h = new Date().getHours() + new Date().getMinutes() / 60;
+      const night = h < 5.5 || h > 19.5, dawn = h >= 5.5 && h < 8, dusk = h > 17 && h <= 19.5;
+      const top = night ? mix(alt, fg, 0.6) : dawn ? mix(tint, alt, 0.3) : dusk ? mix(bad, alt, 0.4) : mix(alt, tint, 0.3);
+      const g = ctx.createLinearGradient(0, 0, 0, viewH);
+      g.addColorStop(0, rgba(top, night ? 0.22 : 0.16)); g.addColorStop(0.7, rgba(tint, 0.05)); g.addColorStop(1, rgba(tint, 0));
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, viewH);
+      const sx = Math.min(Math.max((h - 6) / 13, 0), 1), sy = 0.38 - Math.sin(sx * Math.PI) * 0.26;
+      const R = Math.min(W, viewH) * 0.07, x = W * (0.1 + 0.8 * sx), y = viewH * sy;
+      const sg = ctx.createRadialGradient(x, y, 0, x, y, R * 4);
+      sg.addColorStop(0, rgba(night ? fg : tint, 0.28)); sg.addColorStop(0.25, rgba(night ? fg : tint, 0.12)); sg.addColorStop(1, rgba(tint, 0));
+      ctx.fillStyle = sg; ctx.fillRect(x - R * 4, y - R * 4, R * 8, R * 8);
+      return night;
+    }
+    const ridge = (pts, base, amp, color, alpha, offset) => {
+      ctx.beginPath(); ctx.moveTo(0, H);
+      pts.forEach((v, i) => { const x = (i / (pts.length - 1)) * W + offset; ctx.lineTo(x, base - v * amp); });
+      ctx.lineTo(W + Math.abs(offset), H); ctx.closePath();
+      ctx.fillStyle = rgba(color, alpha); ctx.fill();
+    };
+
+    function frame(now) {
+      const t = (now - t0) / 1000, viewH = Math.min(H, 900);
+      ctx.clearRect(0, 0, W, H);
+      if (style === 'Bull Ridge') {
+        sky(viewH);
+        items.clouds.forEach((c) => { const x = (((c.x + c.s * t) % 1.3) - 0.15) * W; ctx.fillStyle = rgba(fg, 0.05); ctx.beginPath(); ctx.ellipse(x, c.y * viewH, c.w * W, c.w * W * 0.18, 0, 0, 6.28); ctx.fill(); });
+        items.ridges.forEach((pts, k) => ridge(pts, viewH * (0.55 + k * 0.12), viewH * (0.32 - k * 0.05), k % 2 ? alt : tint, 0.06 + k * 0.035, Math.sin(t * 0.05 + k) * 6 * (k + 1)));
+      } else if (style === 'Ticker City') {
+        const night = sky(viewH), n = items.towers.length, bw = W / n, base = viewH * 0.98;
+        items.towers.forEach((tw, i) => {
+          const h = tw.h * viewH * 0.55, x = i * bw, w = bw * tw.w;
+          ctx.fillStyle = rgba(i % 5 ? mix(alt, fg, 0.3) : tint, 0.1); ctx.fillRect(x, base - h, w, h);
+          const rows = Math.floor(h / 12);
+          for (let rI = 0; rI < Math.min(rows, 30); rI++) if (tw.lit[rI] && (Math.sin(t * 0.5 + tw.ph + rI) > -0.6 || !night)) {
+            ctx.fillStyle = rgba(night ? tint : fg, night ? 0.35 : 0.08); ctx.fillRect(x + w * 0.25, base - h + 6 + rI * 12, Math.max(2, w * 0.18), 4);
+          }
+        });
+        ctx.strokeStyle = rgba(tint, 0.35); ctx.lineWidth = 1.5; ctx.beginPath();
+        items.ridges[0].forEach((v, i) => { const x = (i / 89) * W; const y = viewH * 0.25 - v * viewH * 0.12 + Math.sin(t * 0.3 + i * 0.2) * 2; i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke();
+      } else if (style === 'Liquidity Tide') {
+        sky(viewH);
+        items.waves.forEach((w, k) => {
+          ctx.beginPath(); ctx.moveTo(0, H);
+          for (let x = 0; x <= W; x += 10) { const u = x / W; ctx.lineTo(x, viewH * w.y + Math.sin(u * w.f * 6.28 + w.ph + t * w.sp) * w.amp * viewH + Math.sin(u * 23 + t) * 2); }
+          ctx.lineTo(W, H); ctx.closePath(); ctx.fillStyle = rgba(k % 2 ? alt : tint, 0.05 + k * 0.012); ctx.fill();
+        });
+      } else if (style === 'Order-book Desert') {
+        sky(viewH);
+        items.dunes.forEach((pts, k) => ridge(pts, viewH * (0.7 + k * 0.1), viewH * 0.25, k === 1 ? alt : tint, 0.07 + k * 0.03, Math.sin(t * 0.04 + k) * 10));
+        const n = items.bars.length, bw = W / n;
+        items.bars.forEach((b, i) => { const isBid = i < n / 2, d = Math.abs(i - n / 2) / (n / 2), h = (0.05 + d * d * 0.3 * (0.6 + 0.4 * Math.sin(t * 0.6 + b.a * 6))) * viewH; ctx.fillStyle = rgba(isBid ? ok : bad, 0.1); ctx.fillRect(i * bw, viewH * 0.98 - h, bw * 0.7, h); });
+      } else if (style === 'Ridgelines') {
+        items.lines.forEach((it, i) => {
+          ctx.beginPath();
+          for (let x = 0; x <= W; x += 8) { const u = x / W; const y = it.y * viewH + Math.sin(u * it.f * 6.28 + it.ph + t * it.sp) * it.amp * viewH + Math.sin(u * 17 + i + t * 0.07) * 4 - mood * 900 * u * (i / 14); x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+          ctx.strokeStyle = rgba(i % 3 ? tint : alt, 0.08 + 0.1 * (i / 14)); ctx.lineWidth = 1.2; ctx.stroke();
+        });
+      } else if (style === 'Aurora of flows') {
+        items.blobs.forEach((b) => {
+          const x = ((b.x + b.sx * t) % 1.4 + 1.4) % 1.4 - 0.2, y = ((b.y + b.sy * t) % 1.4 + 1.4) % 1.4 - 0.2, R = b.rad * Math.max(W, viewH);
+          const g = ctx.createRadialGradient(x * W, y * viewH, 0, x * W, y * viewH, R);
+          g.addColorStop(0, rgba(b.c ? alt : tint, 0.17)); g.addColorStop(1, rgba(b.c ? alt : tint, 0)); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+        });
+      } else if (style === 'Candle field') {
+        const n = items.candles.length, bw = W / n, shift = (t * 6) % bw;
+        items.candles.forEach((k, i) => {
+          const x = i * bw - shift + bw / 2, c = k.c >= k.o ? ok : bad;
+          ctx.strokeStyle = rgba(c, 0.14); ctx.fillStyle = rgba(c, 0.14);
+          ctx.beginPath(); ctx.moveTo(x, (1 - k.h) * viewH); ctx.lineTo(x, (1 - k.l) * viewH); ctx.stroke();
+          const y1 = (1 - Math.max(k.o, k.c)) * viewH, y2 = (1 - Math.min(k.o, k.c)) * viewH; ctx.fillRect(x - bw * 0.3, y1, bw * 0.6, Math.max(1, y2 - y1));
+        });
+      } else if (style === 'Constellation of trades') {
+        const S = items.stars; S.forEach((p) => { p.x = (p.x + p.vx * 0.016 + 1) % 1; p.y = (p.y + p.vy * 0.016 + 1) % 1; });
+        for (let i = 0; i < S.length; i++) for (let j = i + 1; j < S.length; j++) { const a = S[i], b = S[j], d = Math.hypot((a.x - b.x) * W, (a.y - b.y) * viewH); if (d < 150) { ctx.strokeStyle = rgba(tint, 0.13 * (1 - d / 150)); ctx.beginPath(); ctx.moveTo(a.x * W, a.y * viewH); ctx.lineTo(b.x * W, b.y * viewH); ctx.stroke(); } }
+        S.forEach((p) => { ctx.fillStyle = rgba(alt, 0.28); ctx.beginPath(); ctx.arc(p.x * W, p.y * viewH, 2, 0, 6.28); ctx.fill(); });
+      } else {
+        const cx = W * 0.72, cy = viewH * 0.32, base = Math.max(W, viewH);
+        items.orbits.forEach((o, i) => {
+          ctx.strokeStyle = rgba(i % 2 ? alt : tint, 0.07); ctx.beginPath(); ctx.ellipse(cx, cy, o.R * base, o.R * base * 0.42, -0.35, 0, 6.28); ctx.stroke();
+          for (let k = 0; k < o.n; k++) { const a = o.ph + t * o.sp + (k / o.n) * 6.28, x = cx + Math.cos(a) * o.R * base * Math.cos(-0.35) - Math.sin(a) * o.R * base * 0.42 * Math.sin(-0.35), y = cy + Math.cos(a) * o.R * base * Math.sin(-0.35) + Math.sin(a) * o.R * base * 0.42 * Math.cos(-0.35); ctx.fillStyle = rgba(i % 2 ? alt : tint, 0.22); ctx.beginPath(); ctx.arc(x, y, 2 + (i % 3), 0, 6.28); ctx.fill(); }
+        });
+      }
+    }
+
+    function loop(now) { raf = 0; if (document.hidden) return; if (now - last > 42) { frame(now); last = now; } if (!reduce) raf = requestAnimationFrame(loop); }
+    const kick = () => { if (!raf) raf = requestAnimationFrame(loop); };
+    new ResizeObserver(() => { size(); frame(performance.now()); }).observe(shell);
+    document.addEventListener('visibilitychange', kick);
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => { palette(); kick(); });
+    setMood(); build(); size(); kick();
+    dash.onData(() => { const before = Math.sign(mood); setMood(); if (Math.sign(mood) !== before) { seed = [...day].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7); build(); } kick(); });
+  })();
 </script>
