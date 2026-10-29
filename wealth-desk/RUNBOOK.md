@@ -1,38 +1,82 @@
-# Wealth Desk: daily refresh runbook
+# Wealth Desk v2 runbook
 
-Dashboard: https://claude.ai/artifact/TjJfTv5vmJEcF6s2arypnX (Dashboard artifact type).
-The page lives in the artifact's store as `files/index.html`. A copy is in `wealth-desk/index.html`.
+The scheduled routine (weekdays 08:15 IST) runs this procedure. A person can also run it by
+saying "run the Wealth Desk" in a Claude Code session that has the Zerodha Kite connector.
 
-## Who it's for
+- Dashboard: https://claude.ai/artifact/TjJfTv5vmJEcF6s2arypnX (Dashboard artifact type; data in its store)
+- Engine: `wealth-desk/engine/` on branch `claude/portfolio-audit-dashboard-e5c5kv`
+- Owner: Dev (Zerodha ITJ551). Opens the dashboard in the Claude iPhone app.
 
-Dev (Zerodha client ITJ551). Long-horizon investor who adds ₹15–20k a month. Rules:
+## Hard rules
+1. Never place, modify or cancel orders. Every output is a suggestion Dev executes in Kite.
+2. Delivery (CNC) only. No F&O, leverage, intraday or MTF.
+3. Risk: ≤2.5% of portfolio lost per idea at its stop; ≤8% across all open stops; no new ideas
+   once the portfolio is 10% below its peak (`engine/rules.py`).
+4. Never promise returns. Say "target", never "expected". Show the back-tested hit rate when one exists.
+5. Wealth Desk is its own system. It borrows only the evidence-based rules from the AI India
+   Portfolio event study (hard kills, do-not-chase, stops outside noise). It does not run the
+   9-agent gauntlet or copy that project's structure.
 
-- Never place, modify or cancel orders. Suggestions only.
-- Delivery (CNC) only. No F&O, no leverage, no intraday.
-- Never promise returns. The aim is to beat the Nifty after costs over years, not 6% a month.
+## What runs when
+`schedule` dataset tracks last run dates. Count trading days, not calendar days.
 
-## Datasets
+| Job | Cadence | Writes |
+|---|---|---|
+| Portfolio review | every 3 trading days | `portfolio_review`, snapshots, `notes` |
+| Market review | every 3 trading days | `market_review`, `signals`, `catalysts`, `nifty_1y` |
+| New opportunity | every 5 trading days | `opportunity`, appends to `trades` |
+| Track ideas | every run | `trades` |
 
-| id | kind | how to refresh |
-|----|------|----------------|
-| holdings | file + paused Kite request `get_holdings {}` | run the call, upload the rows as JSON |
-| mf_holdings | file + paused Kite request `get_mf_holdings {}` | same |
-| market | file + paused Kite request `get_quotes` (4 indices) | upload rows `{instrument, last_price, prev_close}` (prev_close = `ohlc.close`) |
-| nifty_1y | file + paused Kite request `get_historical_data` (token 256265, day) | set from_date to 1 year back and to_date to today, upload rows `{date: YYYY-MM-DD, close}`, update `request.args` |
-| ideas | file (research) | 3–6 ranked rows: `rank, stance, instrument, title, why, how, amount_inr, horizon, confidence, review_by` |
-| catalysts | file (research) | rows `date, event, affects, impact (High/Medium/Action), what_to_do`. Look 2–14 days ahead |
-| signals | file (research) | rows `date, category, headline, read (Bullish/Bearish/Neutral/Event), so_what, url` |
-| notes | file (research) | rows `{key, text}` for keys `takeaway`, `regime`, `sentiment_score`, `brief_date` |
-| sip_plan | file | review on the 1st of each month |
-| targets, classify | file | change only on Dev's instruction; add new symbols to classify |
+Nothing due → update `trades` only and finish quietly.
 
-Stance values the page colours: `Buy gradually`, `Buy`, `Add`, `Hold`, `Watch`, `Trim`, `Sell`, `Avoid`.
+## Procedure
+1. **Kite.** Call `get_profile`. If it says to log in, call `login`, show Dev the warning and link,
+   and continue with steps that don't need Kite. Resume Kite steps after Dev replies.
+2. **Read state.** ArtifactData `list` on `datasets` (versions, file names). Read `schedule`,
+   `trades`, `opportunity` files via Artifact `read` with `path` = asset id.
+3. **Track.** For each open/proposed trade, `get_historical_data` since its date, save to
+   `candles/<SYMBOL>.json`, run `python engine/track.py trades.json candles/`.
+4. **Portfolio review (if due).** `get_holdings`, `get_mf_holdings`, `get_margins`, `get_gtts`,
+   quotes + 1y history for each holding. For each holding: verdict Hold/Add/Trim/Exit,
+   SL (outside noise: ~2×ATR or below the last swing low), TP, reason, GTT status.
+   Apply the hard kills to existing holdings too (T/Z series, <₹20, illiquid → Exit).
+   Respect one-time exclusions Dev asks for, only for that run.
+5. **Market review (if due).** Index quotes + 1y Nifty; web search: FII/DII flows, crude, rupee,
+   RBI/Fed, results calendar (next 14 days), tenders and order wins (defence, rail, power, infra).
+   Verdict Risk-on / Neutral / Risk-off. Risk-off → next idea at half size or skipped.
+6. **Opportunity (if due).**
+   - `get_ohlc` on all of `engine/universe.csv` (one call) → `python engine/screen.py prefilter quotes.json`.
+   - `get_historical_data` (260 days) for each prefiltered symbol and NIFTY 50 → `screen.py rank`.
+   - Research the top 3 (results dates, news, filings, sector). Results inside 5 sessions → make
+     the idea conditional on the post-results trigger. Pick one or none. Never force an idea.
+   - Size it: `python engine/allocate.py state.json idea.json [size_factor]`.
+   - Write `opportunity` (status Active or Conditional) and append to `trades` as `proposed`.
+7. **Publish.** For each changed file: Artifact publish (`asset: true`, the dashboard url), then
+   ArtifactData `update` of `datasets/<id>` with `source.url`, `source.name`, `updated`,
+   pinned with `if_version`. Refresh `*_snap` files from today's Kite answers.
+8. **Commit** changed data files to `wealth-desk/data/` and push.
+9. **Brief Dev.** Five lines: takeaway, actions to take in Kite, the idea (or why none), anything
+   due within 2 days, dashboard link.
 
-## Daily steps
+## File shapes
+- `opportunity`: id, date, symbol, name, status, setup, trigger, entry, sl, tp, rr, qty, cost,
+  risk_rs, risk_pct, reward_rs, time_stop, expires, funding, thesis, checks, confidence, backtest
+- `trades`: id, date, symbol, entry, sl, tp, qty, status (proposed/open/tp/sl/time/cancelled), entered, exit_*, r, ret
+- `portfolio_review`: symbol, verdict, action, sl, tp, keep_qty?, reason, gtt (Missing/Set/n/a)
+- `market_review`: metric, value, change, read
+- `schedule`: task, every_days, last, next
+- `notes`: key/text rows: takeaway, brief_date
 
-1. Call Kite `get_holdings`. If it says to log in, call `login`, show Dev the warning and the link, and carry on with research while you wait.
-2. Research with web search: news on each holding; government tenders and order wins (defence, rail, power, infra PSUs); results and board-meeting dates for the next 14 days; RBI, CPI, FII flows, crude and rupee; Nifty technical levels; gold.
-3. Rewrite `ideas`, `catalysts`, `signals` and `notes`. Each file: write the JSON, upload it with the Artifact tool (`asset: true`, the dashboard url), then `update` `datasets/<id>` with the new `url`, `name` and `updated: {at, by: "Claude"}`.
-4. Once Kite is logged in, refresh `holdings`, `mf_holdings`, `market` and `nifty_1y` the same way, and also write `lastAttempt: {at, ok: true, by: "Dev"}`.
-5. Commit the JSON files to `wealth-desk/data/` on branch `claude/portfolio-audit-dashboard-e5c5kv` if the repo is checked out.
-6. Reply with a 5-line brief: the takeaway, today's top 2 calls, anything due in the next 2 days, and the dashboard link.
+## Back-test (control panel)
+Runs on Dev's Mac where the data lives (`~/Desktop/AI-India-Data/market.duckdb`):
+```
+python engine/backtest.py inspect ~/Desktop/AI-India-Data/market.duckdb
+python engine/backtest.py run ~/Desktop/AI-India-Data/market.duckdb --table <t> --symbol <c> --date <c> --series <c>
+```
+Writes `engine/calibrated.json` (picked up by `rules.py`) and `calibrated_report.json`.
+Re-run quarterly or when the rules change.
+
+## Routine prompt (paste into claude.ai → Routines, with the Zerodha Kite connector attached)
+> Run the Wealth Desk. Clone github.com/Deo20050206/AI-Driven-CMO, check out branch
+> claude/portfolio-audit-dashboard-e5c5kv, read wealth-desk/RUNBOOK.md and follow it exactly.
+> Dashboard: https://claude.ai/artifact/TjJfTv5vmJEcF6s2arypnX. Never place orders.

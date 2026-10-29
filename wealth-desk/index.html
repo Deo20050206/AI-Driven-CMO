@@ -1,275 +1,310 @@
 <style>
-  /* Layout: a morning brief. Header + KPI strip, today's calls first, then portfolio, radar, market, growth. */
-  #dash-root { --dash-gutter: clamp(16px, 3vw, 32px); }
-  .wd { max-width: 1180px; margin-inline: auto; display: grid; gap: var(--cds-gap-xl); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
+  /* Wealth Desk v2: a phone-first trading desk. Tabs: Today, Opportunity, Portfolio, Market, Track record. */
+  #dash-root { --dash-gutter: clamp(14px, 3vw, 32px); }
+  .wd { max-width: 1100px; margin-inline: auto; display: grid; gap: var(--cds-gap-lg); font-family: var(--font-anthropic-sans); color: var(--color-fg); }
   .wd h1 { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); margin: 0; text-wrap: balance; }
   .wd h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0; text-wrap: balance; }
   .wd h3 { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0; }
   .wd p { margin: 0; }
   .wd-muted { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
-  .wd-head { display: grid; gap: var(--cds-gap-sm); }
-  .wd-take { font-size: var(--cds-font-size-body); max-width: 70ch; line-height: 1.5; }
-  .wd-eyebrow { font-size: var(--cds-font-size-caption); letter-spacing: .06em; text-transform: uppercase; color: var(--color-fg-muted); }
-  .wd-section { display: grid; gap: var(--cds-gap-md); }
-  .wd-section > header { display: grid; gap: var(--cds-gap-xs); }
-  .wd-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); }
+  .wd-head { display: grid; gap: var(--cds-gap-xs); }
+  .wd-headrow { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; justify-content: space-between; }
+  .wd-take { line-height: 1.5; max-width: 72ch; }
+  /* tabs */
+  .wd-tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--color-border-line); position: sticky; top: 0; background: var(--color-bg); z-index: 2; scrollbar-width: none; }
+  .wd-tabs button { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; color: var(--color-fg-muted); padding: 10px 12px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; }
+  .wd-tabs button[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .wd-tabs button:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+  .wd-page { display: grid; gap: var(--cds-gap-lg); }
+  /* cards */
+  .wd-grid { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); }
   .wd-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); display: grid; gap: var(--cds-gap-sm); align-content: start; min-width: 0; }
-  .wd-kpis { display: grid; gap: var(--cds-gap-md); grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); }
-  .wd-kpi { display: grid; gap: var(--cds-gap-xs); align-content: start; }
-  .wd-kpi .wd-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; }
-  .wd .wd-kpi b, .wd .wd-num b { font-weight: 400; }
-  .wd-good { color: var(--color-ok); }
-  .wd-bad { color: var(--color-bad); }
-  .wd-warn { color: var(--color-warn); }
+  .wd-kpis { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(auto-fit, minmax(min(100%, 9.5rem), 1fr)); }
+  .wd-kpi { display: grid; gap: 2px; align-content: start; }
+  .wd-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .wd .wd-big b, .wd .wd-num b { font-weight: 400; }
+  .wd-num { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
+  .wd-good { color: var(--color-ok); } .wd-bad { color: var(--color-bad); } .wd-warn { color: var(--color-warn); }
   .wd-chip { display: inline-flex; align-items: center; gap: .35em; font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
   .wd-chip.wd-neutral { color: var(--color-fg-muted); }
-  /* ideas */
-  .wd-ideas { display: grid; gap: var(--cds-gap-md); min-height: 8rem; }
-  .wd-idea { display: grid; gap: var(--cds-gap-sm); grid-template-columns: 2.25rem 1fr; }
-  .wd-rank { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-title); line-height: 1; color: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
-  .wd-idea-body { display: grid; gap: var(--cds-gap-sm); min-width: 0; }
-  .wd-idea-top { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; }
-  .wd-idea dl { display: grid; grid-template-columns: max-content 1fr; gap: var(--cds-gap-xs) var(--cds-gap-md); margin: 0; font-size: var(--cds-font-size-caption); }
-  .wd-idea dt { color: var(--color-fg-muted); }
-  .wd-idea dd { margin: 0; }
-  .wd-idea .wd-why, .wd-idea .wd-how { line-height: 1.5; max-width: 75ch; }
-  .wd-how { border-left: 2px solid var(--color-border-line); padding-left: var(--cds-pad-sm); }
-  /* allocation */
-  .wd-alloc { display: grid; gap: var(--cds-gap-md); min-height: 10rem; }
-  .wd-arow { display: grid; gap: var(--cds-gap-xs); }
-  .wd-arow-top { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); flex-wrap: wrap; font-variant-numeric: tabular-nums; }
-  .wd-track { position: relative; height: 12px; border-radius: 6px; background: var(--cds-chart-grid); }
-  .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 6px; }
+  .wd-dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; }
+  /* meters */
+  .wd-meter { display: grid; gap: 4px; }
+  .wd-meter-top { display: flex; justify-content: space-between; gap: var(--cds-gap-sm); font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
+  .wd-track { position: relative; height: 10px; border-radius: 5px; background: var(--cds-chart-grid); }
+  .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 5px; }
   .wd-tick { position: absolute; top: -4px; bottom: -4px; width: 2px; background: var(--color-fg); border-radius: 1px; }
+  /* todo */
+  .wd-todo { display: grid; gap: 0; }
+  .wd-todo-item { display: grid; grid-template-columns: auto 1fr; gap: var(--cds-gap-sm); padding-block: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); align-items: start; }
+  .wd-todo-item:last-child { border-bottom: 0; }
+  /* ticket */
+  .wd-ticket { display: grid; gap: var(--cds-gap-md); }
+  .wd-levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 7rem), 1fr)); gap: var(--cds-gap-sm); }
+  .wd-level { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm); display: grid; gap: 2px; }
+  .wd-ladder { position: relative; height: 44px; margin-top: 8px; }
+  .wd-ladder .wd-rail { position: absolute; left: 0; right: 0; top: 20px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--color-bad), var(--cds-chart-grid) 45%, var(--color-ok)); opacity: .55; }
+  .wd-ladder .wd-mark { position: absolute; top: 12px; width: 2px; height: 22px; background: var(--color-fg); }
+  .wd-ladder .wd-lbl { position: absolute; top: 34px; transform: translateX(-50%); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .wd-ladder .wd-ltp { position: absolute; top: 0; transform: translateX(-50%); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .wd-ladder .wd-ltp-dot { position: absolute; top: 17px; width: 12px; height: 12px; border-radius: 50%; transform: translateX(-50%); background: var(--color-fg); border: 2px solid var(--color-panel); }
+  .wd-prose { line-height: 1.55; max-width: 75ch; }
+  .wd-steps { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
   /* tables */
   .wd-tablewrap { overflow-x: auto; }
   .wd table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); }
-  .wd th, .wd td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; }
+  .wd th, .wd td { text-align: left; padding: var(--cds-pad-xs) var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); white-space: nowrap; vertical-align: top; }
   .wd th { color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
-  .wd td.wd-r, .wd th.wd-r { text-align: right; }
+  .wd .wd-r { text-align: right; }
   .wd td.wd-wrap { white-space: normal; min-width: 14rem; }
-  /* radar */
-  .wd-feed { display: grid; gap: 0; min-height: 8rem; }
-  .wd-item { display: grid; grid-template-columns: 5.5rem 1fr; gap: var(--cds-gap-md); padding-block: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  /* feeds */
+  .wd-feed { display: grid; min-height: 6rem; }
+  .wd-item { display: grid; grid-template-columns: 5rem 1fr; gap: var(--cds-gap-md); padding-block: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
   .wd-item:last-child { border-bottom: 0; }
-  .wd-item-date { font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: grid; gap: 4px; align-content: start; }
+  .wd-item-date { font-variant-numeric: tabular-nums; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); display: grid; gap: 2px; align-content: start; }
   .wd-item-body { display: grid; gap: 4px; min-width: 0; }
   .wd-item-body a { color: inherit; }
   .wd-soon { box-shadow: inset 3px 0 0 var(--color-warn); padding-left: var(--cds-pad-sm); }
-  /* market */
-  .wd-tiles { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr)); }
+  .wd-tiles { display: grid; gap: var(--cds-gap-sm); grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5rem), 1fr)); }
   .wd-tile { display: grid; gap: 2px; }
-  .wd-tile .wd-num { font-family: var(--font-anthropic-serif); font-size: var(--cds-font-size-heading); font-variant-numeric: tabular-nums; }
-  .wd-chart { position: relative; min-height: 240px; }
+  .wd-chart { position: relative; min-height: 220px; }
   .wd-chart svg { display: block; overflow: visible; }
   .wd-tip { position: absolute; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .wd-tip span { color: var(--cds-text-secondary); display: block; }
+  .wd-banner { border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; font-size: var(--cds-font-size-caption); }
+  .wd-banner a { color: inherit; font-weight: var(--cds-font-weight-medium); }
   .wd-failed { display: flex; align-items: center; justify-content: center; gap: .5em; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); min-height: inherit; }
   .wd-failed::before { content: ""; width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); }
   [data-dash-source-state=empty] { color: transparent; }
   [data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
   .wd-foot { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.5; max-width: 80ch; border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-md); }
-  @media (prefers-reduced-motion: no-preference) {
-    .wd-fill { transition: width var(--cds-dur-slow) var(--cds-ease-out); }
-  }
 </style>
 
 <div class="wd">
   <header class="wd-head" id="top">
-    <p class="wd-eyebrow">Daily brief · <span class="dash-skeleton" data-source="notes" data-where="key=brief_date" data-field="text">—</span></p>
-    <h1>Dev's Wealth Desk</h1>
+    <div class="wd-headrow">
+      <h1>Dev's Wealth Desk</h1>
+      <span class="wd-chip wd-neutral" id="kite-chip"><span class="wd-dot"></span><span id="kite-chip-text">Connecting to Kite…</span></span>
+    </div>
+    <p class="wd-muted">Brief of <span data-source="notes" data-where="key=brief_date" data-field="text">—</span> · next idea <span data-source="schedule" data-where="task=New opportunity" data-field="next">—</span> · next review <span data-source="schedule" data-where="task=Portfolio review" data-field="next">—</span></p>
     <p class="wd-take dash-skeleton" data-source="notes" data-where="key=takeaway" data-field="text">—</p>
   </header>
 
-  <section class="wd-kpis" id="kpis" aria-label="Portfolio summary">
-    <div class="wd-card wd-kpi">
-      <span class="wd-muted">Portfolio value</span>
-      <span class="wd-big"><b class="dash-skeleton" data-source="totals" data-row="0" data-field="value">—</b></span>
-      <span class="wd-muted">Invested <span data-source="totals" data-row="0" data-field="invested">—</span></span>
-    </div>
-    <div class="wd-card wd-kpi">
-      <span class="wd-muted">Unrealised gain / loss</span>
-      <span class="wd-big"><b class="dash-skeleton" data-source="totals" data-row="0" data-field="pnl">—</b></span>
-      <span class="wd-muted"><span data-source="totals" data-row="0" data-field="pnl_pct">—</span> on cost</span>
-    </div>
-    <div class="wd-card wd-kpi">
-      <span class="wd-muted">Idle in liquid fund</span>
-      <span class="wd-big"><b class="dash-skeleton" data-source="totals" data-row="0" data-field="idle_pct">—</b></span>
-      <span class="wd-muted"><span data-source="totals" data-row="0" data-field="idle_cash">—</span> · target 15%</span>
-    </div>
-    <div class="wd-card wd-kpi">
-      <span class="wd-muted">Nifty 50 from its high</span>
-      <span class="wd-big"><b class="dash-skeleton" data-source="nifty_stats" data-row="0" data-field="from_peak">—</b></span>
-      <span class="wd-muted">High <span data-source="nifty_stats" data-row="0" data-field="peak">—</span> on <span data-source="nifty_stats" data-row="0" data-field="peak_date">—</span></span>
-    </div>
-  </section>
+  <div class="wd-banner" id="kite-banner" hidden>
+    <span>Kite isn't connected, so you're seeing the last saved snapshot.</span>
+    <a id="kite-login-link" href="https://kite.zerodha.com" target="_blank" rel="noopener noreferrer" hidden>Log in to Kite</a>
+    <span id="kite-login-hint">Or say "log in to Kite" in Claude, then refresh.</span>
+  </div>
 
-  <section class="wd-section" id="calls">
-    <header>
-      <h2>Today's calls</h2>
-      <p class="wd-muted">Ranked by impact on your wealth. Nothing is executed for you. Place every order yourself in Kite.</p>
-    </header>
-    <div class="wd-ideas dash-skeleton" id="ideas" data-source="ideas"></div>
-  </section>
+  <nav class="wd-tabs" role="tablist" aria-label="Sections">
+    <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Today</button>
+    <button role="tab" id="tab-opportunity" data-tab="opportunity" aria-selected="false">Opportunity</button>
+    <button role="tab" id="tab-portfolio" data-tab="portfolio" aria-selected="false">Portfolio</button>
+    <button role="tab" id="tab-market" data-tab="market" aria-selected="false">Market</button>
+    <button role="tab" id="tab-track" data-tab="track" aria-selected="false">Track record</button>
+  </nav>
 
-  <section class="wd-section" id="portfolio">
-    <header>
-      <h2>Portfolio audit</h2>
-      <p class="wd-muted">Where your money sits against the target mix for a long-horizon investor adding ₹15–20k a month.</p>
-    </header>
+  <!-- TODAY -->
+  <section class="wd-page" id="today" role="tabpanel" aria-labelledby="tab-today">
+    <div class="wd-kpis">
+      <div class="wd-card wd-kpi"><span class="wd-muted">Portfolio value</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="value">—</b></span><span class="wd-muted">Invested <span class="kpi" data-kpi="invested">—</span></span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Today</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="day_pnl">—</b></span><span class="wd-muted">on holdings, vs yesterday's close</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Unrealised P&amp;L</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="pnl">—</b></span><span class="wd-muted"><span class="kpi" data-kpi="pnl_pct">—</span> on cost</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Cash to deploy</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">Kite equity margin, net</span></div>
+    </div>
     <div class="wd-grid">
-      <div class="wd-card" id="alloc-card">
-        <h3>Allocation vs target</h3>
-        <p class="wd-muted">Bar = today's weight · black tick = target</p>
-        <div class="wd-alloc dash-skeleton" id="alloc" data-source="allocation"></div>
+      <div class="wd-card" id="todo-card">
+        <h2>To do in Kite</h2>
+        <p class="wd-muted">From the latest portfolio review. You place every order.</p>
+        <div class="wd-todo dash-skeleton" id="todo" data-source="portfolio_review"></div>
       </div>
-      <div class="wd-card" id="holdings-card">
-        <h3>Holdings</h3>
-        <p class="wd-muted">Stocks, ETFs and mutual funds from your Kite account</p>
+      <div class="wd-card" id="risk-card">
+        <h2>Risk budget</h2>
+        <p class="wd-muted">Loss if every stop-loss hit, against your limits</p>
+        <div class="wd-meter" id="risk-meters"></div>
+        <p class="wd-muted">Limits: 2.5% per trade · 8% across open trades · new ideas pause at −10% from peak.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- OPPORTUNITY -->
+  <section class="wd-page" id="opportunity" role="tabpanel" aria-labelledby="tab-opportunity" hidden>
+    <div class="wd-card wd-ticket dash-skeleton" id="ticket" data-source="opportunity"></div>
+    <p class="wd-muted">A new idea arrives every 5 trading days. Ideas target at least +10% within 20 sessions; each is sized so a stop-out costs at most 2.5% of the portfolio. Nothing here is guaranteed.</p>
+  </section>
+
+  <!-- PORTFOLIO -->
+  <section class="wd-page" id="portfolio" role="tabpanel" aria-labelledby="tab-portfolio" hidden>
+    <div class="wd-card" id="holdings-card">
+      <div class="wd-headrow"><h2>Holdings</h2><span class="wd-muted" id="holdings-src"></span></div>
+      <div class="wd-tablewrap">
+        <table id="positions" data-source="positions_live" data-row-key="symbol">
+          <thead><tr>
+            <th data-field="symbol">Holding</th>
+            <th class="wd-r" data-field="qty">Qty</th>
+            <th class="wd-r" data-field="value">Value</th>
+            <th class="wd-r" data-field="day_pct">Today</th>
+            <th class="wd-r" data-field="pnl">P&amp;L</th>
+            <th class="wd-r" data-field="pnl_pct">P&amp;L %</th>
+            <th class="wd-r" data-field="weight">Weight</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="wd-grid">
+      <div class="wd-card" id="review-card">
+        <h2>Review verdicts</h2>
+        <p class="wd-muted">Every 3 trading days</p>
         <div class="wd-tablewrap">
-          <table id="positions" data-source="positions" data-row-key="symbol">
-            <thead><tr>
-              <th data-field="symbol">Holding</th>
-              <th data-field="asset_class">Class</th>
-              <th class="wd-r" data-field="value">Value</th>
-              <th class="wd-r" data-field="pnl">P&amp;L</th>
-              <th class="wd-r" data-field="pnl_pct">P&amp;L %</th>
-              <th class="wd-r" data-field="weight">Weight</th>
-            </tr></thead>
+          <table id="review" data-source="portfolio_review" data-row-key="symbol">
+            <thead><tr><th data-field="symbol">Holding</th><th data-field="verdict">Verdict</th><th data-field="action">Action</th><th data-field="reason">Why</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="wd-section" id="radar">
-    <header>
-      <h2>Opportunity radar</h2>
-      <p class="wd-muted">Scheduled events are flagged ahead of time. Anything within 2 days has an amber edge.</p>
-    </header>
-    <div class="wd-grid">
-      <div class="wd-card" id="catalyst-card">
-        <h3>Catalyst calendar</h3>
-        <p class="wd-muted">Results, policy dates and your own plan's action days</p>
-        <div class="wd-feed dash-skeleton" id="catalysts" data-source="catalysts"></div>
-      </div>
-      <div class="wd-card" id="signal-card">
-        <h3>Tenders, news and sentiment</h3>
-        <p class="wd-muted">Order wins, macro and market mood, with what each means for you</p>
-        <div class="wd-feed dash-skeleton" id="signals" data-source="signals"></div>
+      <div class="wd-card" id="alloc-card">
+        <h2>Where the money sits</h2>
+        <p class="wd-muted" id="stage-note">Build stage: the whole portfolio is the trading pool. A stable core starts at ₹2L.</p>
+        <div class="wd-meter" id="alloc"></div>
       </div>
     </div>
   </section>
 
-  <section class="wd-section" id="market">
-    <header>
-      <h2>Market backdrop</h2>
-      <p class="wd-muted dash-skeleton" data-source="notes" data-where="key=regime" data-field="text">—</p>
-    </header>
+  <!-- MARKET -->
+  <section class="wd-page" id="market" role="tabpanel" aria-labelledby="tab-market" hidden>
     <div class="wd-card">
       <div class="wd-tiles" id="tiles">
-        <div class="wd-tile"><span class="wd-muted">Nifty 50</span><span class="wd-num dash-skeleton" data-source="market_moves" data-where="instrument=NSE:NIFTY 50" data-field="last_price">—</span></div>
-        <div class="wd-tile"><span class="wd-muted">Nifty Bank</span><span class="wd-num dash-skeleton" data-source="market_moves" data-where="instrument=NSE:NIFTY BANK" data-field="last_price">—</span></div>
-        <div class="wd-tile"><span class="wd-muted">Nifty Midcap 100</span><span class="wd-num dash-skeleton" data-source="market_moves" data-where="instrument=NSE:NIFTY MIDCAP 100" data-field="last_price">—</span></div>
-        <div class="wd-tile"><span class="wd-muted">India VIX (fear gauge)</span><span class="wd-num dash-skeleton" data-source="market_moves" data-where="instrument=NSE:INDIA VIX" data-field="last_price">—</span></div>
+        <div class="wd-tile"><span class="wd-muted">Nifty 50</span><span class="wd-num mk" data-inst="NSE:NIFTY 50">—</span><span class="wd-muted mkc" data-inst="NSE:NIFTY 50"></span></div>
+        <div class="wd-tile"><span class="wd-muted">Nifty Bank</span><span class="wd-num mk" data-inst="NSE:NIFTY BANK">—</span><span class="wd-muted mkc" data-inst="NSE:NIFTY BANK"></span></div>
+        <div class="wd-tile"><span class="wd-muted">Midcap 100</span><span class="wd-num mk" data-inst="NSE:NIFTY MIDCAP 100">—</span><span class="wd-muted mkc" data-inst="NSE:NIFTY MIDCAP 100"></span></div>
+        <div class="wd-tile"><span class="wd-muted">India VIX</span><span class="wd-num mk" data-inst="NSE:INDIA VIX">—</span><span class="wd-muted mkc" data-inst="NSE:INDIA VIX"></span></div>
       </div>
-      <h3 style="margin-top: var(--cds-gap-md)">Nifty 50, last 12 months</h3>
-      <p class="wd-muted">Daily close. The dashed line marks the 12-month high.</p>
-      <div class="wd-chart dash-skeleton" id="nifty-chart" data-source="nifty_1y nifty_stats"></div>
     </div>
-  </section>
-
-  <section class="wd-section" id="growth">
-    <header>
-      <h2>Growing your wealth</h2>
-      <p class="wd-muted">The monthly plan does more for you than any single trade.</p>
-    </header>
     <div class="wd-grid">
-      <div class="wd-card" id="sip-card">
-        <h3>This month's ₹17,500</h3>
-        <p class="wd-muted">Midpoint of your ₹15–20k. Scale each line pro rata.</p>
+      <div class="wd-card" id="mreview-card">
+        <h2>3-day market review</h2>
         <div class="wd-tablewrap">
-          <table id="sip" data-source="sip_plan" data-row-key="instrument">
-            <thead><tr>
-              <th data-field="instrument">Where</th>
-              <th class="wd-r" data-field="amount_inr">Amount</th>
-              <th data-field="why">Why</th>
-            </tr></thead>
+          <table id="mreview" data-source="market_review" data-row-key="metric">
+            <thead><tr><th data-field="metric">Measure</th><th data-field="value">Level</th><th data-field="change">Move</th><th data-field="read">Read</th></tr></thead>
             <tbody></tbody>
           </table>
         </div>
       </div>
-      <div class="wd-card" id="proj-card">
-        <h3>Where ₹17,500 a month can take you</h3>
-        <p class="wd-muted">Today's portfolio plus monthly additions, compounded at three realistic yearly returns</p>
-        <div class="wd-chart dash-skeleton" id="proj-chart" data-source="projection"></div>
+      <div class="wd-card" id="nifty-card">
+        <h2>Nifty 50, 12 months</h2>
+        <p class="wd-muted">Daily close; dashed line is the 12-month high (<span data-source="nifty_stats" data-row="0" data-field="from_peak">—</span> from it)</p>
+        <div class="wd-chart dash-skeleton" id="nifty-chart" data-source="nifty_1y nifty_stats"></div>
+      </div>
+    </div>
+    <div class="wd-grid">
+      <div class="wd-card"><h2>Coming up</h2><p class="wd-muted">Amber edge: within 2 days</p><div class="wd-feed dash-skeleton" id="catalysts" data-source="catalysts"></div></div>
+      <div class="wd-card"><h2>Tenders, news and sentiment</h2><div class="wd-feed dash-skeleton" id="signals" data-source="signals"></div></div>
+    </div>
+  </section>
+
+  <!-- TRACK RECORD -->
+  <section class="wd-page" id="track" role="tabpanel" aria-labelledby="tab-track" hidden>
+    <div class="wd-kpis">
+      <div class="wd-card wd-kpi"><span class="wd-muted">Ideas closed</span><span class="wd-big"><b data-source="track_stats" data-row="0" data-field="closed">—</b></span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Win rate</span><span class="wd-big"><b data-source="track_stats" data-row="0" data-field="win_rate">—</b></span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Average result</span><span class="wd-big"><b data-source="track_stats" data-row="0" data-field="avg_r">—</b></span><span class="wd-muted">in R (1R = the amount risked)</span></div>
+      <div class="wd-card wd-kpi"><span class="wd-muted">Open or waiting</span><span class="wd-big"><b data-source="track_stats" data-row="0" data-field="open">—</b></span></div>
+    </div>
+    <div class="wd-card">
+      <h2>Every idea, scored</h2>
+      <p class="wd-muted">Ideas you didn't buy are still scored, so the hit rate can't flatter itself.</p>
+      <div class="wd-tablewrap">
+        <table id="trades" data-source="trades" data-row-key="id">
+          <thead><tr><th data-field="id">Idea</th><th data-field="symbol">Stock</th><th class="wd-r" data-field="entry">Entry</th><th class="wd-r" data-field="sl">SL</th><th class="wd-r" data-field="tp">TP</th><th data-field="status">Status</th></tr></thead>
+          <tbody></tbody>
+        </table>
       </div>
     </div>
   </section>
 
-  <p class="wd-foot">Prepared by Claude for Dev's own use. This is research, not SEBI-registered investment advice. No return is guaranteed. Equity can fall 30% or more in a bad year, so keep 3–6 months of expenses outside this portfolio. Order wins and news are early signals, not predictions.</p>
+  <p class="wd-foot">Research for Dev's own use, not SEBI-registered advice. Claude never places orders. Stop-losses limit damage but can gap. Returns are not guaranteed, and a 10% target in 20 sessions will often be missed.</p>
 </div>
 
 <script>
   const parse = (a) => (typeof a === 'string' ? JSON.parse(a) : a);
-  dash.loader('market', {
-    description: 'Kite quotes, one row per instrument: last price and previous close.',
+  const quoteRows = ({ answer }) => {
+    const a = parse(answer);
+    if (Array.isArray(a)) return a;
+    return Object.entries(a).map(([instrument, q]) => ({ instrument, last_price: q.last_price, prev_close: q.ohlc ? q.ohlc.close : null }));
+  };
+  dash.loader('market', { description: 'Kite quotes as rows: last price and previous close.', fn: quoteRows });
+  dash.loader('idea_quotes', { description: 'Kite quotes as rows: last price and previous close.', fn: quoteRows });
+  dash.loader('margins', {
+    description: 'Kite equity margins as one row: cash, net available and debits.',
     fn: ({ answer }) => {
       const a = parse(answer);
       if (Array.isArray(a)) return a;
-      return Object.entries(a).map(([instrument, q]) => ({ instrument, last_price: q.last_price, prev_close: q.ohlc ? q.ohlc.close : null }));
-    },
-  });
-  dash.loader('nifty_1y', {
-    description: 'Kite daily candles as date and close.',
-    fn: ({ answer }) => {
-      const a = parse(answer);
-      return a.map((d) => ({ date: String(d.date).slice(0, 10), close: Number(d.close) }));
-    },
-  });
-</script>
-
-<script>
-  dash.calc('positions', {
-    title: 'Holdings with value and class',
-    description: 'Joins Kite equity and mutual fund holdings, values each at its last price and tags its asset class.',
-    inputs: ['holdings', 'mf_holdings', 'classify'],
-    fn: (holdings, mf_holdings, classify) => {
-      const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
-      const eq = holdings.map((h) => ({ symbol: h.tradingsymbol, qty: h.quantity, avg: h.average_price, ltp: h.last_price }));
-      const funds = mf_holdings.map((m) => ({ symbol: m.tradingsymbol, name: m.fund, qty: m.quantity, avg: m.average_price, ltp: m.last_price }));
-      const rows = [...eq, ...funds].map((r) => {
-        const invested = r.qty * r.avg, value = r.qty * r.ltp;
-        return { symbol: r.symbol, name: r.name || r.symbol, asset_class: cls[r.symbol] || 'Direct stocks', qty: r.qty, invested, value, pnl: value - invested, pnl_pct: invested ? (value - invested) / invested : 0 };
-      });
-      const total = rows.reduce((s, r) => s + r.value, 0);
-      return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
+      const e = a.equity || {};
+      return [{ segment: 'equity', cash: e.available ? e.available.cash : null, net: e.net, debits: e.utilised ? e.utilised.debits : null }];
     },
   });
 
-  dash.calc('totals', {
-    title: 'Portfolio totals',
-    description: 'Sums value, cost and gain across all holdings, plus the share parked in liquid funds.',
-    inputs: ['positions'],
-    fn: (positions) => {
-      const value = positions.reduce((s, r) => s + r.value, 0);
-      const invested = positions.reduce((s, r) => s + r.invested, 0);
-      const idle_cash = positions.filter((r) => r.asset_class === 'Liquid / cash').reduce((s, r) => s + r.value, 0);
-      return [{ value, invested, pnl: value - invested, pnl_pct: invested ? (value - invested) / invested : 0, idle_cash, idle_pct: value ? idle_cash / value : 0 }];
-    },
-  });
+  // One set of calculations per source (live Kite, or the saved snapshot), so the page can fall back.
+  const mkCalcs = (sfx, H, M, MG) => {
+    dash.calc('positions_' + sfx, {
+      title: sfx === 'live' ? 'Holdings, live' : 'Holdings, saved snapshot',
+      description: 'Equity and mutual fund holdings valued at last price (settled + T1 quantity), tagged by asset class.',
+      inputs: [H, M, 'classify'],
+      fn: (holdings, mf, classify) => {
+        const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
+        const eq = holdings.map((h) => ({ symbol: h.tradingsymbol, name: h.tradingsymbol, qty: (h.quantity || 0) + (h.t1_quantity || 0), avg: h.average_price, ltp: h.last_price, prev: h.close_price }));
+        const funds = mf.map((m) => ({ symbol: m.tradingsymbol, name: 'Life Cycle 2041 fund', qty: m.quantity, avg: m.average_price, ltp: m.last_price, prev: null }));
+        const rows = [...eq, ...funds].filter((r) => r.qty > 0).map((r) => {
+          const invested = r.qty * r.avg, value = r.qty * r.ltp;
+          return { symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, asset_class: cls[r.symbol] || 'Direct stocks', invested, value,
+            pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0,
+            day_pnl: r.prev ? (r.ltp - r.prev) * r.qty : 0, day_pct: r.prev ? r.ltp / r.prev - 1 : 0 };
+        });
+        const total = rows.reduce((s, r) => s + r.value, 0);
+        return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
+      },
+    });
+    dash.calc('totals_' + sfx, {
+      title: sfx === 'live' ? 'Portfolio totals, live' : 'Portfolio totals, snapshot',
+      description: 'Sums of value, cost, unrealised and today\'s P&L, plus net cash from Kite margins.',
+      inputs: ['positions_' + sfx, MG],
+      fn: (positions, margins) => {
+        const value = positions.reduce((s, r) => s + r.value, 0), invested = positions.reduce((s, r) => s + r.invested, 0);
+        const cash = margins.length ? margins[0].net : 0;
+        return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((s, r) => s + r.day_pnl, 0), cash }];
+      },
+    });
+    dash.calc('risk_' + sfx, {
+      title: sfx === 'live' ? 'Open risk, live' : 'Open risk, snapshot',
+      description: 'Loss if each reviewed stop-loss is hit, per holding and in total, as a share of portfolio value.',
+      inputs: ['positions_' + sfx, 'portfolio_review', 'opportunity'],
+      fn: (positions, review, opportunity) => {
+        const total = positions.reduce((s, r) => s + r.value, 0);
+        const rows = review.filter((v) => v.sl != null && v.verdict !== 'Exit').map((v) => {
+          const p = positions.find((x) => x.symbol === v.symbol);
+          const keep = v.verdict === 'Trim' && v.keep_qty ? v.keep_qty : p ? p.qty : 0;
+          const risk = p ? Math.max(p.ltp - v.sl, 0) * keep : 0;
+          return { symbol: v.symbol, risk, risk_pct: total ? risk / total : 0, kind: 'holding' };
+        });
+        opportunity.filter((o) => o.status !== 'Closed').forEach((o) => rows.push({ symbol: o.symbol, risk: o.risk_rs, risk_pct: total ? o.risk_rs / total : 0, kind: 'idea (if bought)' }));
+        return rows;
+      },
+    });
+  };
+  mkCalcs('live', 'holdings', 'mf_holdings', 'margins');
+  mkCalcs('snap', 'holdings_snap', 'mf_snap', 'margins_snap');
 
-  dash.calc('allocation', {
-    title: 'Allocation vs target',
-    description: 'Weight of each asset class today against its target, and the rupee gap to close.',
-    inputs: ['positions', 'targets'],
-    fn: (positions, targets) => {
-      const total = positions.reduce((s, r) => s + r.value, 0);
-      return targets.map((t) => {
-        const value = positions.filter((r) => r.asset_class === t.asset_class).reduce((s, r) => s + r.value, 0);
-        return { asset_class: t.asset_class, value, weight: total ? value / total : 0, target_pct: t.target_pct, gap_inr: t.target_pct * total - value, role: t.role };
-      });
+  dash.calc('track_stats', {
+    title: 'Track record',
+    description: 'Closed ideas, win rate and average result in R from the ideas log.',
+    inputs: ['trades'],
+    fn: (trades) => {
+      const closed = trades.filter((t) => ['tp', 'sl', 'time'].includes(t.status));
+      const wins = closed.filter((t) => (t.ret || 0) > 0);
+      return [{ closed: closed.length, open: trades.length - closed.length,
+        win_rate: closed.length ? wins.length / closed.length : null,
+        avg_r: closed.length ? closed.reduce((s, t) => s + (t.r || 0), 0) / closed.length : null }];
     },
   });
 
@@ -281,318 +316,323 @@
       const rows = [...nifty_1y].sort((a, b) => (a.date < b.date ? -1 : 1));
       const peak = rows.reduce((m, r) => (r.close > m.close ? r : m), rows[0]);
       const last = rows[rows.length - 1];
-      return [{ last: last.close, last_date: last.date, peak: peak.close, peak_date: peak.date, from_peak: last.close / peak.close - 1, ret_1y: last.close / rows[0].close - 1 }];
-    },
-  });
-
-  dash.calc('market_moves', {
-    title: 'Index moves today',
-    description: 'Last price and change from the previous close for each index.',
-    inputs: ['market'],
-    fn: (market) => market.map((m) => ({ instrument: m.instrument, last_price: m.last_price, change_pct: m.prev_close ? m.last_price / m.prev_close - 1 : 0 })),
-  });
-
-  dash.calc('projection', {
-    title: '10-year wealth projection',
-    description: 'Current value plus ₹17,500 a month, compounded monthly at 10%, 12% and 15% a year.',
-    inputs: ['totals'],
-    fn: (totals) => {
-      const start = totals[0].value, monthly = 17500;
-      const grow = (annual, years) => {
-        const r = Math.pow(1 + annual, 1 / 12) - 1, n = years * 12;
-        return start * Math.pow(1 + r, n) + monthly * ((Math.pow(1 + r, n) - 1) / r);
-      };
-      return Array.from({ length: 11 }, (_, year) => ({ year, invested: start + monthly * 12 * year, r10: grow(0.10, year), r12: grow(0.12, year), r15: grow(0.15, year) }));
+      return [{ last: last.close, peak: peak.close, peak_date: peak.date, from_peak: last.close / peak.close - 1 }];
     },
   });
 </script>
 
 <script>
   const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
-  const inrSigned = (v) => (v > 0 ? '+' : v < 0 ? '−' : '') + inr.format(Math.abs(v));
-  const pct = (v, d = 1) => (v * 100).toFixed(d) + '%';
-  const pctSigned = (v, d = 1) => (v > 0 ? '+' : v < 0 ? '−' : '') + Math.abs(v * 100).toFixed(d) + '%';
-  const lakh = (v) => '₹' + (v / 1e5).toFixed(v >= 1e7 ? 0 : 1) + ' L';
   const num = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
+  const sgn = (v) => (v > 0 ? '+' : v < 0 ? '−' : '');
+  const inrS = (v) => sgn(v) + inr.format(Math.abs(v));
+  const pct = (v, d = 1) => (v * 100).toFixed(d) + '%';
+  const pctS = (v, d = 1) => sgn(v) + Math.abs(v * 100).toFixed(d) + '%';
+  const tone = (v) => (v > 0 ? 'wd-good' : v < 0 ? 'wd-bad' : '');
   const dayFmt = d3.utcFormat('%b %-d');
-  const toneCls = (v) => (v > 0 ? 'wd-good' : v < 0 ? 'wd-bad' : '');
-
   const D = (id) => dash.data(id);
-  const settle = (el, s) => {
-    if (s.status === 'ok' || s.status === 'error' || s.status === 'connect' || s.status === 'declined' || s.status === 'missing') el.classList.remove('dash-skeleton');
-  };
-  const failed = (el) => { el.replaceChildren(); const d = document.createElement('div'); d.className = 'wd-failed'; d.textContent = 'Failed to load'; el.append(d); };
   const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+  const settle = (node, s) => { if (s.status !== 'loading') node.classList.remove('dash-skeleton'); };
+  const failed = (box) => { const d = el('div', 'wd-failed', 'Failed to load'); box.replaceChildren(d); };
+
+  // Pick live Kite data when it loads, else the saved snapshot.
+  const src = () => {
+    const h = D('holdings');
+    if (h.status === 'ok') return 'live';
+    if (h.status === 'loading') return D('holdings_snap').status === 'ok' ? 'snap' : null;
+    return 'snap';
+  };
+
+  // Tabs
+  const tabs = [...document.querySelectorAll('.wd-tabs button')];
+  let current = 'today';
+  const show = (name, push = true) => {
+    current = name;
+    tabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.tab === name)));
+    document.querySelectorAll('.wd-page').forEach((p) => { p.hidden = p.id !== name; });
+    if (push) dash.setLink(name);
+    render();
+  };
+  tabs.forEach((b) => b.addEventListener('click', () => show(b.dataset.tab)));
+
+  function kiteStatus() {
+    const h = D('holdings'), chip = document.getElementById('kite-chip'), t = document.getElementById('kite-chip-text'), banner = document.getElementById('kite-banner');
+    chip.classList.remove('wd-good', 'wd-warn', 'wd-neutral');
+    if (h.status === 'ok') { chip.classList.add('wd-good'); t.textContent = 'Kite live'; banner.hidden = true; return; }
+    if (h.status === 'loading') { chip.classList.add('wd-neutral'); t.textContent = 'Connecting to Kite…'; banner.hidden = true; return; }
+    chip.classList.add('wd-warn'); t.textContent = 'Snapshot · Kite offline'; banner.hidden = false;
+    const lg = D('kite_login'), link = document.getElementById('kite-login-link');
+    if (lg.status === 'ok') {
+      const text = typeof lg.data === 'string' ? lg.data : JSON.stringify(lg.data);
+      const m = text.match(/https:\/\/mcp\.kite\.trade\/authorize\?[^\s)"'\]]+/);
+      if (m) { link.href = m[0]; link.hidden = false; }
+    }
+  }
+
+  function kpis(s) {
+    const T = D('totals_' + s);
+    document.querySelectorAll('.kpi').forEach((m) => {
+      m.dataset.source = 'totals_' + s; m.dataset.row = '0'; m.dataset.field = m.dataset.kpi;
+      settle(m, T);
+      m.classList.remove('wd-good', 'wd-bad');
+      if (T.status !== 'ok') { m.textContent = '—'; return; }
+      const v = T.data[0][m.dataset.kpi];
+      if (m.dataset.kpi === 'pnl' || m.dataset.kpi === 'day_pnl') { m.textContent = inrS(v); if (tone(v)) m.classList.add(tone(v)); }
+      else if (m.dataset.kpi === 'pnl_pct') { m.textContent = pctS(v); if (tone(v)) m.classList.add(tone(v)); }
+      else m.textContent = inr.format(v);
+    });
+  }
 
   function fillMarks() {
-    document.querySelectorAll('.wd [data-field][data-source]:not(th)').forEach((m) => {
-      const id = m.dataset.source, s = D(id);
+    document.querySelectorAll('.wd [data-source][data-field]:not(th):not(.kpi)').forEach((m) => {
+      const s = D(m.dataset.source);
       settle(m, s);
       if (s.status !== 'ok') { m.textContent = '—'; return; }
-      let row;
-      if (m.dataset.row != null) row = s.data[Number(m.dataset.row)];
-      else if (m.dataset.where) {
-        const [k, v] = m.dataset.where.split('=');
-        row = s.data.find((r) => String(r[k]) === v);
-      }
+      let row = m.dataset.row != null ? s.data[+m.dataset.row] : null;
+      if (m.dataset.where) { const i = m.dataset.where.indexOf('='); const k = m.dataset.where.slice(0, i), v = m.dataset.where.slice(i + 1); row = s.data.find((r) => String(r[k]) === v); }
       if (!row) { m.textContent = '—'; return; }
-      const f = m.dataset.field, v = row[f];
-      m.classList.remove('wd-good', 'wd-bad');
-      if (id === 'totals') {
-        if (f === 'pnl') { m.textContent = inrSigned(v); if (toneCls(v)) m.classList.add(toneCls(v)); }
-        else if (f === 'pnl_pct') { m.textContent = pctSigned(v); if (toneCls(v)) m.classList.add(toneCls(v)); }
-        else if (f === 'idle_pct') { m.textContent = pct(v, 0); if (v > 0.25) m.classList.add('wd-bad'); }
-        else m.textContent = inr.format(v);
-      } else if (id === 'nifty_stats') {
-        if (f === 'from_peak') { m.textContent = pctSigned(v); if (toneCls(v)) m.classList.add(toneCls(v)); }
-        else if (f === 'peak_date') m.textContent = d3.utcFormat('%b %-d, %Y')(new Date(v));
-        else m.textContent = num.format(Math.round(v));
-      } else if (id === 'market_moves') {
-        m.textContent = num.format(v);
-      } else if (id === 'notes' && f === 'text' && row.key === 'brief_date') {
-        m.textContent = d3.utcFormat('%A, %b %-d, %Y')(new Date(v));
-      } else m.textContent = String(v);
+      const v = row[m.dataset.field];
+      if (v == null) { m.textContent = '—'; return; }
+      if (m.dataset.source === 'nifty_stats') m.textContent = pctS(v);
+      else if (m.dataset.source === 'track_stats') m.textContent = m.dataset.field === 'win_rate' ? pct(v, 0) : m.dataset.field === 'avg_r' ? (sgn(v) + Math.abs(v).toFixed(2) + 'R') : String(v);
+      else if (/^\d{4}-\d{2}-\d{2}$/.test(String(v))) m.textContent = d3.utcFormat('%a %b %-d')(new Date(v));
+      else m.textContent = String(v);
     });
   }
 
-  function drawIdeas() {
-    const box = document.getElementById('ideas'), s = D('ideas');
+  function todo() {
+    const box = document.getElementById('todo'), s = D('portfolio_review');
     settle(box, s);
     if (s.status === 'error') return failed(box);
     if (s.status !== 'ok') return box.replaceChildren();
-    const tone = { 'Buy gradually': 'wd-good', 'Buy': 'wd-good', 'Add': 'wd-good', 'Hold': 'wd-neutral', 'Watch': 'wd-warn', 'Trim': 'wd-warn', 'Sell': 'wd-bad', 'Avoid': 'wd-bad' };
-    const cards = [...s.data].sort((a, b) => a.rank - b.rank).map((d) => {
-      const card = el('article', 'wd-card wd-idea');
-      card.append(el('div', 'wd-rank', String(d.rank)));
-      const body = el('div', 'wd-idea-body');
-      const top = el('div', 'wd-idea-top');
-      top.append(el('span', 'wd-chip ' + (tone[d.stance] || 'wd-neutral'), d.stance), el('span', 'wd-muted', d.instrument));
-      body.append(top, el('h3', null, d.title), el('p', 'wd-why', d.why), el('p', 'wd-how', d.how));
-      const dl = el('dl');
-      const add = (k, v) => { if (v == null || v === '' || v === 0) return; dl.append(el('dt', null, k), el('dd', null, v)); };
-      add('Amount', d.amount_inr ? inr.format(d.amount_inr) : null);
-      add('Horizon', d.horizon);
-      add('Confidence', d.confidence);
-      add('Review by', d.review_by ? dayFmt(new Date(d.review_by)) : null);
-      body.append(dl);
-      card.append(body);
-      return card;
-    });
-    box.replaceChildren(...cards);
-  }
-
-  function drawAlloc() {
-    const box = document.getElementById('alloc'), s = D('allocation');
-    settle(box, s);
-    if (s.status === 'error') return failed(box);
-    if (s.status !== 'ok') return box.replaceChildren();
-    const max = Math.max(1, ...s.data.map((r) => Math.max(r.weight, r.target_pct)));
-    const scale = (v) => (v / Math.max(max, 0.6)) * 100;
-    box.replaceChildren(...s.data.map((r, i) => {
-      const row = el('div', 'wd-arow');
-      const top = el('div', 'wd-arow-top');
-      const left = el('span', null, r.asset_class);
-      const gap = r.gap_inr;
-      const right = el('span', null, `${pct(r.weight, 0)} of ${pct(r.target_pct, 0)} · `);
-      const g = el('span', Math.abs(gap) < 1000 ? 'wd-muted' : gap > 0 ? 'wd-good' : 'wd-warn', Math.abs(gap) < 1000 ? 'on target' : gap > 0 ? `add ${inr.format(gap)}` : `${inr.format(-gap)} over`);
-      right.append(g);
-      top.append(left, right);
-      const track = el('div', 'wd-track');
-      const fill = el('div', 'wd-fill');
-      fill.style.width = scale(r.weight) + '%';
-      fill.style.background = dash.colors[i % dash.colors.length];
-      const tick = el('div', 'wd-tick');
-      tick.style.left = `calc(${scale(r.target_pct)}% - 1px)`;
-      track.append(fill, tick);
-      row.append(top, track, el('p', 'wd-muted', r.role));
-      return row;
+    const order = { Exit: 0, Trim: 1, Hold: 2, Add: 3 };
+    const items = s.data.filter((r) => r.verdict === 'Exit' || r.verdict === 'Trim' || r.gtt === 'Missing').sort((a, b) => (order[a.verdict] ?? 5) - (order[b.verdict] ?? 5));
+    if (!items.length) { box.replaceChildren(el('p', 'wd-muted', 'Nothing to do. Every holding has its stop in place.')); return; }
+    box.replaceChildren(...items.map((r) => {
+      const it = el('div', 'wd-todo-item');
+      const t = { Exit: 'wd-bad', Trim: 'wd-warn' }[r.verdict] || 'wd-neutral';
+      const b = el('div');
+      b.append(el('strong', null, r.symbol + ' · '), document.createTextNode(r.action));
+      it.append(el('span', 'wd-chip ' + t, r.verdict === 'Hold' ? 'Set stop' : r.verdict), b);
+      return it;
     }));
   }
 
-  function drawPositions() {
-    const t = document.getElementById('positions'), body = t.tBodies[0], s = D('positions');
-    if (s.status !== 'ok') { body.replaceChildren(); return; }
-    const short = (r) => (r.name && r.name !== r.symbol ? r.name.replace(/ - DIRECT PLAN$/i, '').replace(/^ZERODHA /i, '').toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : r.symbol);
-    body.replaceChildren(...s.data.map((r) => {
-      const tr = el('tr');
-      tr.dataset.key = r.symbol;
-      const name = el('td', null, short(r));
-      name.title = r.symbol;
-      const c = (txt, cls) => el('td', cls, txt);
-      tr.append(name, c(r.asset_class), c(inr.format(r.value), 'wd-r'), c(inrSigned(r.pnl), 'wd-r ' + toneCls(r.pnl)), c(pctSigned(r.pnl_pct), 'wd-r ' + toneCls(r.pnl_pct)), c(pct(r.weight), 'wd-r'));
+  function meter(label, used, cap, note) {
+    const w = el('div', 'wd-meter');
+    const top = el('div', 'wd-meter-top');
+    top.append(el('span', null, label), el('span', used > cap ? 'wd-bad' : 'wd-muted', `${pct(used)} of ${pct(cap, 0)}${note ? ' · ' + note : ''}`));
+    const tr = el('div', 'wd-track'), f = el('div', 'wd-fill'), tk = el('div', 'wd-tick');
+    const scale = Math.max(cap * 1.5, used * 1.1);
+    f.style.width = Math.min(used / scale, 1) * 100 + '%';
+    f.style.background = used > cap ? 'var(--cds-chart-status-critical)' : dash.colors[0];
+    tk.style.left = `calc(${(cap / scale) * 100}% - 1px)`;
+    tr.append(f, tk); w.append(top, tr);
+    return w;
+  }
+
+  function risk(s) {
+    const box = document.getElementById('risk-meters'), R = D('risk_' + s);
+    box.dataset.source = 'risk_' + s;
+    if (R.status !== 'ok') { box.replaceChildren(el('p', 'wd-muted', R.status === 'loading' ? '' : 'Risk unavailable until holdings load.')); return; }
+    const total = R.data.reduce((a, r) => a + r.risk_pct, 0);
+    box.replaceChildren(meter('All open stops', total, 0.08), ...R.data.map((r) => meter(r.symbol + (r.kind !== 'holding' ? ' (' + r.kind + ')' : ''), r.risk_pct, 0.025, inr.format(r.risk))));
+  }
+
+  function ticket() {
+    const box = document.getElementById('ticket'), s = D('opportunity'), q = D('idea_quotes');
+    settle(box, s);
+    if (s.status === 'error') return failed(box);
+    if (s.status !== 'ok' || !s.data.length) { box.replaceChildren(el('p', 'wd-muted', s.status === 'ok' ? 'No idea passed every rule this round. Cash waits for a better setup.' : '')); return; }
+    const o = s.data[0];
+    const live = q.status === 'ok' ? (q.data.find((r) => r.instrument === 'NSE:' + o.symbol) || {}).last_price : null;
+    const head = el('div', 'wd-headrow');
+    const h = el('div', 'wd-head');
+    h.append(el('span', 'wd-muted', dayFmt(new Date(o.date)) + ' · ' + o.id), el('h2', null, o.symbol + ' · ' + o.name));
+    head.append(h, el('span', 'wd-chip ' + (o.status === 'Active' ? 'wd-good' : 'wd-warn'), o.status));
+    const lv = el('div', 'wd-levels');
+    const L = (k, v, cls) => { const d = el('div', 'wd-level'); d.append(el('span', 'wd-muted', k), el('span', 'wd-num ' + (cls || ''), v)); return d; };
+    lv.append(L('Entry', inr.format(o.entry)), L('Stop-loss', inr.format(o.sl), 'wd-bad'), L('Target', inr.format(o.tp), 'wd-good'),
+      L('Quantity', String(o.qty)), L('Capital', inr.format(o.cost)), L('Risk if stopped', inr.format(o.risk_rs) + ' · ' + pct(o.risk_pct)), L('Reward:risk', o.rr.toFixed(2)), L('Live price', live ? inr.format(live) : '—'));
+    // SL → entry → TP ladder with live price
+    const lad = el('div', 'wd-ladder');
+    const lo = o.sl * 0.985, hi = o.tp * 1.015, x = (p) => ((p - lo) / (hi - lo)) * 100;
+    lad.append(el('div', 'wd-rail'));
+    [['SL', o.sl], ['Entry', o.entry], ['TP', o.tp]].forEach(([n, p]) => {
+      const mk = el('div', 'wd-mark'); mk.style.left = `calc(${x(p)}% - 1px)`;
+      const lb = el('div', 'wd-lbl', n + ' ' + num.format(p)); lb.style.left = x(p) + '%';
+      lad.append(mk, lb);
+    });
+    if (live) {
+      const c = Math.min(Math.max(x(live), 0), 100);
+      const dot = el('div', 'wd-ltp-dot'); dot.style.left = c + '%';
+      const t = el('div', 'wd-ltp', 'Now ' + num.format(live)); t.style.left = c + '%';
+      lad.append(dot, t);
+    }
+    const sec = (title, text) => { const d = el('div', 'wd-head'); d.append(el('h3', null, title), el('p', 'wd-prose', text)); return d; };
+    box.replaceChildren(head, lv, lad, sec('Trigger', o.trigger), sec('Why this stock', o.thesis), sec('Funding', o.funding),
+      sec('Rule checks', o.checks), sec('Exit plan', `Place a GTT OCO with SL ${inr.format(o.sl)} and target ${inr.format(o.tp)} the day you buy. Time stop: ${o.time_stop}. Idea expires ${dayFmt(new Date(o.expires))} if the trigger never fires.`),
+      el('p', 'wd-muted', 'Confidence: ' + o.confidence + ' · Back-test: ' + o.backtest));
+  }
+
+  function positions(s) {
+    const t = document.getElementById('positions'), body = t.tBodies[0], P = D('positions_' + s);
+    t.dataset.source = 'positions_' + s;
+    document.getElementById('holdings-src').textContent = s === 'live' ? 'Live from Kite' : 'Saved snapshot';
+    if (P.status !== 'ok') { body.replaceChildren(); return; }
+    body.replaceChildren(...P.data.map((r) => {
+      const tr = el('tr'); tr.dataset.key = r.symbol;
+      tr.append(el('td', null, r.name === r.symbol ? r.symbol : r.name), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r', inr.format(r.value)),
+        el('td', 'wd-r ' + tone(r.day_pct), r.day_pct ? pctS(r.day_pct) : '—'), el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)),
+        el('td', 'wd-r ' + tone(r.pnl_pct), pctS(r.pnl_pct)), el('td', 'wd-r', pct(r.weight)));
       return tr;
     }));
   }
 
-  function drawFeed(id, render) {
+  function alloc(s) {
+    const box = document.getElementById('alloc'), P = D('positions_' + s);
+    box.dataset.source = 'positions_' + s;
+    if (P.status !== 'ok') { box.replaceChildren(); return; }
+    const by = d3.rollups(P.data, (v) => d3.sum(v, (d) => d.value), (d) => d.asset_class).sort((a, b) => b[1] - a[1]);
+    const total = d3.sum(by, (d) => d[1]);
+    box.replaceChildren(...by.map(([k, v], i) => {
+      const w = el('div', 'wd-meter'), top = el('div', 'wd-meter-top');
+      top.append(el('span', null, k), el('span', 'wd-muted', inr.format(v) + ' · ' + pct(v / total)));
+      const tr = el('div', 'wd-track'), f = el('div', 'wd-fill');
+      f.style.width = (v / total) * 100 + '%'; f.style.background = dash.colors[i % dash.colors.length];
+      tr.append(f); w.append(top, tr); return w;
+    }));
+  }
+
+  function table(id, dsId, cols) {
+    const t = document.getElementById(id), body = t.tBodies[0], s = D(dsId);
+    if (s.status !== 'ok') { body.replaceChildren(); return; }
+    body.replaceChildren(...s.data.map((r) => {
+      const tr = el('tr');
+      cols.forEach(([f, cls, fmt]) => tr.append(el('td', cls || null, fmt ? fmt(r[f], r) : (r[f] == null ? '—' : String(r[f])))));
+      return tr;
+    }));
+  }
+
+  function tiles(s) {
+    const M = D(s === 'live' && D('market').status === 'ok' ? 'market' : 'market_snap');
+    document.querySelectorAll('.mk').forEach((n) => {
+      const r = M.status === 'ok' ? M.data.find((x) => x.instrument === n.dataset.inst) : null;
+      n.textContent = r ? num.format(r.last_price) : '—';
+      const c = document.querySelector(`.mkc[data-inst="${n.dataset.inst}"]`);
+      c.classList.remove('wd-good', 'wd-bad');
+      if (r && r.prev_close) { const ch = r.last_price / r.prev_close - 1; c.textContent = pctS(ch, 2); const tn = n.dataset.inst.includes('VIX') ? tone(-ch) : tone(ch); if (tn) c.classList.add(tn); } else c.textContent = '';
+    });
+    document.getElementById('tiles').dataset.source = M === D('market') ? 'market' : 'market_snap';
+  }
+
+  function feed(id, render) {
     const box = document.getElementById(id), s = D(id);
     settle(box, s);
     if (s.status === 'error') return failed(box);
     if (s.status !== 'ok') return box.replaceChildren();
     box.replaceChildren(...render(s.data));
   }
-
   const todayUTC = () => { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()); };
 
-  function drawCatalysts() {
-    drawFeed('catalysts', (rows) => {
-      const today = todayUTC();
-      const upcoming = rows.filter((r) => new Date(r.date).getTime() >= today - 86400000).sort((a, b) => (a.date < b.date ? -1 : 1));
-      const list = upcoming.length ? upcoming : rows;
-      return list.map((r) => {
-        const days = Math.round((new Date(r.date).getTime() - today) / 86400000);
-        const item = el('div', 'wd-item' + (days >= 0 && days <= 2 ? ' wd-soon' : ''));
-        const date = el('div', 'wd-item-date');
-        date.append(el('span', null, dayFmt(new Date(r.date))), el('span', null, days === 0 ? 'today' : days === 1 ? 'tomorrow' : days > 1 ? `in ${days} days` : 'yesterday'));
-        const b = el('div', 'wd-item-body');
-        const head = el('div', 'wd-idea-top');
-        head.append(el('strong', null, r.event), el('span', 'wd-chip ' + (r.impact === 'High' ? 'wd-bad' : r.impact === 'Action' ? 'wd-good' : 'wd-neutral'), r.impact));
-        b.append(head, el('span', 'wd-muted', r.affects), el('span', null, r.what_to_do));
-        item.append(date, b);
-        return item;
+  function catalysts() {
+    feed('catalysts', (rows) => {
+      const t0 = todayUTC();
+      const up = rows.filter((r) => new Date(r.date).getTime() >= t0 - 86400000).sort((a, b) => (a.date < b.date ? -1 : 1));
+      return (up.length ? up : rows).map((r) => {
+        const days = Math.round((new Date(r.date).getTime() - t0) / 86400000);
+        const it = el('div', 'wd-item' + (days >= 0 && days <= 2 ? ' wd-soon' : ''));
+        const d = el('div', 'wd-item-date'); d.append(el('span', null, dayFmt(new Date(r.date))), el('span', null, days === 0 ? 'today' : days === 1 ? 'tomorrow' : days > 1 ? `in ${days} days` : 'yesterday'));
+        const b = el('div', 'wd-item-body'); b.append(el('strong', null, r.event), el('span', 'wd-muted', r.affects), el('span', null, r.what_to_do));
+        it.append(d, b); return it;
       });
     });
   }
-
-  function drawSignals() {
-    drawFeed('signals', (rows) => [...rows].sort((a, b) => (a.date < b.date ? 1 : -1)).map((r) => {
-      const item = el('div', 'wd-item');
-      const date = el('div', 'wd-item-date');
-      date.append(el('span', null, dayFmt(new Date(r.date))), el('span', null, r.category));
+  function signals() {
+    feed('signals', (rows) => [...rows].sort((a, b) => (a.date < b.date ? 1 : -1)).map((r) => {
+      const it = el('div', 'wd-item');
+      const d = el('div', 'wd-item-date'); d.append(el('span', null, dayFmt(new Date(r.date))), el('span', null, r.category));
       const b = el('div', 'wd-item-body');
-      const head = el('div', 'wd-idea-top');
-      const toneMap = { Bullish: 'wd-good', Bearish: 'wd-bad', Event: 'wd-warn' };
-      head.append(el('span', 'wd-chip ' + (toneMap[r.read] || 'wd-neutral'), r.read));
-      const h = el('a', null, r.headline);
-      h.href = r.url; h.target = '_blank'; h.rel = 'noopener noreferrer';
-      b.append(head, h, el('span', 'wd-muted', r.so_what));
-      item.append(date, b);
-      return item;
+      const tn = { Bullish: 'wd-good', Bearish: 'wd-bad', Event: 'wd-warn' }[r.read] || 'wd-neutral';
+      const a = el('a', null, r.headline); a.href = /^https:\/\//.test(r.url) ? r.url : '#'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      b.append(el('span', 'wd-chip ' + tn, r.read), a, el('span', 'wd-muted', r.so_what));
+      it.append(d, b); return it;
     }));
   }
 
-  function lineChart(box, { series, x, fmtY, fmtX, refY, refLabel, endLabels, height = 240 }) {
-    box.replaceChildren();
-    const W = Math.max(280, box.clientWidth), H = height;
-    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).attr('role', 'img');
-    const all = series.flatMap((s) => s.values.map((d) => d.y)).concat(refY != null ? [refY] : []);
-    const yExt = d3.extent(all), pad = (yExt[1] - yExt[0]) * 0.08 || 1;
-    const y0 = d3.scaleLinear([yExt[0] - pad, yExt[1] + pad], [0, 1]).nice();
-    // measure tick width
-    const probe = svg.append('text').attr('font-size', 12).text(fmtY(y0.domain()[1]));
-    const tw = probe.node().getComputedTextLength(); probe.remove();
-    const endW = endLabels ? d3.max(series, (s) => { const p = svg.append('text').attr('font-size', 12).text(s.label(s.values[s.values.length - 1])); const w = p.node().getComputedTextLength(); p.remove(); return w; }) + 10 : 8;
-    const m = { top: 12, right: endW, bottom: 24, left: tw + 10 };
-    const xs = d3.scaleUtc(d3.extent(series[0].values, (d) => d.x), [m.left, W - m.right]);
-    const ys = d3.scaleLinear(y0.domain(), [H - m.bottom, m.top]);
-    const grid = svg.append('g');
-    ys.ticks(4).forEach((t) => {
-      grid.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', ys(t)).attr('y2', ys(t)).attr('stroke', 'var(--cds-chart-grid)');
-      grid.append('text').attr('x', m.left - 6).attr('y', ys(t)).attr('dy', '0.32em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(fmtY(t));
-    });
-    const xt = xs.ticks(Math.max(2, Math.floor((W - m.left - m.right) / 90)));
-    xt.forEach((t) => svg.append('text').attr('x', xs(t)).attr('y', H - 6).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(fmtX(t)));
-    if (refY != null) {
-      svg.append('line').attr('x1', m.left).attr('x2', W - m.right).attr('y1', ys(refY)).attr('y2', ys(refY)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4');
-      if (refLabel) svg.append('text').attr('x', m.left + 4).attr('y', ys(refY) - 5).attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(refLabel);
-    }
-    const line = d3.line().x((d) => xs(d.x)).y((d) => ys(d.y));
-    series.forEach((s, i) => {
-      if (s.area) {
-        const gid = 'g' + box.id + i;
-        const grad = svg.append('defs').append('linearGradient').attr('id', gid).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
-        [[0, .26], [.25, .16], [.5, .08], [.75, .03], [1, 0]].forEach(([o, a]) => grad.append('stop').attr('offset', o).attr('style', `stop-color:${s.color};stop-opacity:${a}`));
-        svg.append('path').datum(s.values).attr('fill', `url(#${gid})`).attr('d', d3.area().x((d) => xs(d.x)).y0(H - m.bottom).y1((d) => ys(d.y)));
-      }
-      svg.append('path').datum(s.values).attr('fill', 'none').attr('stroke', s.color).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('stroke-dasharray', s.dash || null).attr('d', line);
-      const last = s.values[s.values.length - 1];
-      svg.append('circle').attr('cx', xs(last.x)).attr('cy', ys(last.y)).attr('r', 3.5).attr('fill', s.color);
-    });
-    if (endLabels) {
-      const ends = series.map((s) => ({ s, y: ys(s.values[s.values.length - 1].y) })).sort((a, b) => a.y - b.y);
-      for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
-      ends.forEach(({ s, y }) => svg.append('text').attr('x', W - m.right + 6).attr('y', y).attr('dy', '0.32em').attr('font-size', 12).attr('fill', s.color === 'var(--cds-chart-muted)' ? 'var(--color-fg-muted)' : 'var(--color-fg)').text(s.label(s.values[s.values.length - 1])));
-    }
-    // tooltip
-    const tip = el('div', 'wd-tip'); tip.hidden = true; box.append(tip);
-    const dot = svg.append('circle').attr('r', 4).attr('fill', series[0].color).attr('opacity', 0);
-    const rule = svg.append('line').attr('y1', m.top).attr('y2', H - m.bottom).attr('stroke', 'var(--cds-chart-axis)').attr('opacity', 0);
-    const bis = d3.bisector((d) => d.x).center;
-    svg.append('rect').attr('x', m.left).attr('y', m.top).attr('width', W - m.left - m.right).attr('height', H - m.top - m.bottom).attr('fill', 'transparent')
-      .on('pointermove', (ev) => {
-        const [px] = d3.pointer(ev);
-        const i = bis(series[0].values, xs.invert(px));
-        const d = series[0].values[i];
-        rule.attr('x1', xs(d.x)).attr('x2', xs(d.x)).attr('opacity', 1);
-        dot.attr('cx', xs(d.x)).attr('cy', ys(d.y)).attr('opacity', 1);
-        tip.replaceChildren(el('span', null, x(d)), ...series.map((s) => el('div', null, (series.length > 1 ? s.name + ': ' : '') + fmtY(s.values[i].y, true))));
-        tip.hidden = false;
-        const scaleX = box.clientWidth / W;
-        const left = Math.min(Math.max(0, xs(d.x) * scaleX + 12), box.clientWidth - tip.offsetWidth);
-        tip.style.left = left + 'px';
-        tip.style.top = Math.max(0, ys(d.y) * scaleX - tip.offsetHeight - 8) + 'px';
-      })
-      .on('pointerleave', () => { tip.hidden = true; dot.attr('opacity', 0); rule.attr('opacity', 0); });
-  }
-
-  function drawNifty() {
+  function nifty() {
     const box = document.getElementById('nifty-chart'), s = D('nifty_1y'), st = D('nifty_stats');
     settle(box, s);
     if (s.status === 'error') return failed(box);
-    if (s.status !== 'ok' || st.status !== 'ok') return box.replaceChildren();
-    const vals = s.data.map((r) => ({ x: new Date(r.date), y: Number(r.close) })).sort((a, b) => a.x - b.x);
-    const peak = st.data[0].peak;
-    lineChart(box, {
-      series: [{ name: 'Nifty 50', values: vals, color: dash.colors[0], area: true, label: (d) => num.format(Math.round(d.y)) }],
-      x: (d) => d3.utcFormat('%b %-d, %Y')(d.x),
-      fmtY: (v) => num.format(Math.round(v)),
-      fmtX: d3.utcFormat('%b %y'),
-      refY: peak, refLabel: '12-month high ' + num.format(Math.round(peak)),
-      endLabels: true,
+    if (s.status !== 'ok' || st.status !== 'ok' || !box.clientWidth) return;
+    box.replaceChildren();
+    const vals = s.data.map((r) => ({ x: new Date(r.date), y: +r.close })).sort((a, b) => a.x - b.x);
+    const W = box.clientWidth, H = 220, peak = st.data[0].peak;
+    const svg = d3.select(box).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const fmt = (v) => num.format(Math.round(v));
+    const p = svg.append('text').attr('font-size', 12).text(fmt(peak)); const tw = p.node().getComputedTextLength(); p.remove();
+    const m = { t: 14, r: 10, b: 22, l: tw + 8 };
+    const xs = d3.scaleUtc(d3.extent(vals, (d) => d.x), [m.l, W - m.r]);
+    const ext = d3.extent(vals, (d) => d.y), pad = (ext[1] - ext[0]) * 0.06;
+    const ys = d3.scaleLinear([ext[0] - pad, Math.max(ext[1], peak) + pad], [H - m.b, m.t]).nice();
+    ys.ticks(4).forEach((t) => {
+      svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(t)).attr('y2', ys(t)).attr('stroke', 'var(--cds-chart-grid)');
+      svg.append('text').attr('x', m.l - 6).attr('y', ys(t)).attr('dy', '.32em').attr('text-anchor', 'end').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(fmt(t));
     });
+    xs.ticks(Math.max(2, Math.floor((W - m.l) / 90))).forEach((t) => svg.append('text').attr('x', xs(t)).attr('y', H - 5).attr('text-anchor', 'middle').attr('font-size', 12).attr('fill', 'var(--color-fg-muted)').text(d3.utcFormat('%b %y')(t)));
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(peak)).attr('y2', ys(peak)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 4');
+    const gid = 'ng';
+    const g = svg.append('defs').append('linearGradient').attr('id', gid).attr('x1', 0).attr('x2', 0).attr('y1', 0).attr('y2', 1);
+    [[0, .26], [.25, .16], [.5, .08], [.75, .03], [1, 0]].forEach(([o, a]) => g.append('stop').attr('offset', o).attr('style', `stop-color:${dash.colors[0]};stop-opacity:${a}`));
+    svg.append('path').datum(vals).attr('fill', `url(#${gid})`).attr('d', d3.area().x((d) => xs(d.x)).y0(H - m.b).y1((d) => ys(d.y)));
+    svg.append('path').datum(vals).attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round').attr('d', d3.line().x((d) => xs(d.x)).y((d) => ys(d.y)));
+    const last = vals[vals.length - 1];
+    svg.append('circle').attr('cx', xs(last.x)).attr('cy', ys(last.y)).attr('r', 3.5).attr('fill', dash.colors[0]);
+    const tip = el('div', 'wd-tip'); tip.hidden = true; box.append(tip);
+    const dot = svg.append('circle').attr('r', 4).attr('fill', dash.colors[0]).attr('opacity', 0);
+    const bis = d3.bisector((d) => d.x).center;
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const d = vals[bis(vals, xs.invert(d3.pointer(ev)[0]))];
+        dot.attr('cx', xs(d.x)).attr('cy', ys(d.y)).attr('opacity', 1);
+        tip.replaceChildren(el('span', null, d3.utcFormat('%b %-d, %Y')(d.x)), el('div', null, fmt(d.y)));
+        tip.hidden = false;
+        const k = box.clientWidth / W;
+        tip.style.left = Math.min(Math.max(0, xs(d.x) * k + 10), box.clientWidth - tip.offsetWidth) + 'px';
+        tip.style.top = Math.max(0, ys(d.y) * k - tip.offsetHeight - 8) + 'px';
+      })
+      .on('pointerleave', () => { tip.hidden = true; dot.attr('opacity', 0); });
   }
 
-  function drawSip() {
-    const t = document.getElementById('sip'), body = t.tBodies[0], s = D('sip_plan');
-    if (s.status !== 'ok') { body.replaceChildren(); return; }
-    body.replaceChildren(...s.data.map((r) => {
-      const tr = el('tr');
-      tr.append(el('td', 'wd-wrap', r.instrument), el('td', 'wd-r', inr.format(r.amount_inr)), el('td', 'wd-wrap wd-muted', r.why));
-      return tr;
-    }));
+  // Keep live quotes pointed at the open idea plus every holding with a stop.
+  let lastSymbols = '';
+  function syncSymbols() {
+    const o = D('opportunity'), r = D('portfolio_review');
+    if (o.status !== 'ok' || r.status !== 'ok') return;
+    const syms = [...new Set([...o.data.map((x) => 'NSE:' + x.symbol), ...r.data.filter((x) => x.sl != null).map((x) => (x.symbol === 'A1L' ? 'BSE:' : 'NSE:') + x.symbol)])];
+    const key = syms.join(',');
+    if (key && key !== lastSymbols) { lastSymbols = key; dash.setParams({ symbols: syms }); }
   }
 
-  function drawProjection() {
-    const box = document.getElementById('proj-chart'), s = D('projection');
-    settle(box, s);
-    if (s.status === 'error') return failed(box);
-    if (s.status !== 'ok') return box.replaceChildren();
-    const base = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1));
-    const at = (y) => new Date(Date.UTC(base.getUTCFullYear() + y, 0, 1));
-    const mk = (k) => s.data.map((r) => ({ x: at(r.year), y: r[k], year: r.year }));
-    lineChart(box, {
-      series: [
-        { name: '12% a year', values: mk('r12'), color: dash.colors[0], label: (d) => '12%  ' + lakh(d.y) },
-        { name: '15% a year', values: mk('r15'), color: dash.colors[1], label: (d) => '15%  ' + lakh(d.y) },
-        { name: '10% a year', values: mk('r10'), color: dash.colors[2], label: (d) => '10%  ' + lakh(d.y) },
-        { name: 'Money you put in', values: mk('invested'), color: 'var(--cds-chart-muted)', dash: '4 4', label: (d) => 'In  ' + lakh(d.y) },
-      ],
-      x: (d) => `Year ${d.year}`,
-      fmtY: (v) => lakh(v),
-      fmtX: (d) => 'Yr ' + (d.getUTCFullYear() - base.getUTCFullYear()),
-      endLabels: true,
-    });
-  }
-
-  dash.onData(() => {
+  function render() {
+    const s = src() || 'snap';
+    kiteStatus();
     fillMarks();
-    drawIdeas();
-    drawAlloc();
-    drawPositions();
-    drawCatalysts();
-    drawSignals();
-    drawNifty();
-    drawSip();
-    drawProjection();
-  });
+    if (current === 'today') { kpis(s); todo(); risk(s); }
+    if (current === 'opportunity') ticket();
+    if (current === 'portfolio') {
+      positions(s); alloc(s);
+      table('review', 'portfolio_review', [['symbol'], ['verdict'], ['action', 'wd-wrap'], ['reason', 'wd-wrap']]);
+    }
+    if (current === 'market') {
+      tiles(s); nifty(); catalysts(); signals();
+      table('mreview', 'market_review', [['metric'], ['value'], ['change'], ['read', 'wd-wrap']]);
+    }
+    if (current === 'track') table('trades', 'trades', [['id'], ['symbol'], ['entry', 'wd-r', (v) => num.format(v)], ['sl', 'wd-r', (v) => num.format(v)], ['tp', 'wd-r', (v) => num.format(v)], ['status']]);
+  }
+
+  dash.onData(() => { syncSymbols(); render(); });
+
+  const named = location.hash.slice(1);
+  if (tabs.some((b) => b.dataset.tab === named)) show(named, false);
 </script>

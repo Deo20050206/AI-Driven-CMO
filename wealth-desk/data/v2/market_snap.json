@@ -1,0 +1,22 @@
+[
+ {
+  "instrument": "NSE:NIFTY 50",
+  "last_price": 22936.75,
+  "prev_close": 22698.85
+ },
+ {
+  "instrument": "NSE:NIFTY BANK",
+  "last_price": 54909.65,
+  "prev_close": 54267.4
+ },
+ {
+  "instrument": "NSE:NIFTY MIDCAP 100",
+  "last_price": 57841.65,
+  "prev_close": 57274.7
+ },
+ {
+  "instrument": "NSE:INDIA VIX",
+  "last_price": 15.12,
+  "prev_close": 16.25
+ }
+]

@@ -17,6 +17,14 @@ def open_risk(trades):
     return sum(max(t["entry"] - t["sl"], 0) * t["qty"] for t in trades)
 
 
+def ladder_cap(weights):
+    """Max weight for a new idea: the first ladder slot not already filled by a bigger position."""
+    ranks, lad, k = sorted(weights, reverse=True), CONCENTRATION_LADDER, 0
+    while k < len(ranks) and ranks[k] >= lad[min(k + 1, len(lad) - 1)]:
+        k += 1
+    return lad[min(k, len(lad) - 1)]
+
+
 def allocate(state, idea, size_factor=1.0):
     pv = state["portfolio_value"]
     peak = max(state.get("peak_value") or pv, pv)
@@ -45,7 +53,7 @@ def allocate(state, idea, size_factor=1.0):
 
     # Stable core is off-limits for funding at later stages.
     stage = stage_for(pv)
-    max_weight = CONCENTRATION_LADDER[min(len(trades), len(CONCENTRATION_LADDER) - 1)]
+    max_weight = ladder_cap([t["qty"] * t["entry"] / pv for t in trades])
     tradable_pool = pv * (1 - stage["core_pct"])
     qty_by_risk = math.floor(risk_rs / per_share_risk)
     qty_by_weight = math.floor(min(pv * max_weight, tradable_pool) / entry)
@@ -59,9 +67,19 @@ def allocate(state, idea, size_factor=1.0):
     steps, need = [], cost - state.get("cash", 0)
     if state.get("cash", 0) > 0:
         steps.append({"action": "Use cash", "amount": round(min(state["cash"], cost), 2)})
-    order = sorted(state.get("holdings", []), key=lambda h: (
-        {"Liquid / cash": 0, "Gold": 1}.get(h.get("asset_class"), 2),
-        {"Exit": 0, "Trim": 1, "Hold": 2, "Add": 3}.get(h.get("verdict"), 2)))
+    # Exits first, then idle liquid funds, then trims, then gold; holds and adds are never sold.
+    def rank(h):
+        v, c = h.get("verdict"), h.get("asset_class")
+        if v == "Exit":
+            return 0
+        if c == "Liquid / cash":
+            return 1
+        if v == "Trim":
+            return 2
+        if c == "Gold" and v != "Hold":
+            return 3
+        return 9
+    order = [h for h in sorted(state.get("holdings", []), key=rank) if rank(h) < 9]
     for h in order:
         if need <= 0:
             break

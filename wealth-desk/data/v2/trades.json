@@ -1,0 +1,13 @@
+[
+ {
+  "id": "WD-2026-10-29-KAYNES",
+  "date": "2026-10-29",
+  "symbol": "KAYNES",
+  "entry": 3360,
+  "sl": 3090,
+  "tp": 3700,
+  "qty": 8,
+  "status": "proposed",
+  "note": "Conditional on post-results trigger"
+ }
+]
