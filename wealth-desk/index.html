@@ -96,6 +96,8 @@
   .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; }
   .wd-tick { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--color-fg); }
   .wd-stack { display: grid; gap: 16px; }
+  .wd-more { font: inherit; font-size: .88rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px; cursor: pointer; }
+  .wd-more:active { opacity: .6; }
 
   /* Segmented toggle: responds on press */
   .wd-toggle { display: inline-flex; gap: 14px; }
@@ -193,8 +195,8 @@
     </div>
     <nav class="wd-seg" role="tablist" aria-label="Sections">
       <button role="tab" id="tab-today" data-tab="today" aria-selected="true">Home</button>
+      <button role="tab" id="tab-ideas" data-tab="ideas" aria-selected="false">Ideas</button>
       <button role="tab" id="tab-portfolio" data-tab="portfolio" aria-selected="false">Portfolio</button>
-      <button role="tab" id="tab-pnl" data-tab="pnl" aria-selected="false">P&amp;L</button>
       <button role="tab" id="tab-market" data-tab="market" aria-selected="false">Market</button>
       <button role="tab" id="tab-track" data-tab="track" aria-selected="false">Scorecard</button>
     </nav>
@@ -229,7 +231,7 @@
     <div class="wd-kpis">
       <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Portfolio value|Everything you hold at today's prices, plus free cash in Kite.">Portfolio value</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="value">—</b></span><span class="wd-muted">Cost <span class="kpi" data-kpi="invested">—</span></span></div>
       <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Today|How much your holdings moved since yesterday's close. Mutual funds update once a day, so they aren't included.">Today</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="day_pnl">—</b></span><span class="wd-muted">since yesterday</span></div>
-      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Unrealised P&L|Gain or loss on what you still hold, versus what you paid. It becomes real only when you sell.">Unrealised P&amp;L</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="pnl">—</b></span><span class="wd-muted"><span class="kpi" data-kpi="pnl_pct">—</span> on cost</span></div>
+      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Unrealised P&L|Gain or loss on everything you still hold, versus what you paid, counted at today's prices, so today's move is already inside it. It becomes real only when you sell.">Unrealised P&amp;L</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="pnl">—</b></span><span class="wd-muted"><span class="kpi" data-kpi="pnl_pct">—</span> on cost</span></div>
       <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Cash to deploy|Free equity margin in Kite that can buy shares today.">Cash</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">free in Kite</span></div>
     </div>
 
@@ -253,8 +255,43 @@
     </div>
   </section>
 
-  <!-- REVIEW -->
+  <!-- IDEAS -->
+  <section class="wd-page" id="ideas" role="tabpanel" aria-labelledby="tab-ideas" hidden>
+    <div class="wd-section">
+      <p class="wd-muted">A new idea every 5 trading days · this one from <span data-source="notes" data-where="key=brief_date" data-field="text">—</span> · next <span data-source="schedule" data-where="task=New opportunity" data-field="next">—</span></p>
+    </div>
+
+    <div class="wd-glass wd-opp dash-skeleton" id="idea-full" data-source="opportunity"></div>
+
+    <div class="wd-section" id="ideas-record">
+      <div class="wd-row"><h2>How past ideas did</h2><button type="button" class="wd-more" data-goto="track">Scorecard ›</button></div>
+      <p class="wd-muted"><span data-source="track_stats" data-row="0" data-field="closed">—</span> closed · win rate <span data-source="track_stats" data-row="0" data-field="win_rate">—</span> · <span data-source="track_stats" data-row="0" data-field="open">—</span> open or waiting. Every idea is scored, bought or not.</p>
+    </div>
+  </section>
+
+  <!-- PORTFOLIO: holdings, P&L, risk -->
   <section class="wd-page" id="portfolio" role="tabpanel" aria-labelledby="tab-portfolio" hidden>
+    <div class="wd-section">
+      <p class="wd-muted">Review of <span data-source="notes" data-where="key=brief_date" data-field="text">—</span> · next review <span data-source="schedule" data-where="task=Portfolio review" data-field="next">—</span></p>
+      <p class="wd-take dash-skeleton" data-source="notes" data-where="key=takeaway" data-field="text">—</p>
+    </div>
+
+    <div class="wd-section" id="value-wrap">
+      <div class="wd-chart-head">
+        <span class="wd-big"><b class="dash-skeleton kpi" data-kpi="value">—</b></span>
+        <span class="wd-muted" id="value-sub"></span>
+      </div>
+      <div class="wd-chart" id="history-chart" data-source="nav_history" style="min-height:220px"></div>
+      <span class="wd-muted" data-tip="How to read this|The solid line is what your portfolio was worth each day. The dashed step is the money you've put in. ▲ marks cash added, ▼ cash withdrawn, so deposits never look like gains.">▲ cash in · ▼ cash out · dashed = money put in</span>
+    </div>
+
+    <div class="wd-kpis">
+      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Today|How much your holdings moved since yesterday's close. Mutual funds update once a day, so they aren't included.">Today</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="day_pnl">—</b></span><span class="wd-muted">since yesterday</span></div>
+      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Unrealised P&L|Gain or loss on everything you still hold, versus what you paid, counted at today's prices, so today's move is already inside it. It becomes real only when you sell.">Unrealised P&amp;L</span><span class="wd-big"><b class="pk" data-k="unrealised">—</b></span><span class="wd-muted"><span class="pk" data-k="unrealised_pct">—</span> on cost</span></div>
+      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Realised P&L|Profit or loss already locked in by selling. Each sale is listed in the ledger at the bottom.">Realised P&amp;L</span><span class="wd-big"><b class="pk" data-k="realised">—</b></span><span class="wd-muted">from sales</span></div>
+      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Cash to deploy|Free equity margin in Kite that can buy shares today.">Cash</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">free in Kite</span></div>
+    </div>
+
     <div class="wd-glass" id="review-card">
       <div class="wd-row"><h2>Review verdicts</h2><span class="wd-muted">Every 3 trading days</span></div>
       <div class="wd-tablewrap">
@@ -289,7 +326,7 @@
             <table id="positions" data-source="positions_LL" data-row-key="symbol">
               <thead><tr>
                 <th data-field="symbol">Holding</th><th class="wd-r" data-field="qty">Qty</th><th class="wd-r wd-hide-sm" data-field="invested">Avg</th>
-                <th class="wd-r" data-field="ltp">Price</th><th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="weight">Weight</th>
+                <th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="pnl">P&amp;L</th><th class="wd-r wd-hide-sm" data-field="pnl_pct">%</th><th class="wd-r" data-field="weight">Weight</th>
               </tr></thead>
               <tbody></tbody>
             </table>
@@ -297,34 +334,8 @@
         </details>
       </div>
     </div>
-  </section>
-
-  <!-- P&L -->
-  <section class="wd-page" id="pnl" role="tabpanel" aria-labelledby="tab-pnl" hidden>
-    <div class="wd-kpis">
-      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Total P&L|Unrealised gains on what you hold plus profits already booked on sales.">Total P&amp;L</span><span class="wd-big"><b class="pk" data-k="total">—</b></span></div>
-      <div class="wd-glass wd-kpi"><span class="wd-muted">Unrealised</span><span class="wd-big"><b class="pk" data-k="unrealised">—</b></span><span class="wd-muted"><span class="pk" data-k="unrealised_pct">—</span> on cost</span></div>
-      <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Realised|Profit or loss locked in by selling, from the ledger below.">Realised</span><span class="wd-big"><b class="pk" data-k="realised">—</b></span></div>
-      <div class="wd-glass wd-kpi"><span class="wd-muted">Today</span><span class="wd-big"><b class="pk" data-k="day">—</b></span></div>
-    </div>
-    <div class="wd-section" id="history-wrap">
-      <div class="wd-row"><h2>Portfolio value history</h2><span class="wd-muted" data-tip="How to read this|The solid line is what your portfolio was worth each day. The dashed step is the money you've put in. ▲ marks cash added, ▼ cash withdrawn, so deposits never look like gains.">▲ cash in · ▼ cash out · dashed = money put in</span></div>
-      <div class="wd-chart" id="history-chart" data-source="nav_history" style="min-height:260px"></div>
-    </div>
-    <div class="wd-grid2">
-      <div class="wd-glass"><h2>P&amp;L by holding</h2><div class="wd-stack" id="pnl-bars"></div></div>
-      <div class="wd-glass">
-        <h2>P&amp;L by asset class</h2>
-        <div class="wd-tablewrap">
-          <table id="pnl-class" data-row-key="asset_class">
-            <thead><tr><th data-field="asset_class">Class</th><th class="wd-r" data-field="invested">Cost</th><th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="pnl">P&amp;L</th><th class="wd-r" data-field="pnl_pct">%</th></tr></thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-    <div class="wd-glass">
-      <h2>Realised P&amp;L ledger</h2>
+    <details class="wd-glass" id="ledger-card">
+      <summary>Sales and realised P&amp;L</summary>
       <p class="wd-muted">Sales each run detects. Kite's API doesn't return past fill prices, so older rows use that day's close and are marked est.</p>
       <div class="wd-tablewrap">
         <table id="ledger" data-source="pnl_ledger" data-row-key="id">
@@ -332,7 +343,7 @@
           <tbody></tbody>
         </table>
       </div>
-    </div>
+    </details>
   </section>
 
   <!-- MARKET -->
@@ -444,15 +455,6 @@
         });
         opportunity.filter((o) => o.status !== 'Closed').forEach((o) => rows.push({ symbol: o.symbol, risk: o.risk_rs, risk_pct: total ? o.risk_rs / total : 0, kind: 'idea, if bought' }));
         return rows;
-      },
-    });
-    dash.calc('pnl_class_' + k, {
-      title: 'P&L by asset class', description: 'Cost, value and unrealised P&L summed by asset class.',
-      inputs: ['positions_' + k],
-      fn: (positions) => {
-        const by = {};
-        positions.forEach((r) => { const b = (by[r.asset_class] = by[r.asset_class] || { asset_class: r.asset_class, invested: 0, value: 0 }); b.invested += r.invested; b.value += r.value; });
-        return Object.values(by).map((b) => ({ ...b, pnl: b.value - b.invested, pnl_pct: b.invested ? b.value / b.invested - 1 : 0 })).sort((a, b) => b.value - a.value);
       },
     });
     dash.calc('pnl_sum_' + k, {
@@ -690,8 +692,8 @@
   }
 
   // ---------- Opportunity card ----------
-  function ticket() {
-    const box = document.getElementById('ticket'), s = D('opportunity'), q = D('idea_quotes');
+  function ticket(id = 'ticket', full = false) {
+    const box = document.getElementById(id), s = D('opportunity'), q = D('idea_quotes');
     settle(box, s);
     if (s.status === 'error') return failed(box);
     if (s.status !== 'ok') return;
@@ -724,7 +726,7 @@
       F('Capital', inr.format(o.cost), 'Money needed for the buy.'),
       F('At risk', inr.format(o.risk_rs) + ' · ' + pct(o.risk_pct), 'What you lose if the stop-loss is hit.'),
       F('Reward:risk', o.rr.toFixed(2), 'Rupees you could make for each rupee you risk.'));
-    const det = el('details'); det.append(el('summary', null, 'Why, funding and checks'));
+    const det = el('details'); det.open = full; det.append(el('summary', null, 'Why, funding and checks'));
     const kv = el('div', 'wd-kv');
     const P = (t, v) => { const d = el('div'); d.append(el('h3', null, t), el('p', 'wd-prose wd-muted', v)); return d; };
     kv.append(P('Why this stock', o.thesis), P('Where the money comes from', o.funding), P('Rule checks', o.checks),
@@ -732,6 +734,7 @@
       P('Confidence', o.confidence + ' · ' + o.backtest));
     det.append(kv);
     box.replaceChildren(head, trig, lv, lad, facts, det);
+    if (!full) { const more = el('button', 'wd-more', 'Full idea ›'); more.type = 'button'; more.style.justifySelf = 'start'; more.addEventListener('click', () => show('ideas')); box.append(more); }
   }
 
   // ---------- Holdings ----------
@@ -765,7 +768,7 @@
     body.replaceChildren(...P.data.map((r) => {
       const tr = el('tr'); tr.dataset.key = r.symbol;
       tr.append(el('td', 'wd-name', nameOf(r)), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r wd-hide-sm', num.format(r.qty ? r.invested / r.qty : 0)),
-        el('td', 'wd-r', num.format(r.ltp)), el('td', 'wd-r', inr.format(r.value)), el('td', 'wd-r', pct(r.weight)));
+        el('td', 'wd-r', inr.format(r.value)), el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)), el('td', 'wd-r wd-hide-sm ' + tone(r.pnl_pct), pctS(r.pnl_pct)), el('td', 'wd-r', pct(r.weight)));
       return tr;
     }));
   }
@@ -989,12 +992,15 @@
     sub.textContent = `${inrS(gain)} since ${dayFmt(first.x)} · cash you added excluded`;
     lineChart(box, pts, { h: 200 });
   }
-  function historyChart(k) {
+  function valueChart(k) {
     const box = document.getElementById('history-chart');
     box.dataset.source = 'nav_history totals_' + k;
     if (D('nav_history').status === 'error') return failed(box);
     const pts = valueSeries(k); if (!pts || !pts.length || !box.clientWidth) return;
-    lineChart(box, pts, { h: 260, putIn: true, flows: true });
+    const first = pts[0], last = pts[pts.length - 1], gain = (last.v - last.i) - (first.v - first.i);
+    const sub = document.getElementById('value-sub'); sub.className = 'wd-muted ' + tone(gain);
+    sub.textContent = `${inrS(gain)} since ${dayFmt(first.x)} · cash you added excluded`;
+    lineChart(box, pts, { h: 220, putIn: true, flows: true });
   }
   function nifty() {
     const box = document.getElementById('nifty-chart'), s = D('nifty_1y'), st = D('nifty_stats');
@@ -1016,26 +1022,6 @@
       if (tone(v)) n.classList.add(tone(v));
     });
   }
-  function pnlBars(em) {
-    const box = document.getElementById('pnl-bars'), P = D('positions_' + em);
-    box.dataset.source = 'positions_' + em;
-    if (P.status !== 'ok') { box.replaceChildren(); return; }
-    const rows = [...P.data].sort((a, b) => b.pnl - a.pnl);
-    const max = Math.max(1, ...rows.map((r) => Math.abs(r.pnl)));
-    const neg = rows.some((r) => r.pnl < 0), pos = rows.some((r) => r.pnl > 0);
-    const zero = neg && pos ? 45 : neg ? 75 : 8, span = neg && pos ? 28 : 60;
-    box.replaceChildren(...rows.map((r) => {
-      const row = el('div', 'wd-pnlbar'); row.append(el('span', null, nameOf(r)));
-      const ax = el('div', 'wd-axis'), z = el('div', 'wd-zero'), b = el('div', 'wd-bar'), v = el('div', 'wd-val ' + tone(r.pnl), inrS(r.pnl));
-      tip(ax, nameOf(r), `Cost ${inr.format(r.invested)} → value ${inr.format(r.value)} (${pctS(r.pnl_pct)})`);
-      const w = (Math.abs(r.pnl) / max) * span;
-      z.style.left = zero + '%'; b.style.width = w + '%'; b.style.background = r.pnl >= 0 ? 'var(--color-ok)' : 'var(--color-bad)';
-      if (r.pnl >= 0) { b.style.left = zero + '%'; v.style.left = `calc(${zero + w}% + 6px)`; }
-      else { b.style.left = zero - w + '%'; v.style.left = `calc(${zero}% + 6px)`; }
-      ax.append(z, b, v); row.append(ax); return row;
-    }));
-  }
-
   // ---------- Market ----------
   function tiles() {
     const id = D('market').status === 'ok' ? 'market' : 'market_snap', M = D(id);
@@ -1093,11 +1079,10 @@
     const k = key(), s = k.em;
     kiteStatus(); fillMarks();
     if (current === 'today') { kpis(k.em + k.c); homeChart(k.em + k.c); ticket(); homePositions(s); }
-    if (current === 'portfolio') { review(); alloc(s); risk(s); mix(s); positions(s); }
-    if (current === 'pnl') {
-      pnlKpis(s); historyChart(k.em + k.c); pnlBars(s);
-      table('pnl-class', 'pnl_class_' + s, [['asset_class', 'wd-name'], ['invested', 'wd-r', (v) => inr.format(v)], ['value', 'wd-r', (v) => inr.format(v)], ['pnl', 'wd-r', (v) => inrS(v)], ['pnl_pct', 'wd-r', (v) => pctS(v)]]);
-      document.getElementById('pnl-class').dataset.source = 'pnl_class_' + s;
+    if (current === 'ideas') ticket('idea-full', true);
+    if (current === 'portfolio') {
+      kpis(k.em + k.c); pnlKpis(s); valueChart(k.em + k.c);
+      review(); alloc(s); risk(s); mix(s); positions(s);
       table('ledger', 'pnl_ledger', [['date', null, (v) => dayFmt(new Date(v))], ['symbol', 'wd-name'], ['qty', 'wd-r'], ['buy_avg', 'wd-r', (v) => num.format(v)], ['sell_price', 'wd-r', (v, r) => num.format(v) + (r.estimated ? ' est.' : '')], ['realised', 'wd-r', (v) => inrS(v)], ['note', 'wd-wrap wd-muted']]);
     }
     if (current === 'market') { tiles(); nifty(); catalysts(); signals(); table('mreview', 'market_review', [['metric', 'wd-name'], ['value'], ['change'], ['read', 'wd-wrap']]); }
@@ -1105,7 +1090,8 @@
   }
 
   dash.onData(() => { syncSymbols(); render(); });
-  const named = { opportunity: 'today', home: 'today' }[location.hash.slice(1)] || location.hash.slice(1);
+  document.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => show(b.dataset.goto)));
+  const named = { opportunity: 'ideas', home: 'today', pnl: 'portfolio' }[location.hash.slice(1)] || location.hash.slice(1);
   if (named !== 'today' && names.includes(named)) show(named, false);
 </script>
 
