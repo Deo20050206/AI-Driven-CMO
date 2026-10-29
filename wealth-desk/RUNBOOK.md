@@ -52,8 +52,8 @@ Nothing due → update `trades` only and finish quietly.
      the idea conditional on the post-results trigger. Pick one or none. Never force an idea.
    - Size it: `python engine/allocate.py state.json idea.json [size_factor]`.
    - Write `opportunity` (status Active or Conditional) and append to `trades` as `proposed`.
-7. **P&L.** Append `{date, value (holdings + net cash), invested (cost of holdings + net cash), unrealised,
-   realised_cum, note}` to `nav_history`. Compare today's holdings with `holdings_snap`: any quantity
+7. **P&L.** Append a `nav_history` row for every trading day since the last row (value each day from
+   Kite daily closes), with `put_in` and `flow` as defined below. Compare today's holdings with `holdings_snap`: any quantity
    that fell is a sale. Record it in `pnl_ledger` with `get_trades` fill prices when the sale was today,
    otherwise the closing price that day with `estimated: true`.
 8. **Publish.** For each changed file: Artifact publish (`asset: true`, the dashboard url), then
@@ -71,7 +71,8 @@ Nothing due → update `trades` only and finish quietly.
 - `market_review`: metric, value, change, read
 - `schedule`: task, every_days, last, next
 - `notes`: key/text rows: takeaway, brief_date
-- `nav_history`: date, value, invested, unrealised, realised_cum, note
+- `nav_history`: one row per trading day: date, value (holdings + net cash), put_in (cumulative money added), flow (cash added +, withdrawn −, that day), flow_note, estimated
+  Flow = change in (cost of holdings + cash) − realised P&L booked that day.
 - `pnl_ledger`: id, date, symbol, qty, buy_avg, sell_price, realised, estimated, note
 
 ## Back-test (control panel)

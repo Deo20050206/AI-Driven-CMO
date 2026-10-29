@@ -1,13 +1,13 @@
 [
  {
-  "id": "R-2026-10-LIQUIDCASE",
+  "id": "R-2026-10-28-LIQUIDCASE",
   "date": "2026-10-28",
   "symbol": "LIQUIDCASE",
   "qty": 461,
   "buy_avg": 116.1,
-  "sell_price": 116.38,
-  "realised": 130,
+  "sell_price": 116.61,
+  "realised": 234.07,
   "estimated": true,
-  "note": "Sold between Oct 14 and Oct 29. Kite's API doesn't give past fills, so the sale price is estimated from the fund's NAV."
+  "note": "Sale price is that day's close; Kite's API doesn't return past fills."
  }
 ]
