@@ -7,6 +7,26 @@ saying "run the Wealth Desk" in a Claude Code session that has the Zerodha Kite 
 - Engine: `wealth-desk/engine/` on branch `claude/portfolio-audit-dashboard-e5c5kv`
 - Owner: Dev (Zerodha ITJ551). Opens the dashboard in the Claude iPhone app.
 
+## The dashboard
+Five pages, swipe or tap between them:
+- **Home**: takeaway, portfolio value chart, four headline numbers, the current idea, holdings with each verdict.
+- **Ideas**: the current opportunity in full (trigger, buy/stop/target, size, funding, rule checks, exit plan) and the track-record line.
+- **Portfolio**: holdings and P&L together. Value history with cash in/out marked, today / unrealised / realised / cash,
+  review verdicts, allocation heatmap, risk budget (all stops vs 8%, biggest stop vs 2.5%, drop from best day vs 10%),
+  holdings mix, the line-by-line table and the sales ledger.
+- **Market**: index tiles, Nifty chart, 3-day market review, catalysts, signals.
+- **Scorecard**: every idea scored against real prices.
+
+Page files live in the dashboard's store, mirrored in this folder: `index.html` → `files/index.html`, `art.js` → `files/art.js`
+(the daily background generator: a new vivid composition each date, theme-aware, no network). Publish a page change with
+ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`. The accepted v1 page is kept at `versions/v1/index.html`.
+
+Kite login: when live holdings fail, the page shows a **Log in to Kite** button (the connector's `login` link) and **Refresh**;
+the card disappears once live holdings load. If only Kite's cash call fails, the status reads "Live · cash saved".
+
+Risk counts every holding's stop, Exit verdicts included, until the shares are actually sold. Holdings without a stop are
+listed as not counted. "Drop from best day" is time-weighted from `nav_history` (deposits and withdrawals removed).
+
 ## Hard rules
 1. Never place, modify or cancel orders. Every output is a suggestion Dev executes in Kite.
 2. Delivery (CNC) only. No F&O, leverage, intraday or MTF.

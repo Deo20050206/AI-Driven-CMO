@@ -1095,28 +1095,21 @@
   if (named !== 'today' && names.includes(named)) show(named, false);
 </script>
 
+<script src="art.js"></script>
 <script>
   // ---------- Daily background ----------
-  // One quiet colour wash, a different pair of hues every day. Nothing moves, nothing competes with the numbers.
+  // A new generated artwork every day (art.js): vivid colours, one element, a few accents. Static and theme-aware.
   (function () {
     const shell = document.getElementById('wd-shell'), cv = document.getElementById('wd-bg');
-    if (!shell || !cv) return;
+    if (!shell || !cv || !window.wdArt) return;
     const ctx = cv.getContext('2d');
-    const day = new Date().toISOString().slice(0, 10), dayN = Math.floor(Date.parse(day) / 864e5);
-    // Hue pairs chosen to stay calm in both light and dark; the day picks the pair and nudges the hues.
-    const PAIRS = [[38, 200], [160, 250], [345, 30], [210, 280], [140, 45], [260, 320], [190, 120]];
-    const [h1, h2] = PAIRS[dayN % PAIRS.length].map((h, i) => (h + ((dayN * (i ? 7 : 11)) % 24) - 12 + 360) % 360);
-    const pos = [(dayN * 37) % 100 / 100, (dayN * 61 + 40) % 100 / 100];
     const isDark = () => matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light' || document.documentElement.dataset.theme === 'dark';
     function paint() {
       const dpr = Math.min(window.devicePixelRatio || 1, 2), W = shell.clientWidth, H = shell.clientHeight;
       if (!W || !H) return;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-      const dark = isDark(), VH = Math.min(H, 900), a = dark ? 0.16 : 0.12;
-      const glow = (x, y, r, h) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `hsla(${h},${dark ? 70 : 80}%,${dark ? 55 : 60}%,${a})`); g.addColorStop(1, `hsla(${h},70%,55%,0)`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); };
-      glow(W * (0.1 + pos[0] * 0.5), VH * 0.05, Math.max(W, VH) * 0.7, h1);
-      glow(W * (0.5 + pos[1] * 0.5), VH * 0.35, Math.max(W, VH) * 0.6, h2);
+      const now = new Date(), day = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 864e5);
+      window.wdArt.paint(ctx, W, H, Math.min(H, window.innerHeight || 900, 900), day, isDark());
     }
     let tmr = 0, lw = 0, lh = 0;
     const later = () => { clearTimeout(tmr); tmr = setTimeout(() => { if (Math.abs(shell.clientWidth - lw) > 4 || Math.abs(shell.clientHeight - lh) > 80) { lw = shell.clientWidth; lh = shell.clientHeight; paint(); } }, 120); };
