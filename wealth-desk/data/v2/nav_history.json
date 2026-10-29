@@ -1,0 +1,98 @@
+[
+ {
+  "date": "2026-10-13",
+  "value": 92315.75,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-14",
+  "value": 92204.74,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-15",
+  "value": 92198.03,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-16",
+  "value": 92185.12,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-19",
+  "value": 92092.2,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-21",
+  "value": 91852.4,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-22",
+  "value": 91753.28,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-23",
+  "value": 91485.66,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-26",
+  "value": 91501.97,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-27",
+  "value": 91481.08,
+  "put_in": 94149.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-28",
+  "value": 109457.53,
+  "put_in": 107441.5,
+  "flow": 13292,
+  "flow_note": "Added ≈₹13,292 (estimated): LIQUIDCASE sold; A1L, UNIMECH and JPL (IPO) bought",
+  "estimated": true
+ },
+ {
+  "date": "2026-10-29",
+  "value": 109743.18,
+  "put_in": 107441.5,
+  "flow": 0,
+  "flow_note": "",
+  "estimated": true
+ }
+]

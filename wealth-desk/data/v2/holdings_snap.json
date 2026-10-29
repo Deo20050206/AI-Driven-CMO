@@ -1,0 +1,68 @@
+[
+ {
+  "tradingsymbol": "A1L",
+  "exchange": "BSE",
+  "instrument_token": 138755076,
+  "quantity": 0,
+  "t1_quantity": 5000,
+  "average_price": 5.1,
+  "last_price": 5.18,
+  "close_price": 5.17,
+  "pnl": 400.0
+ },
+ {
+  "tradingsymbol": "GOLDBEES",
+  "exchange": "BSE",
+  "instrument_token": 151064324,
+  "quantity": 54,
+  "t1_quantity": 0,
+  "average_price": 117.641481,
+  "last_price": 116.34,
+  "close_price": 117.14,
+  "pnl": -70.28
+ },
+ {
+  "tradingsymbol": "GOLDCASE",
+  "exchange": "BSE",
+  "instrument_token": 139297796,
+  "quantity": 253,
+  "t1_quantity": 0,
+  "average_price": 23.610948,
+  "last_price": 22.17,
+  "close_price": 22.3,
+  "pnl": -364.56
+ },
+ {
+  "tradingsymbol": "JIOFIN",
+  "exchange": "BSE",
+  "instrument_token": 139248644,
+  "quantity": 20,
+  "t1_quantity": 0,
+  "average_price": 237.25,
+  "last_price": 207,
+  "close_price": 205.4,
+  "pnl": -605.0
+ },
+ {
+  "tradingsymbol": "JPL",
+  "exchange": "NSE",
+  "instrument_token": 196308481,
+  "quantity": 12,
+  "t1_quantity": 0,
+  "average_price": 1119,
+  "last_price": 1421.6,
+  "close_price": 1417.5,
+  "pnl": 3631.2
+ },
+ {
+  "tradingsymbol": "UNIMECH",
+  "exchange": "NSE",
+  "instrument_token": 7413761,
+  "quantity": 0,
+  "t1_quantity": 17,
+  "average_price": 1599.4088235294118,
+  "last_price": 1658,
+  "close_price": 1638.1,
+  "pnl": 996.05
+ }
+]

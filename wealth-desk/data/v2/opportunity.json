@@ -1,0 +1,27 @@
+[
+ {
+  "id": "WD-2026-10-29-KAYNES",
+  "date": "2026-10-29",
+  "symbol": "KAYNES",
+  "name": "Kaynes Technology",
+  "status": "Conditional",
+  "setup": "Beaten-down base: −54% from 52w high, 90-day return −2%, ₹3,000–4,100 range for 5 months",
+  "trigger": "Daily close above ₹3,360 after Q2 results, with ₹3,000 intact. Do not buy before results.",
+  "entry": 3360,
+  "sl": 3090,
+  "tp": 3700,
+  "rr": 1.26,
+  "qty": 8,
+  "cost": 26880,
+  "risk_rs": 2160,
+  "risk_pct": 0.0233,
+  "reward_rs": 2720,
+  "time_stop": "20 sessions after entry",
+  "expires": "2026-11-14",
+  "funding": "Sell A1L (5,000) → ₹25,900; cash ₹165; 1 UNIMECH from the planned trim → ₹815",
+  "thesis": "Electronics manufacturing leader de-rated after two weak quarters (Q4 −25% in 3 days, Q1 −9%). Revenue still growing ~40% YoY; ₹200 cr/day liquidity. Pre-move profile from the event study: deep drawdown, flat 90-day trend, multi-month base. Results are the binary risk, so the trigger waits for them.",
+  "checks": "Hard kills: pass · Not already run: pass · Liquidity: pass · Structure: base holding, higher-low not yet confirmed · Results risk: pending",
+  "confidence": "Low–Medium",
+  "backtest": "Pending back-test on 13.5M-row dataset"
+ }
+]

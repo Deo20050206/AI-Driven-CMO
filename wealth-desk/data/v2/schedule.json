@@ -1,0 +1,20 @@
+[
+ {
+  "task": "Portfolio review",
+  "every_days": 3,
+  "last": "2026-10-29",
+  "next": "2026-11-03"
+ },
+ {
+  "task": "Market review",
+  "every_days": 3,
+  "last": "2026-10-29",
+  "next": "2026-11-03"
+ },
+ {
+  "task": "New opportunity",
+  "every_days": 5,
+  "last": "2026-10-29",
+  "next": "2026-11-05"
+ }
+]

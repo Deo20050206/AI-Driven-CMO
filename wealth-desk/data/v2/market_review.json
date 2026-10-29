@@ -1,0 +1,44 @@
+[
+ {
+  "metric": "Nifty 50",
+  "value": "22,937",
+  "change": "+1.05%",
+  "read": "First close above the 22,800 hurdle since Oct 16"
+ },
+ {
+  "metric": "Nifty Bank",
+  "value": "54,910",
+  "change": "+1.18%",
+  "read": "Banks leading the bounce"
+ },
+ {
+  "metric": "Nifty Midcap 100",
+  "value": "57,842",
+  "change": "+0.99%",
+  "read": "Broad participation"
+ },
+ {
+  "metric": "India VIX",
+  "value": "15.1",
+  "change": "−7.0%",
+  "read": "Fear easing"
+ },
+ {
+  "metric": "Brent crude",
+  "value": "~$115",
+  "change": "↑",
+  "read": "Biggest headwind: inflation, rupee, RBI"
+ },
+ {
+  "metric": "Fed",
+  "value": "3.75–4.00%",
+  "change": "Hold, 2 dissents for a hike",
+  "read": "Keeps FII outflows going"
+ },
+ {
+  "metric": "Verdict",
+  "value": "Neutral, improving",
+  "change": "",
+  "read": "Full position size allowed; respect stops"
+ }
+]

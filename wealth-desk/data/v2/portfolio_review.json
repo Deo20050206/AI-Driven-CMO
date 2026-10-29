@@ -1,0 +1,66 @@
+[
+ {
+  "symbol": "UNIMECH",
+  "verdict": "Trim",
+  "action": "Sell 6 of 17, keep 11. GTT OCO SL ₹1,455 / TP ₹1,890",
+  "sl": 1455,
+  "tp": 1890,
+  "reason": "Q2 revenue ~2× YoY; Oct 28 high-volume dip was bought. Full 17 shares at a ₹1,455 stop risks 3.7% of the portfolio, above the 2.5% cap.",
+  "gtt": "Missing",
+  "keep_qty": 11
+ },
+ {
+  "symbol": "A1L",
+  "verdict": "Exit",
+  "action": "Sell 5,000 at ≥ ₹5.10. If held, GTT SL ₹4.69",
+  "sl": 4.69,
+  "tp": null,
+  "reason": "T-group surveillance stock, under ₹20, ~₹15 lakh/day turnover vs ₹2 cr floor; −89% from its high and still making lower lows. T-group median −7.2% over 40 sessions in your event study.",
+  "gtt": "Missing"
+ },
+ {
+  "symbol": "JIOFIN",
+  "verdict": "Hold",
+  "action": "GTT SL ₹196 on all 20. No adds.",
+  "sl": 196,
+  "tp": null,
+  "reason": "Q2 profit −51% but lending book growing; ₹196 is the thesis-break level.",
+  "gtt": "Missing"
+ },
+ {
+  "symbol": "INF0R8F01216",
+  "verdict": "Hold",
+  "action": "Keep the SIP running",
+  "sl": null,
+  "tp": null,
+  "reason": "Long-term core; down with the market, not broken.",
+  "gtt": "n/a"
+ },
+ {
+  "symbol": "GOLDBEES",
+  "verdict": "Hold",
+  "action": "No stop needed",
+  "sl": null,
+  "tp": null,
+  "reason": "Hedge against crude shock and rupee weakness.",
+  "gtt": "n/a"
+ },
+ {
+  "symbol": "GOLDCASE",
+  "verdict": "Hold",
+  "action": "No stop needed; future gold buys go to GOLDBEES",
+  "sl": null,
+  "tp": null,
+  "reason": "Same job as GOLDBEES.",
+  "gtt": "n/a"
+ },
+ {
+  "symbol": "JPL",
+  "verdict": "Excluded",
+  "action": "Left out of this run at Dev's request (one-time)",
+  "sl": null,
+  "tp": null,
+  "reason": "Analysed normally from the next run.",
+  "gtt": "n/a"
+ }
+]

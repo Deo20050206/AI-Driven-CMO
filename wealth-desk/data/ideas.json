@@ -1,0 +1,74 @@
+[
+ {
+  "rank": 1,
+  "stance": "Buy gradually",
+  "instrument": "LIQUIDCASE \u2192 NIFTYBEES / Life Cycle 2041",
+  "title": "Keep the staggered buying on schedule: tranche 3 on Nov 2, tranche 4 on Nov 9",
+  "why": "Nifty is still stuck near 22,700, about 14% below its January high. Brent crossed $115 after the Saudi refinery attack, and the Fed held rates with two members voting for a hike. Both are headwinds, but they're already showing in prices. Staggering protects you if it falls further.",
+  "how": "Sell ~\u20b99,000 of LIQUIDCASE and buy NIFTYBEES (or add to Life Cycle 2041) on Mon Nov 2 and again on Mon Nov 9, after 10:00 IST. If you skipped the Oct 19 and Oct 26 tranches, split the missed \u20b918,000 across these two dates. If Nifty closes below 21,800, do the remaining tranches together.",
+  "amount_inr": 18000,
+  "horizon": "3+ years",
+  "confidence": "Medium",
+  "review_by": "2026-11-09"
+ },
+ {
+  "rank": 2,
+  "stance": "Hold",
+  "instrument": "JIOFIN",
+  "title": "Profit halved. Hold, no adds, exit if it closes below \u20b9196",
+  "why": "Q2 profit fell 51% to \u20b9340 cr. Income more than doubled (+132%) and Jio Credit's loan book reached \u20b937,320 cr, but no dividend income, a higher tax rate and more provisions dragged profit down. The stock has slid to about \u20b9205, below the \u20b9210 level the last brief set for adding.",
+  "how": "No new money. If it closes below \u20b9196, sell the position (about \u20b94k) and move it to NIFTYBEES rather than averaging down. Look again after Q3 results in January.",
+  "amount_inr": 0,
+  "horizon": "1\u20133 years",
+  "confidence": "Medium",
+  "review_by": "2026-11-13"
+ },
+ {
+  "rank": 3,
+  "stance": "Buy",
+  "instrument": "Monthly \u20b915\u201320k",
+  "title": "November contribution on Mon Nov 2",
+  "why": "Your monthly additions are the biggest driver of long-term wealth. Buying through a correction lowers your average cost.",
+  "how": "Follow the monthly plan card: \u20b910k Life Cycle 2041 SIP, \u20b95k NIFTYBEES, \u20b92.5k kept in LIQUIDCASE for a watchlist entry.",
+  "amount_inr": 17500,
+  "horizon": "10+ years",
+  "confidence": "High",
+  "review_by": "2026-11-02"
+ },
+ {
+  "rank": 4,
+  "stance": "Hold",
+  "instrument": "GOLDBEES + GOLDCASE",
+  "title": "Gold is your crude-shock hedge. Hold, don't add.",
+  "why": "Middle East risk and a weak rupee (~95/$) support gold, and it cushions the equity slide. It's still above its 10% target, so new money goes to equity.",
+  "how": "No action. Future gold buys go into GOLDBEES only.",
+  "amount_inr": 0,
+  "horizon": "Ongoing",
+  "confidence": "High",
+  "review_by": "2026-11-30"
+ },
+ {
+  "rank": 5,
+  "stance": "Watch",
+  "instrument": "Jupiter Wagons, IRCON, BEL",
+  "title": "Order-win watchlist: buy pullbacks, not gap-ups",
+  "why": "Railway and defence order flow continues: Jupiter Wagons won a \u20b91,140 cr railway order today (+9%), IRCON \u20b9862 cr this month, BEL \u20b9730 cr. Stocks usually give back part of an order-day jump.",
+  "how": "For at most one stock, wait 3\u20135 sessions after the news and buy no more than \u20b92,500\u20133,000 if it pulls back 5% or more from the spike. Keep all direct stocks combined under 10% of the portfolio.",
+  "amount_inr": 0,
+  "horizon": "6\u201318 months",
+  "confidence": "Low",
+  "review_by": "2026-11-06"
+ },
+ {
+  "rank": 6,
+  "stance": "Avoid",
+  "instrument": "Oil-sensitive stocks, F&O",
+  "title": "Don't bottom-fish airlines, paints or oil marketing companies while Brent is above $110",
+  "why": "These sectors' costs rise directly with crude, and an unresolved supply shock can cut their earnings for quarters. Options and leverage remain off-limits.",
+  "how": "Revisit if Brent falls back below $100. Keep every trade CNC only.",
+  "amount_inr": 0,
+  "horizon": "Until crude eases",
+  "confidence": "Medium",
+  "review_by": "2026-11-30"
+ }
+]
