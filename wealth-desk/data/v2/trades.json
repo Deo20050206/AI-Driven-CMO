@@ -9,5 +9,16 @@
   "qty": 8,
   "status": "proposed",
   "note": "Conditional on post-results trigger"
+ },
+ {
+  "id": "WD-2026-11-05-CGPOWER",
+  "date": "2026-11-05",
+  "symbol": "CGPOWER",
+  "entry": 815,
+  "sl": 785,
+  "tp": 925,
+  "qty": 18,
+  "status": "open",
+  "entered": "2026-11-05"
  }
 ]
