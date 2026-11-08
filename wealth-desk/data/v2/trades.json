@@ -18,7 +18,22 @@
   "sl": 785,
   "tp": 925,
   "qty": 18,
-  "status": "open",
-  "entered": "2026-11-05"
+  "status": "sl",
+  "entered": "2026-11-05",
+  "exit_date": "2026-11-06",
+  "exit_price": 780,
+  "r": -1.0,
+  "ret": -0.0429,
+  "note": "Stop likely filled at the open; confirm in Kite"
+ },
+ {
+  "id": "WD-2026-11-08-KPITTECH",
+  "date": "2026-11-08",
+  "symbol": "KPITTECH",
+  "entry": 540,
+  "sl": 497,
+  "tp": 594,
+  "qty": 25,
+  "status": "proposed"
  }
 ]
