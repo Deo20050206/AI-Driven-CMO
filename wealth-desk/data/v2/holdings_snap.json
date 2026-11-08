@@ -3,8 +3,8 @@
   "tradingsymbol": "A1L",
   "exchange": "BSE",
   "instrument_token": 138755076,
-  "quantity": 0,
-  "t1_quantity": 5000,
+  "quantity": 5000,
+  "t1_quantity": 0,
   "average_price": 5.1,
   "last_price": 5.18,
   "close_price": 5.17,
@@ -36,12 +36,12 @@
   "tradingsymbol": "JIOFIN",
   "exchange": "BSE",
   "instrument_token": 139248644,
-  "quantity": 20,
+  "quantity": 24,
   "t1_quantity": 0,
-  "average_price": 237.25,
+  "average_price": 231.93,
   "last_price": 207,
   "close_price": 205.4,
-  "pnl": -605.0
+  "pnl": -598.32
  },
  {
   "tradingsymbol": "JPL",
@@ -58,11 +58,11 @@
   "tradingsymbol": "UNIMECH",
   "exchange": "NSE",
   "instrument_token": 7413761,
-  "quantity": 0,
-  "t1_quantity": 17,
+  "quantity": 11,
+  "t1_quantity": 0,
   "average_price": 1599.4088235294118,
-  "last_price": 1658,
+  "last_price": 1811.0,
   "close_price": 1638.1,
-  "pnl": 996.05
+  "pnl": 2327.5
  }
 ]

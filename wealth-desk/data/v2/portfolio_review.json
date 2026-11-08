@@ -1,30 +1,48 @@
 [
  {
   "symbol": "UNIMECH",
-  "verdict": "Trim",
-  "action": "Sell 6 of 17, keep 11. GTT OCO SL ₹1,455 / TP ₹1,890",
-  "sl": 1455,
-  "tp": 1890,
-  "reason": "Q2 revenue ~2× YoY; Oct 28 high-volume dip was bought. Full 17 shares at a ₹1,455 stop risks 3.7% of the portfolio, above the 2.5% cap.",
-  "gtt": "Missing",
+  "verdict": "Hold",
+  "action": "Keep 11 (6 sold Nov 5 at ~Rs 1,811). GTT OCO set: stop 1,700 / target 1,990",
+  "sl": 1700,
+  "tp": 1990,
+  "reason": "Q2 revenue ~2x YoY; stop sits above your Rs 1,599 average, so the worst case is a small profit.",
+  "gtt": "Set",
   "keep_qty": 11
  },
  {
-  "symbol": "A1L",
-  "verdict": "Exit",
-  "action": "Sell 5,000 at ≥ ₹5.10. If held, GTT SL ₹4.69",
-  "sl": 4.69,
-  "tp": null,
-  "reason": "T-group surveillance stock, under ₹20, ~₹15 lakh/day turnover vs ₹2 cr floor; −89% from its high and still making lower lows. T-group median −7.2% over 40 sessions in your event study.",
-  "gtt": "Missing"
+  "symbol": "CGPOWER",
+  "verdict": "Check",
+  "action": "Stop 785 likely fired Nov 6 (sold ~780). If still held: sell, or new stop 725",
+  "sl": 785,
+  "tp": 925,
+  "reason": "Fell 8% on Nov 6 in the global AI selloff; planned loss ~Rs 630 (0.7%). Confirm the GTT fill in Kite.",
+  "gtt": "Set (likely triggered)"
  },
  {
   "symbol": "JIOFIN",
   "verdict": "Hold",
-  "action": "GTT SL ₹196 on all 20. No adds.",
+  "action": "24 shares, GTT OCO set: stop 196 / target 245",
   "sl": 196,
+  "tp": 245,
+  "reason": "Lending book growing; Rs 196 is the thesis-break level.",
+  "gtt": "Set"
+ },
+ {
+  "symbol": "JPL",
+  "verdict": "Hold",
+  "action": "12 shares, GTT set: stop 1,378.9 / target 1,485",
+  "sl": 1378.9,
+  "tp": 1485,
+  "reason": "Up ~27% on cost; stop locks in most of the gain.",
+  "gtt": "Set"
+ },
+ {
+  "symbol": "A1L",
+  "verdict": "Exit",
+  "action": "You chose to keep 5,000 for now. If held, GTT stop 4.69",
+  "sl": 4.69,
   "tp": null,
-  "reason": "Q2 profit −51% but lending book growing; ₹196 is the thesis-break level.",
+  "reason": "T-group surveillance stock under Rs 20, thin turnover; still the weakest holding.",
   "gtt": "Missing"
  },
  {
@@ -52,15 +70,6 @@
   "sl": null,
   "tp": null,
   "reason": "Same job as GOLDBEES.",
-  "gtt": "n/a"
- },
- {
-  "symbol": "JPL",
-  "verdict": "Excluded",
-  "action": "Left out of this run at Dev's request (one-time)",
-  "sl": null,
-  "tp": null,
-  "reason": "Analysed normally from the next run.",
   "gtt": "n/a"
  }
 ]
