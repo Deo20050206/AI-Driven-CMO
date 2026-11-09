@@ -24,16 +24,19 @@
   "exit_price": 780,
   "r": -1.0,
   "ret": -0.0429,
-  "note": "Stop likely filled at the open; confirm in Kite"
+  "note": "Stopped out; no longer in Kite holdings as of Nov 9"
  },
  {
   "id": "WD-2026-11-08-KPITTECH",
   "date": "2026-11-08",
   "symbol": "KPITTECH",
-  "entry": 540,
+  "entry": 539.25,
   "sl": 497,
   "tp": 594,
   "qty": 25,
-  "status": "proposed"
+  "status": "open",
+  "entered": "2026-11-09",
+  "gtt": "OCO 497/594 (id 344035527)",
+  "note": "Bought 25 at 539.25 on Nov 9 (order placed by Claude at Dev's request)"
  }
 ]

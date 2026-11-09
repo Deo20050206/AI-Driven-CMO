@@ -4,16 +4,16 @@
   "date": "2026-11-08",
   "symbol": "KPITTECH",
   "name": "KPIT Technologies",
-  "status": "Active",
+  "status": "Bought",
   "setup": "Deep pullback with a higher low: 58% below the 52-week high, 10-day low 510.5 above the 30-day low, closed back above the 20-day average (540.45 on Nov 6)",
-  "trigger": "Buy Monday Nov 9 with a limit order between 530 and 545. Skip if it opens above 555 or below 525.",
-  "entry": 540,
+  "trigger": "Bought 25 at Rs 539.25 on Nov 9. GTT OCO set: stop 497 (limit 494), target 594 (limit 592).",
+  "entry": 539.25,
   "sl": 497,
   "tp": 594,
   "rr": 1.26,
   "qty": 25,
-  "cost": 13500,
-  "risk_rs": 1075,
+  "cost": 13481,
+  "risk_rs": 1056,
   "risk_pct": 0.012,
   "reward_rs": 1350,
   "time_stop": "15 sessions after entry (about Nov 30)",
@@ -24,6 +24,7 @@
   "confidence": "Medium-low",
   "backtest": "Pending back-test",
   "gtt": "After buying: GTT OCO stop 497 (limit 494), target 594 (limit 592)",
-  "data_note": "Screened on Bigdata.com daily prices to Nov 6 close; Kite link was down"
+  "data_note": "Screened on Bigdata.com daily prices to Nov 6 close; Kite link was down",
+  "entered": "2026-11-09"
  }
 ]

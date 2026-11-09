@@ -710,7 +710,7 @@
     const head = el('div', 'wd-row');
     const left = el('div'); left.style.display = 'grid'; left.style.gap = '2px';
     left.append(el('span', 'wd-muted', 'Investment opportunity · ' + dayFmt(new Date(o.date))), el('span', 'wd-opp-sym', o.symbol), el('span', 'wd-muted', o.name));
-    const pill = tip(el('span', 'wd-pill ' + (o.status === 'Active' ? 'wd-good' : 'wd-warn'), o.status), o.status, o.status === 'Conditional' ? 'Buy only when the trigger below happens. Until then, do nothing.' : 'The trigger has fired. This idea is live.');
+    const pill = tip(el('span', 'wd-pill ' + (o.status === 'Active' || o.status === 'Bought' ? 'wd-good' : 'wd-warn'), o.status), o.status, o.status === 'Conditional' ? 'Buy only when the trigger below happens. Until then, do nothing.' : o.status === 'Bought' ? 'You own it. The stop-loss and target are set as a GTT in Kite.' : 'The trigger has fired. This idea is live.');
     head.append(left, pill);
     const trig = el('p', 'wd-prose'); trig.append(el('b', null, 'When: '), document.createTextNode(o.trigger));
     const lv = el('div', 'wd-levels');
