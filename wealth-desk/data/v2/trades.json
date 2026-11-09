@@ -43,10 +43,13 @@
   "id": "WD-2026-11-09-TORNTPOWER",
   "date": "2026-11-09",
   "symbol": "TORNTPOWER",
-  "entry": 1235,
+  "entry": 1231.89,
   "sl": 1134,
   "tp": 1356,
   "qty": 15,
-  "status": "proposed"
+  "status": "open",
+  "entered": "2026-11-09",
+  "gtt": "OCO 1134/1356 (id 344046830)",
+  "note": "Bought 15 at 1231.89 on Nov 9 (placed by Claude at Dev's request), funded by selling 1,400 A1L"
  }
 ]

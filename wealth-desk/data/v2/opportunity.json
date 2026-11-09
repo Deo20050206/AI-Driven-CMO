@@ -4,16 +4,16 @@
   "date": "2026-11-09",
   "symbol": "TORNTPOWER",
   "name": "Torrent Power",
-  "status": "Active",
+  "status": "Bought",
   "setup": "Pullback with a higher low: about 32% below the high since Apr 27 (1824.1). 10-day low 1151 sits just above the prior 30-day low 1147.5. Price is back above the 20-day average (1210).",
-  "trigger": "Buy 15 with a limit at 1235 or lower, delivery (CNC). Skip if it trades above 1260.",
-  "entry": 1235,
+  "trigger": "Bought 15 at Rs 1,231.89 on Nov 9. GTT OCO set: stop 1134 (limit 1128), target 1356 (limit 1352).",
+  "entry": 1231.89,
   "sl": 1134,
   "tp": 1356,
   "rr": 1.2,
   "qty": 15,
-  "cost": 18525,
-  "risk_rs": 1515,
+  "cost": 18478,
+  "risk_rs": 1468,
   "risk_pct": 0.0121,
   "reward_rs": 1815,
   "time_stop": "20 sessions after entry (about Dec 7)",
@@ -24,6 +24,7 @@
   "confidence": "Medium",
   "backtest": "Pending back-test",
   "gtt": "After buying: GTT OCO stop 1134 (limit 1128), target 1356 (limit 1352)",
-  "data_note": "Screened on Kite daily prices to Nov 9 (about 136 sessions of history, so the high shown is the high since Apr 27)."
+  "data_note": "Screened on Kite daily prices to Nov 9 (about 136 sessions of history, so the high shown is the high since Apr 27).",
+  "entered": "2026-11-09"
  }
 ]

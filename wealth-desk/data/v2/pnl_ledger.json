@@ -9,5 +9,16 @@
   "realised": 234.07,
   "estimated": true,
   "note": "Sale price is that day's close; Kite's API doesn't return past fills."
+ },
+ {
+  "id": "L-2026-11-09-A1L",
+  "date": "2026-11-09",
+  "symbol": "A1L",
+  "qty": 1400,
+  "buy_avg": 5.1,
+  "sell_price": 5.0566,
+  "realised": -60.76,
+  "estimated": false,
+  "note": "Sold to fund Torrent Power; 3,600 still held"
  }
 ]
