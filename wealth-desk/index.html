@@ -246,7 +246,7 @@
 
     <div class="wd-glass" id="home-holdings-card">
       <div class="wd-trades" id="home-trades" data-source="kite_positions" hidden></div>
-      <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted"><span id="home-holdings-src"></span> · <a class="wd-link" href="https://claude.ai/artifact/TdcnqqxzA2LoDBbRRcXPza" target="_blank" rel="noopener">Trade ›</a></span></div>
+      <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted"><span id="home-holdings-src"></span></span></div>
       <div class="wd-tablewrap">
         <table id="home-positions" data-source="positions_LLL" data-row-key="symbol">
           <thead><tr>
@@ -730,7 +730,6 @@
     if (o.entered) { const d = new Date(o.entered); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) k++; } return 'by ' + dayFmt(d); }
     return `in ${n} sessions`;
   }
-  const TRADE_DESK = 'https://claude.ai/artifact/TdcnqqxzA2LoDBbRRcXPza';
   function ticket(id = 'ticket', full = false) {
     const box = document.getElementById(id), s = D('opportunity'), q = D('idea_quotes');
     settle(box, s);
@@ -775,11 +774,6 @@
     det.append(kv);
     box.replaceChildren(head, trig, lv, lad, facts, det);
     const acts = el('div', 'wd-row'); acts.style.justifyContent = 'flex-start';
-    if (o.status !== 'Bought' && o.status !== 'Closed') {
-      const h = (v) => String(v).replace('.', 'p'), a = el('a', 'wd-btn', 'Place this order ›');
-      a.href = `${TRADE_DESK}#buy-${o.symbol}-${o.qty}-${h(o.entry)}-${h(o.sl)}-${h(o.tp)}`; a.target = '_blank'; a.rel = 'noopener';
-      tip(a, 'Trade desk', 'Opens your Trade desk with this order filled in. You review it there and tap once more to send it to Kite.'); acts.append(a);
-    }
     if (!full) { const more = el('button', 'wd-more', 'Full idea ›'); more.type = 'button'; more.addEventListener('click', () => show('ideas')); acts.append(more); }
     box.append(acts);
   }
