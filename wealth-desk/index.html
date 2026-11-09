@@ -240,7 +240,7 @@
     <div class="wd-glass" id="home-holdings-card">
       <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted" id="home-holdings-src"></span></div>
       <div class="wd-tablewrap">
-        <table id="home-positions" data-source="positions_LL" data-row-key="symbol">
+        <table id="home-positions" data-source="positions_LLL" data-row-key="symbol">
           <thead><tr>
             <th data-field="symbol">Holding</th>
             <th class="wd-r" data-field="value">Value</th>
@@ -309,7 +309,7 @@
           <button type="button" data-mode="today" aria-pressed="false">Today</button>
         </div>
       </div>
-      <div class="wd-tree" id="alloc" data-source="positions_LL"></div>
+      <div class="wd-tree" id="alloc" data-source="positions_LLL"></div>
       <div class="wd-tree-foot"><span class="wd-scale" id="alloc-scale"></span><span class="wd-muted" data-tip="Stages|Under ₹2L the whole portfolio is the trading pool. From ₹2L, 30% moves into a stable core; from ₹5L, 50%.">Build stage: the whole portfolio is the trading pool</span></div>
     </div>
     <div class="wd-grid2">
@@ -319,11 +319,11 @@
       </div>
       <div class="wd-glass" id="mix-card">
         <div class="wd-row"><h2>Holdings mix</h2><span class="wd-muted" id="holdings-src"></span></div>
-        <div class="wd-mix" id="mix" data-source="positions_LL"></div>
+        <div class="wd-mix" id="mix" data-source="positions_LLL"></div>
         <details>
           <summary>Every holding, line by line</summary>
           <div class="wd-tablewrap">
-            <table id="positions" data-source="positions_LL" data-row-key="symbol">
+            <table id="positions" data-source="positions_LLL" data-row-key="symbol">
               <thead><tr>
                 <th data-field="symbol">Holding</th><th class="wd-r" data-field="qty">Qty</th><th class="wd-r wd-hide-sm" data-field="invested">Avg</th>
                 <th class="wd-r" data-field="value">Value</th><th class="wd-r" data-field="pnl">P&amp;L</th><th class="wd-r wd-hide-sm" data-field="pnl_pct">%</th><th class="wd-r" data-field="weight">Weight</th>
@@ -421,23 +421,40 @@
 
   // Each Kite feed can fail on its own, so every live/snapshot combination gets its own calculation.
   // Key letters: holdings, mutual funds, cash (L = live, S = saved snapshot).
-  const SRC = { e: { L: 'holdings', S: 'holdings_snap' }, m: { L: 'mf_holdings', S: 'mf_snap' }, c: { L: 'margins', S: 'margins_snap' } };
+  // Today's delivery trades sit in Kite positions until they settle into holdings tonight.
+  dash.loader('kite_positions', {
+    description: "Kite positions as rows: today's delivery (CNC) trades, one row per stock (the answer lists net and day views; the first is kept).",
+    fn: ({ answer }) => {
+      const a = parse(answer), list = Array.isArray(a) ? a : [...(a.net || []), ...(a.day || [])];
+      const seen = new Set();
+      return list.filter((p) => { const k = p.exchange + ':' + p.tradingsymbol + ':' + p.product; if (seen.has(k)) return false; seen.add(k); return p.product === 'CNC' && p.quantity; })
+        .map((p) => ({ symbol: p.tradingsymbol, exchange: p.exchange, quantity: p.quantity, average_price: p.average_price, last_price: p.last_price, close_price: p.close_price }));
+    },
+  });
+  // Each Kite feed can fail on its own, so every live/saved combination gets its own calculation.
+  // Letters: holdings, mutual funds, positions (L = live; S = saved snapshot, or no positions), then cash.
+  const SRC = { e: { L: 'holdings', S: 'holdings_snap' }, m: { L: 'mf_holdings', S: 'mf_snap' }, p: { L: 'kite_positions', S: 'positions_none' }, c: { L: 'margins', S: 'margins_snap' } };
   const LS = ['L', 'S'];
-  LS.forEach((e) => LS.forEach((m) => {
-    const k = e + m;
+  LS.forEach((e) => LS.forEach((m) => LS.forEach((pp) => {
+    const k = e + m + pp;
     dash.calc('positions_' + k, {
-      title: 'Holdings', description: 'Equity and mutual fund holdings valued at last price (settled + T1 quantity), tagged by asset class.',
-      inputs: [SRC.e[e], SRC.m[m], 'classify'],
-      fn: (holdings, mf, classify) => {
+      title: 'Holdings', description: "Equity and mutual fund holdings plus today's delivery trades, valued at last price, tagged by asset class.",
+      inputs: [SRC.e[e], SRC.m[m], SRC.p[pp], 'classify'],
+      fn: (holdings, mf, positions, classify) => {
         const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
-        const eq = holdings.map((h) => ({ symbol: h.tradingsymbol, name: h.tradingsymbol, qty: (h.quantity || 0) + (h.t1_quantity || 0), avg: h.average_price, ltp: h.last_price, prev: h.close_price }));
-        const funds = mf.map((f) => ({ symbol: f.tradingsymbol, name: 'Life Cycle 2041', qty: f.quantity, avg: f.average_price, ltp: f.last_price, prev: null }));
-        const rows = [...eq, ...funds].filter((r) => r.qty > 0).map((r) => {
-          const invested = r.qty * r.avg, value = r.qty * r.ltp;
-          return { symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, asset_class: cls[r.symbol] || 'Direct stocks', invested, value,
-            pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0,
-            day_pnl: r.prev ? (r.ltp - r.prev) * r.qty : 0, day_pct: r.prev ? r.ltp / r.prev - 1 : 0, prev_missing: !r.prev };
+        // legs: settled + T1 holdings, today's buys (+) or sells (−) from positions, mutual funds
+        const legs = holdings.map((h) => { const q = (h.quantity || 0) + (h.t1_quantity || 0); return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, invested: q * h.average_price, ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
+        positions.forEach((p) => {
+          const held = legs.find((l) => l.symbol === p.symbol), q = p.quantity;
+          const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
+          legs.push({ symbol: p.symbol, name: p.symbol, qty: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
         });
+        mf.forEach((f) => legs.push({ symbol: f.tradingsymbol, name: 'Life Cycle 2041', qty: f.quantity, invested: f.quantity * f.average_price, ltp: f.last_price, value: f.quantity * f.last_price, day: 0, prev: null }));
+        const by = {};
+        legs.forEach((l) => { const r = (by[l.symbol] = by[l.symbol] || { symbol: l.symbol, name: l.name, qty: 0, invested: 0, value: 0, day_pnl: 0, ltp: l.ltp, prev: l.prev }); r.qty += l.qty; r.invested += l.invested; r.value += l.value; r.day_pnl += l.day; r.ltp = l.ltp; r.prev = r.prev || l.prev; });
+        const rows = Object.values(by).filter((r) => r.qty > 0).map((r) => ({ symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, avg: r.invested / r.qty, asset_class: cls[r.symbol] || 'Direct stocks',
+          invested: r.invested, value: r.value, pnl: r.value - r.invested, pnl_pct: r.invested ? r.value / r.invested - 1 : 0,
+          day_pnl: r.day_pnl, day_pct: r.value - r.day_pnl ? r.day_pnl / (r.value - r.day_pnl) : 0, prev_missing: !r.prev }));
         const total = rows.reduce((a, r) => a + r.value, 0);
         return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
       },
@@ -475,7 +492,7 @@
         return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((a, r) => a + r.day_pnl, 0), cash }];
       },
     }));
-  }));
+  })));
 
   dash.calc('track_stats', {
     title: 'Scorecard', description: 'Closed ideas, win rate and average result in R from the ideas log.',
@@ -554,7 +571,7 @@
 
   // ---------- Feed selection ----------
   const pick = (id) => (D(id).status === 'ok' ? 'L' : 'S');
-  const key = () => ({ em: pick('holdings') + pick('mf_holdings'), c: pick('margins') });
+  const key = () => ({ em: pick('holdings') + pick('mf_holdings') + pick('kite_positions'), c: pick('margins') });
 
   // ---------- Tabs, with a 1:1 interruptible swipe and a critically damped spring ----------
   const tabs = [...document.querySelectorAll('.wd-seg button')];
@@ -746,7 +763,7 @@
   }
 
   // ---------- Holdings ----------
-  const srcText = (s) => (s === 'LL' ? 'Live from Kite' : s[0] === 'L' ? 'Live stocks · saved fund values' : 'Saved snapshot');
+  const srcText = (s) => (s === 'LLL' ? "Live from Kite, today's trades included" : s.slice(0, 2) === 'LL' ? "Live from Kite · today's trades not loaded" : s[0] === 'L' ? 'Live stocks · saved fund values' : 'Saved snapshot');
   const nameOf = (r) => (r.name === r.symbol ? r.symbol : r.name);
   const vt = { Exit: 'wd-bad', Trim: 'wd-warn', Add: 'wd-good' };
   function homePositions(s) {
