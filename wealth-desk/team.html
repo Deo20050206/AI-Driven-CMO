@@ -1,0 +1,147 @@
+<title>Wealth Desk Team Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: a small office seen from the front. The principal's desk at the back, three team desks in front;
+     finished reports fly from a desk to the principal. Below, each desk's brief and latest report. */
+  :root {
+    --bg: #f6f4ee; --fg: #1f1e1b; --sub: #6e6a61; --hair: #e2ded4; --wall: #ebe7dd; --floor: #ddd6c6; --desk: #b9a07c; --desk-top: #cdb592;
+    --screen: #2b3440; --glow: #8fd3c1; --paper: #ffffff; --skin: #e5b892;
+    --c-screen: #3f7fbf; --c-research: #b9832e; --c-arch: #7a5fb0; --c-chief: #2f7d5b;
+    --ok: #2f7d5b; --warn: #b9832e;
+    --sans: var(--font-anthropic-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
+    --serif: var(--font-anthropic-serif, "Iowan Old Style", Georgia, serif);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1b1a18; --fg: #eeebe4; --sub: #a29d92; --hair: #34312c; --wall: #24221f; --floor: #2e2a24; --desk: #6e5a40; --desk-top: #85704f; --screen: #11161c; --glow: #6fc3ad; --paper: #e9e6df; --skin: #c99a77; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #1b1a18; --fg: #eeebe4; --sub: #a29d92; --hair: #34312c; --wall: #24221f; --floor: #2e2a24; --desk: #6e5a40; --desk-top: #85704f; --screen: #11161c; --glow: #6fc3ad; --paper: #e9e6df; --skin: #c99a77; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--sans); }
+  .wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 48px; display: grid; gap: 22px; }
+  h1 { font: 400 1.8rem/1.1 var(--serif); margin: 0; }
+  .sub { color: var(--sub); font-size: .85rem; }
+  .office { width: 100%; height: auto; display: block; border-radius: 18px; background: var(--wall); }
+  .cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+  .card { display: grid; gap: 6px; padding-top: 12px; border-top: 3px solid var(--accent); min-width: 0; }
+  .card h2 { font-size: 1rem; margin: 0; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .pill { font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--accent); }
+  .card p { margin: 0; font-size: .88rem; }
+  .card .report { white-space: pre-line; color: var(--fg); }
+  .card .when { color: var(--sub); font-size: .75rem; }
+  .chief { border-top-color: var(--c-chief); }
+  .empty { color: var(--sub); font-size: .9rem; }
+  /* motion */
+  .typing { animation: type .5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center; }
+  .typing.b { animation-delay: .25s; }
+  @keyframes type { from { transform: translateY(0); } to { transform: translateY(-2.5px); } }
+  .scan { animation: scan 1.6s linear infinite; }
+  @keyframes scan { from { transform: translateY(0); } to { transform: translateY(14px); } }
+  .glow { animation: glow 2.4s ease-in-out infinite; }
+  @keyframes glow { 0%, 100% { opacity: .55; } 50% { opacity: .9; } }
+  .bob { animation: bob 3s ease-in-out infinite; transform-box: fill-box; }
+  @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-1.5px); } }
+  @media (prefers-reduced-motion: reduce) { .typing, .scan, .glow, .bob { animation: none; } .flying { display: none; } }
+</style>
+
+<div class="wrap">
+  <header style="display:grid;gap:6px">
+    <h1>Wealth Desk Team Room</h1>
+    <p class="sub" id="lead">Three specialists work in parallel and report to the principal, who checks their work before anything reaches your dashboard or your Kite account.</p>
+  </header>
+  <svg class="office" id="office" viewBox="0 0 360 250" role="img" aria-label="Office: the principal's desk at the back, three team desks in front"></svg>
+  <section class="cards" id="cards"><p class="empty">Waiting for the team's status…</p></section>
+  <p class="sub" id="foot"></p>
+</div>
+
+<script>
+(() => {
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const s = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.append(e); return e; };
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+  const COLOR = { screener: 'var(--c-screen)', researcher: 'var(--c-research)', architect: 'var(--c-arch)', principal: 'var(--c-chief)' };
+  const SEATS = { principal: { x: 180, y: 58, scale: .9 }, screener: { x: 62, y: 158, scale: 1 }, researcher: { x: 180, y: 166, scale: 1 }, architect: { x: 298, y: 158, scale: 1 } };
+  const STATUS = { working: 'Working', reporting: 'Reporting', done: 'Reported', idle: 'Idle', reviewing: 'Reviewing' };
+
+  // One person at a desk: chair, body, head, desk, monitor (glowing and scrolling while working), hands typing
+  function desk(g, who, st) {
+    const c = COLOR[who] || 'var(--fg)', working = st === 'working' || st === 'reviewing';
+    s('rect', { x: -22, y: -6, width: 44, height: 30, rx: 8, fill: 'var(--hair)' }, g);                  // chair back
+    const person = s('g', { class: working && !reduce ? 'bob' : '' }, g);
+    s('rect', { x: -14, y: 0, width: 28, height: 26, rx: 10, fill: c }, person);                          // body
+    s('circle', { cx: 0, cy: -8, r: 9, fill: 'var(--skin)' }, person);                                    // head
+    s('path', { d: 'M-9 -10 Q0 -22 9 -10 Q4 -15 0 -14 Q-4 -15 -9 -10Z', fill: 'var(--fg)', opacity: .75 }, person);  // hair
+    s('rect', { x: -40, y: 22, width: 80, height: 7, rx: 2, fill: 'var(--desk-top)' }, g);               // desk top
+    s('rect', { x: -38, y: 29, width: 76, height: 22, rx: 2, fill: 'var(--desk)' }, g);                  // desk front
+    s('rect', { x: -14, y: 6, width: 28, height: 17, rx: 2, fill: 'var(--screen)' }, g);                 // monitor (back of it, facing the person)
+    const scr = s('g', {}, g); s('clipPath', { id: 'cp-' + who }, g).append(s('rect', { x: -12, y: 8, width: 24, height: 13 }));
+    scr.setAttribute('clip-path', `url(#cp-${who})`);
+    s('rect', { x: -12, y: 8, width: 24, height: 13, fill: working ? 'var(--glow)' : 'var(--screen)', class: working && !reduce ? 'glow' : '', opacity: working ? .7 : 1 }, scr);
+    if (working) { const lines = s('g', { class: reduce ? '' : 'scan' }, scr); for (let i = 0; i < 6; i++) s('rect', { x: -10, y: -6 + i * 4.5, width: 8 + ((i * 7) % 12), height: 1.4, fill: 'var(--screen)', opacity: .7 }, lines); }
+    s('rect', { x: -3, y: 22, width: 6, height: 3, fill: 'var(--screen)' }, g);
+    if (working) { s('rect', { x: -12, y: 19, width: 7, height: 4, rx: 2, fill: 'var(--skin)', class: reduce ? '' : 'typing' }, g); s('rect', { x: 5, y: 19, width: 7, height: 4, rx: 2, fill: 'var(--skin)', class: reduce ? '' : 'typing b' }, g); }
+    if (st === 'done') { s('rect', { x: 18, y: 15, width: 12, height: 8, rx: 1, fill: 'var(--paper)', stroke: 'var(--hair)' }, g); s('path', { d: 'M20.5 19 l2.5 2.5 l4.5 -5', fill: 'none', stroke: c, 'stroke-width': 1.6, 'stroke-linecap': 'round' }, g); }
+  }
+
+  function office(team) {
+    const svg = document.getElementById('office'); svg.replaceChildren();
+    s('rect', { x: 0, y: 0, width: 360, height: 250, fill: 'var(--wall)' }, svg);
+    s('rect', { x: 0, y: 120, width: 360, height: 130, fill: 'var(--floor)' }, svg);
+    // window with a market chart on the back wall
+    s('rect', { x: 18, y: 14, width: 76, height: 50, rx: 4, fill: 'var(--bg)', stroke: 'var(--hair)' }, svg);
+    s('polyline', { points: '24,54 36,48 46,51 58,38 70,42 88,22', fill: 'none', stroke: 'var(--c-chief)', 'stroke-width': 2, 'stroke-linejoin': 'round' }, svg);
+    s('rect', { x: 268, y: 16, width: 72, height: 44, rx: 4, fill: 'var(--bg)', stroke: 'var(--hair)' }, svg);
+    const sign = s('text', { x: 304, y: 36, 'text-anchor': 'middle', 'font-size': 8, fill: 'var(--sub)', 'font-family': 'var(--sans)' }, svg); sign.textContent = 'WEALTH DESK';
+    const sign2 = s('text', { x: 304, y: 48, 'text-anchor': 'middle', 'font-size': 7, fill: 'var(--sub)', 'font-family': 'var(--sans)' }, svg); sign2.textContent = 'NSE · IST';
+    // a plant in the corner
+    s('rect', { x: 336, y: 214, width: 14, height: 14, rx: 2, fill: 'var(--desk)' }, svg);
+    [[-0.6, 22], [0, 26], [0.6, 22], [-0.3, 18], [0.3, 18]].forEach(([a, l]) => s('path', { d: `M343 214 q${Math.sin(a) * l * .4} ${-l * .6} ${Math.sin(a) * l} ${-l}`, stroke: 'var(--c-chief)', 'stroke-width': 3, fill: 'none', 'stroke-linecap': 'round' }, svg));
+    const byId = Object.fromEntries(team.map((t) => [t.id, t]));
+    // report trails: finished or reporting team members send a paper to the principal
+    const P = SEATS.principal;
+    ['screener', 'researcher', 'architect'].forEach((id) => {
+      const t = byId[id], st = t ? t.status : 'idle', seat = SEATS[id];
+      const d = `M${seat.x + 20} ${seat.y + 10} Q ${(seat.x + P.x) / 2} ${Math.min(seat.y, P.y) - 10} ${P.x} ${P.y + 22}`;
+      s('path', { d, fill: 'none', stroke: COLOR[id], 'stroke-width': 1, 'stroke-dasharray': '2 4', opacity: st === 'done' || st === 'reporting' ? .7 : .2 }, svg);
+      if ((st === 'done' || st === 'reporting') && !reduce) {
+        const paper = s('g', { class: 'flying' }, svg);
+        s('rect', { x: -5, y: -3.5, width: 10, height: 7, rx: 1, fill: 'var(--paper)', stroke: COLOR[id] }, paper);
+        const m = s('animateMotion', { dur: st === 'reporting' ? '2.2s' : '4.5s', repeatCount: 'indefinite', path: d, rotate: 'auto' }, paper);
+        m.setAttribute('begin', (['screener', 'researcher', 'architect'].indexOf(id) * 0.7) + 's');
+      }
+    });
+    Object.entries(SEATS).forEach(([id, seat]) => {
+      const t = byId[id], g = s('g', { transform: `translate(${seat.x} ${seat.y}) scale(${seat.scale})` }, svg);
+      desk(g, id, t ? t.status : 'idle');
+      const name = s('text', { x: 0, y: 64, 'text-anchor': 'middle', 'font-size': 9, 'font-weight': 600, fill: 'var(--fg)', 'font-family': 'var(--sans)' }, g); name.textContent = t ? t.name : id;
+      const tag = s('text', { x: 0, y: 75, 'text-anchor': 'middle', 'font-size': 7.5, fill: COLOR[id], 'font-family': 'var(--sans)', 'letter-spacing': '.5' }, g); tag.textContent = (STATUS[t && t.status] || 'Idle').toUpperCase();
+    });
+    // the principal's in-tray counts reports received
+    const got = team.filter((t) => t.id !== 'principal' && t.status === 'done').length;
+    const tray = s('g', { transform: `translate(${P.x + 36} ${P.y + 18})` }, svg);
+    s('rect', { x: 0, y: 0, width: 18, height: 6, rx: 1, fill: 'var(--desk)' }, tray);
+    for (let i = 0; i < got; i++) s('rect', { x: 2, y: -2 - i * 2, width: 14, height: 2, fill: 'var(--paper)', stroke: 'var(--hair)', 'stroke-width': .5 }, tray);
+  }
+
+  function cards(team) {
+    const box = document.getElementById('cards'), order = ['principal', 'screener', 'researcher', 'architect'];
+    const rows = order.map((id) => team.find((t) => t.id === id)).filter(Boolean);
+    if (!rows.length) return box.replaceChildren(el('p', 'empty', 'No one has checked in yet.'));
+    box.replaceChildren(...rows.map((t) => {
+      const c = el('article', 'card' + (t.id === 'principal' ? ' chief' : '')); c.style.setProperty('--accent', COLOR[t.id] || 'var(--fg)');
+      const h = el('h2', null, t.name); h.append(el('span', 'pill', STATUS[t.status] || t.status || ''));
+      c.append(h, el('p', 'sub', t.role || ''), el('p', null, t.task || ''));
+      if (t.report) c.append(el('p', 'report', t.report));
+      if (t.updated) c.append(el('p', 'when', 'Updated ' + new Date(t.updated).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })));
+      return c;
+    }));
+  }
+
+  function render(team) { office(team); cards(team); const done = team.filter((t) => t.id !== 'principal' && t.status === 'done').length; document.getElementById('foot').textContent = `${done} of 3 reports in. This room updates by itself as the team reports.`; }
+  render([]);
+
+  (window.claude && claude.use ? claude.use('db') : Promise.resolve(null)).then((db) => {
+    if (!db) { document.getElementById('cards').replaceChildren(el('p', 'empty', 'Open this page in the Claude app or claude.ai to see the team live.')); return; }
+    const t = setTimeout(() => document.getElementById('foot').textContent = 'Still connecting to the team room…', 10000);
+    db.collection('team').onSnapshot((snap) => { clearTimeout(t); render(snap.docs.map((d) => ({ id: d.id, ...d.data() }))); },
+      () => { clearTimeout(t); document.getElementById('cards').replaceChildren(el('p', 'empty', 'Could not load the team room. Reload the page.')); });
+  });
+})();
+</script>
