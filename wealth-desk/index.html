@@ -447,9 +447,23 @@
           pnl: p.pnl, realised: p.realised, unrealised: p.unrealised, buy_quantity: p.buy_quantity, sell_quantity: p.sell_quantity, buy_price: p.buy_price, sell_price: p.sell_price }));
     },
   });
+  // Live stop-losses straight from Kite GTTs: one row per active sell GTT. A two-leg (OCO) GTT gives stop + target;
+  // a single-leg one is a stop when it triggers below the price it was set at, otherwise a target.
+  dash.loader('gtts', {
+    description: 'Kite GTTs as rows: symbol, stop trigger, target trigger, quantity (active sell GTTs only).',
+    fn: ({ answer }) => {
+      const a = parse(answer);
+      return (Array.isArray(a) ? a : []).filter((g) => g.status === 'active' && g.orders && g.orders[0] && g.orders[0].transaction_type === 'SELL').map((g) => {
+        const tv = g.condition.trigger_values || [], lp = g.condition.last_price;
+        const stop = g.type === 'two-leg' ? Math.min(...tv) : tv[0] < lp ? tv[0] : null;
+        const target = g.type === 'two-leg' ? Math.max(...tv) : tv[0] >= lp ? tv[0] : null;
+        return { tradingsymbol: g.condition.tradingsymbol, exchange: g.condition.exchange, id: g.id, stop, target, qty: g.orders[0].quantity };
+      });
+    },
+  });
   // Each Kite feed can fail on its own, so every live/saved combination gets its own calculation.
   // Letters: holdings, mutual funds, positions (L = live; S = saved snapshot, or no positions), then cash.
-  const SRC = { e: { L: 'holdings', S: 'holdings_snap' }, m: { L: 'mf_holdings', S: 'mf_snap' }, p: { L: 'kite_positions', S: 'positions_none' }, c: { L: 'margins', S: 'margins_snap' } };
+  const SRC = { e: { L: 'holdings', S: 'holdings_snap' }, m: { L: 'mf_holdings', S: 'mf_snap' }, p: { L: 'kite_positions', S: 'positions_none' }, c: { L: 'margins', S: 'margins_snap' }, g: { L: 'gtts', S: 'gtts_snap' } };
   const LS = ['L', 'S'];
   LS.forEach((e) => LS.forEach((m) => LS.forEach((pp) => {
     const k = e + m + pp;
@@ -464,6 +478,9 @@
           // Kite already takes today's sells out of holdings (shown as used_quantity): subtract only what it hasn't
           const held = legs.find((l) => l.symbol === p.symbol && l.used !== undefined);
           const q = p.quantity > 0 ? p.quantity : -Math.max(0, -p.quantity - (held ? held.used : 0));
+          // shares Kite already removed still moved today: from yesterday's close to the sale price
+          const cov = p.quantity < 0 ? Math.min(-p.quantity, held ? held.used : 0) : 0;
+          if (cov) legs.push({ symbol: p.symbol, name: p.symbol, qty: 0, invested: 0, value: 0, day: cov * (p.average_price - (p.close_price || p.average_price)), ltp: p.last_price, prev: p.close_price });
           if (!q) return;
           const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
           legs.push({ symbol: p.symbol, name: p.symbol, qty: q, today: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
@@ -478,21 +495,31 @@
         return rows.map((r) => ({ ...r, weight: total ? r.value / total : 0 })).sort((a, b) => b.value - a.value);
       },
     });
-    dash.calc('risk_' + k, {
-      title: 'Open risk', description: 'Loss if each reviewed stop-loss is hit, per holding, as a share of portfolio value.',
-      inputs: ['positions_' + k, 'portfolio_review', 'opportunity'],
-      fn: (positions, review, opportunity) => {
-        const total = positions.reduce((a, r) => a + r.value, 0);
-        const rows = review.filter((v) => v.sl != null).map((v) => {
-          const p = positions.find((x) => x.symbol === v.symbol);
-          const keep = v.verdict === 'Trim' && v.keep_qty ? v.keep_qty : p ? p.qty : 0;
-          const risk = p ? Math.max(p.ltp - v.sl, 0) * keep : 0;
-          return { symbol: v.symbol, risk, risk_pct: total ? risk / total : 0, kind: 'holding' };
+    // Risk = live GTT stops only (what Kite will actually do), on the shares you hold now, from the last price.
+    // A review stop with no GTT protects nothing: it is listed as a warning, not counted.
+    LS.forEach((g) => dash.calc('risk_' + k + g, {
+      title: 'Open risk', description: 'Loss if each live GTT stop-loss is hit, per holding, as a share of portfolio value; review stops without a GTT flagged.',
+      inputs: ['positions_' + k, SRC.g[g], 'portfolio_review', 'opportunity'],
+      fn: (positions, gtts, review, opportunity) => {
+        const total = positions.reduce((a, r) => a + r.value, 0), rows = [];
+        positions.forEach((p) => {
+          const gt = gtts.filter((x) => x.tradingsymbol === p.symbol && x.stop != null);
+          if (gt.length) {
+            const covered = Math.min(p.qty, gt.reduce((a, x) => a + x.qty, 0));
+            const risk = gt.reduce((a, x) => a + Math.max(p.ltp - x.stop, 0) * x.qty, 0) * (covered / gt.reduce((a, x) => a + x.qty, 0));
+            rows.push({ symbol: p.symbol, risk, risk_pct: total ? risk / total : 0, stop: Math.min(...gt.map((x) => x.stop)), uncovered_qty: p.qty - covered, kind: 'holding' });
+            return;
+          }
+          const v = review.find((x) => x.symbol === p.symbol && x.sl != null);
+          if (v) rows.push({ symbol: p.symbol, risk: 0, risk_pct: 0, planned_sl: v.sl, planned_risk: Math.max(p.ltp - v.sl, 0) * p.qty, value: p.value, kind: 'no GTT' });
         });
-        opportunity.filter((o) => o.status !== 'Closed').forEach((o) => rows.push({ symbol: o.symbol, risk: o.risk_rs, risk_pct: total ? o.risk_rs / total : 0, kind: 'idea, if bought' }));
+        opportunity.filter((o) => !/^(Closed|Bought)$/.test(o.status) && !positions.some((p) => p.symbol === o.symbol)).forEach((o) => {
+          const r = (o.entry - o.sl) * o.qty;
+          rows.push({ symbol: o.symbol, risk: r, risk_pct: total ? r / total : 0, kind: 'idea, if bought' });
+        });
         return rows;
       },
-    });
+    }));
     dash.calc('pnl_sum_' + k, {
       title: 'P&L summary', description: 'Unrealised P&L on holdings plus realised P&L from the ledger, and today\'s move.',
       inputs: ['positions_' + k, 'pnl_ledger'],
@@ -532,10 +559,12 @@
     inputs: ['trades'],
     fn: (trades) => {
       const closed = trades.filter((t) => ['tp', 'sl', 'time'].includes(t.status));
-      const wins = closed.filter((t) => (t.ret || 0) > 0);
+      // R and win/loss are worked out from the prices, never typed in: R = (exit − entry) / (entry − stop)
+      const R = (t) => (t.entry - t.sl ? (t.exit_price - t.entry) / (t.entry - t.sl) : 0);
+      const wins = closed.filter((t) => t.exit_price > t.entry);
       return [{ closed: closed.length, open: trades.length - closed.length,
         win_rate: closed.length ? wins.length / closed.length : null,
-        avg_r: closed.length ? closed.reduce((s, t) => s + (t.r || 0), 0) / closed.length : null }];
+        avg_r: closed.length ? closed.reduce((s, t) => s + R(t), 0) / closed.length : null }];
     },
   });
   dash.calc('nav_drawdown', {
@@ -604,7 +633,7 @@
 
   // ---------- Feed selection ----------
   const pick = (id) => (D(id).status === 'ok' ? 'L' : 'S');
-  const key = () => ({ em: pick('holdings') + pick('mf_holdings') + pick('kite_positions'), c: pick('margins') });
+  const key = () => ({ em: pick('holdings') + pick('mf_holdings') + pick('kite_positions'), c: pick('margins'), g: pick('gtts') });
 
   // ---------- Tabs, with a 1:1 interruptible swipe and a critically damped spring ----------
   const tabs = [...document.querySelectorAll('.wd-seg button')];
@@ -671,7 +700,7 @@
   // ---------- Header status ----------
   // Kite login: the button opens Kite's own login page (the Kite app on iPhone). Back here, Refresh reloads every
   // Kite feed; once live holdings arrive the banner disappears by itself.
-  const KITE_FEEDS = ['holdings', 'mf_holdings', 'margins', 'market', 'idea_quotes'];
+  const KITE_FEEDS = ['holdings', 'mf_holdings', 'margins', 'kite_positions', 'gtts', 'market', 'idea_quotes'];
   let loginTapped = false, refreshing = false;
   document.getElementById('kite-login-link').addEventListener('click', () => {
     loginTapped = true;
@@ -785,12 +814,15 @@
       const lb = el('div', 'wd-lbl', n); lb.style.left = x(p) + '%'; lad.append(mk, lb);
     });
     if (live) { const d = el('div', 'wd-now-dot'); d.style.left = x(live) + '%'; const t = el('div', 'wd-now', 'Now ' + num.format(live)); t.style.left = x(live) + '%'; lad.append(d, t); }
+    // Worked out from the price levels and today's portfolio value, so they can never go stale
+    const riskRs = (o.entry - o.sl) * o.qty, rr = (o.tp - o.entry) / (o.entry - o.sl), kk = key(), TT = D('totals_' + kk.em + kk.c);
+    const riskPct = TT.status === 'ok' && TT.data[0].value ? riskRs / TT.data[0].value : o.risk_pct;
     const facts = el('div', 'wd-facts');
     const F = (label, v, t) => { const sp = el('span'); sp.append(tip(el('span', 'wd-muted', label + ' '), label, t), el('b', null, v)); return sp; };
     facts.append(F('Shares', String(o.qty), 'How many to buy, sized so a stop-out costs at most 2.5% of your portfolio.'),
-      F('Capital', inr.format(o.cost), 'Money needed for the buy.'),
-      F('At risk', inr.format(o.risk_rs) + ' · ' + pct(o.risk_pct), 'What you lose if the stop-loss is hit.'),
-      F('Reward:risk', o.rr.toFixed(2), 'Rupees you could make for each rupee you risk.'),
+      F('Capital', inr.format(o.entry * o.qty), 'Money needed for the buy.'),
+      F('At risk', inr.format(riskRs) + ' · ' + pct(riskPct), 'What you lose if the stop-loss is hit.'),
+      F('Reward:risk', rr.toFixed(2), 'Rupees you could make for each rupee you risk.'),
       F('Horizon', `${parseInt(o.time_stop, 10) || 20} sessions (~${Math.round((parseInt(o.time_stop, 10) || 20) / 5)} weeks) after buying`, `Target or not, the idea closes ${o.time_stop || '20 sessions after entry'}. If the buy trigger hasn't fired by ${dayFmt(new Date(o.expires))}, the idea lapses.`));
     const det = el('details'); det.open = full; det.append(el('summary', null, 'Why, funding and checks'));
     const kv = el('div', 'wd-kv');
@@ -812,11 +844,13 @@
   // Today's trades: one line per stock bought or sold today (Kite positions), shown on Home and Portfolio
   function todaysTrades() {
     const T = D('kite_positions'), rows = (T.status === 'ok' ? T.data : []).map((p) => ({ ...p, product: p.product || 'CNC' }));
+    // A delivery sale shows what it booked: (sale price − your average cost) × shares, not Kite's mark-to-market
+    const H = D('holdings').status === 'ok' ? D('holdings') : D('holdings_snap'), hAvg = Object.fromEntries((H.status === 'ok' ? H.data : []).map((h) => [h.tradingsymbol, h.average_price]));
     const KIND = { CNC: 'Delivery', MIS: 'Intraday', NRML: 'F&O', MTF: 'Margin (MTF)', CO: 'Cover', BO: 'Bracket' };
     const kindOf = (p) => String(p.exchange === 'MCX' ? 'Commodity' : p.product === 'NRML' && !/^(NFO|BFO|CDS)$/.test(p.exchange) ? 'Carry' : KIND[p.product] || p.product || 'Trade');
     const line = (p) => {
       const d = el('div', 'wd-trade'), closed = !p.quantity, side = closed ? 'Closed' : p.quantity > 0 ? 'Bought' : 'Sold';
-      const pnl = p.pnl != null ? p.pnl : p.quantity > 0 ? (p.last_price - p.average_price) * p.quantity : null;
+      const pnl = p.product === 'CNC' && p.quantity < 0 && hAvg[p.symbol] ? (p.average_price - hAvg[p.symbol]) * -p.quantity : p.pnl != null ? p.pnl : p.quantity > 0 ? (p.last_price - p.average_price) * p.quantity : null;
       const what = closed ? `${p.buy_quantity || 0} in at ${num.format(p.buy_price || 0)}, out at ${num.format(p.sell_price || 0)}` : `${Math.abs(p.quantity)} at ${num.format(p.average_price)}`;
       const sideEl = el('span', 'wd-side ' + (closed ? 'wd-neutral' : p.quantity > 0 ? 'wd-good' : 'wd-bad'), side);
       tip(sideEl, kindOf(p), p.product === 'CNC' ? 'A delivery trade. It is counted in your holdings and settles into your demat tonight.' : `${kindOf(p)} trade on ${p.exchange}. Its profit or loss is counted in today's P&L.`);
@@ -941,9 +975,9 @@
     if (note) w.append(el('span', 'wd-muted', note));
     return w;
   }
-  function risk(s) {
-    const box = document.getElementById('risk-meters'), R = D('risk_' + s), DDs = D('nav_drawdown');
-    box.dataset.source = 'risk_' + s + ' nav_drawdown positions_' + s + ' portfolio_review';
+  function risk(k) {
+    const s = k.em, R = D('risk_' + s + k.g), box = document.getElementById('risk-meters'), series = valueSeries(k.em + k.c);
+    box.dataset.source = 'risk_' + s + k.g + ' nav_history totals_' + s + k.c + ' positions_' + s + ' portfolio_review';
     if (R.status === 'error') return failed(box);
     if (R.status !== 'ok') { box.replaceChildren(); return; }
     // One ink, shaded by the holding's place in the review; the idea is the same ink hatched. Colour is kept for near or over a limit.
@@ -952,21 +986,22 @@
     const fill = (r) => (r.kind === 'holding' ? r.color : `repeating-linear-gradient(135deg, ${r.color} 0 3px, transparent 3px 6px)`);
     const total = d3.sum(rows, (r) => r.risk_pct);
     const big = rows.reduce((m, r) => (!m || r.risk_pct > m.risk_pct ? r : m), null);
-    const dd = DDs.status === 'ok' && DDs.data[0] ? Math.max(0, -DDs.data[0].drawdown) : 0;
-    const segTip = (r) => [r.symbol, `${inr.format(r.risk)} lost if its stop-loss is hit, ${pct(r.risk_pct, 2)} of the portfolio${r.kind !== 'holding' ? ', only if you buy the idea' : ''}.`];
+    const dd = series && series.length ? Math.max(0, -drawdownOf(series)) : 0;
+    const segTip = (r) => [r.symbol, `${inr.format(r.risk)} lost if its stop-loss GTT at ${r.stop != null ? num.format(r.stop) : '—'} fires, ${pct(r.risk_pct, 2)} of the portfolio${r.kind !== 'holding' ? ', only if you buy the idea' : ''}${r.uncovered_qty > 0 ? `. ${r.uncovered_qty} shares are outside the GTT` : ''}.`];
     const legend = el('div', 'wd-legend');
     [...rows].sort((a, b) => b.risk - a.risk).forEach((r) => {
       const row = el('div', 'wd-lrow'), sw = el('span', 'wd-sw'); sw.style.background = fill(r);
       row.append(sw, el('span', null, r.symbol + (r.kind !== 'holding' ? ' (idea)' : '')), el('span', 'wd-muted', inr.format(r.risk)), el('span', r.risk_pct > 0.025 ? 'wd-bad' : null, pct(r.risk_pct, 2)));
       legend.append(row);
     });
-    const P = D('positions_' + s), RV = D('portfolio_review');
-    const noStop = P.status === 'ok' && RV.status === 'ok'
-      ? P.data.filter((p) => p.value > 0 && !RV.data.some((v) => v.symbol === p.symbol && v.sl != null)).map(nameOf) : [];
-    if (noStop.length) legend.append(el('span', 'wd-muted', `No stop-loss, so not counted: ${noStop.join(', ')}`));
+    const P = D('positions_' + s);
+    R.data.filter((r) => r.kind === 'no GTT').forEach((r) => legend.append(el('span', 'wd-warn',
+      `⚠ ${r.symbol}: planned stop ${num.format(r.planned_sl)} has no GTT in Kite, so nothing protects ${inr.format(r.value)}. At that stop you'd lose ${inr.format(r.planned_risk)}.`)));
+    const noStop = P.status === 'ok' ? P.data.filter((p) => p.value > 0 && !R.data.some((r) => r.symbol === p.symbol)).map(nameOf) : [];
+    if (noStop.length) legend.append(el('span', 'wd-muted', `No stop planned (long-term holds): ${noStop.join(', ')}`));
     box.replaceChildren(
       bullet('All stop-losses together', total, 0.08, rows.map((r) => ({ w: r.risk_pct, bg: fill(r), tip: segTip(r) })), '',
-        'Add up what every holding would lose at its stop-loss, plus the open idea if you buy it. Must stay under 8%.'),
+        'Add up what every holding would lose if its live stop-loss GTT in Kite fires, plus the open idea if you buy it. Must stay under 8%.'),
       legend,
       bullet('Biggest single stop', big ? big.risk_pct : 0, 0.025, big ? [{ w: big.risk_pct, bg: fill(big), tip: segTip(big) }] : [], big ? big.symbol : 'No stops set',
         'No one trade may cost more than 2.5% of the portfolio.'),
@@ -1010,16 +1045,30 @@
   }
 
   // ---------- Charts, drawn straight on the artwork ----------
+  // Today's point is live. Money put in is derived, never typed: cost of holdings + cash − realised P&L booked
+  // (so every deposit, withdrawal and SIP instalment shows up by itself). Dates are India dates.
+  const istDate = () => new Date(new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10));
   function valueSeries(k) {
-    const N = D('nav_history'), T = D('totals_' + k);
+    const N = D('nav_history'), T = D('totals_' + k), S = D('pnl_sum_' + k.slice(0, 3));
     if (N.status !== 'ok') return null;
     const pts = N.data.map((r) => ({ x: new Date(r.date), v: +r.value, i: +r.put_in, flow: +r.flow || 0, note: r.flow_note || '' })).sort((a, b) => a.x - b.x);
     if (T.status === 'ok' && pts.length) {
-      const today = new Date(new Date().toISOString().slice(0, 10)), lastP = pts[pts.length - 1];
-      if (today > lastP.x) pts.push({ x: today, v: T.data[0].value, i: lastP.i, flow: 0, note: '', live: true });
-      else pts[pts.length - 1] = { ...lastP, v: T.data[0].value, live: true };
+      const t = T.data[0], today = istDate(), n = pts.length;
+      if (today > pts[n - 1].x) {
+        const prev = pts[n - 1], i = S.status === 'ok' ? t.invested + t.cash - S.data[0].realised : prev.i;
+        pts.push({ x: today, v: t.value, i, flow: i - prev.i, note: '', live: true });
+      } else {
+        const prev = n > 1 ? pts[n - 2] : null, i = S.status === 'ok' ? t.invested + t.cash - S.data[0].realised : pts[n - 1].i;
+        pts[n - 1] = { ...pts[n - 1], v: t.value, i, flow: prev ? i - prev.i : 0, live: true };
+      }
     }
     return pts;
+  }
+  // Time-weighted drop from the best day: each day's change with that day's deposits/withdrawals taken out.
+  function drawdownOf(pts) {
+    let idx = 1, peak = 1;
+    for (let j = 1; j < pts.length; j++) { if (pts[j - 1].v > 0) idx *= (pts[j].v - (pts[j].flow || 0)) / pts[j - 1].v; peak = Math.max(peak, idx); }
+    return idx / peak - 1;
   }
   function lineChart(box, pts, opt) {
     box.replaceChildren();
@@ -1173,7 +1222,7 @@
     if (current === 'ideas') ticket('idea-full', true);
     if (current === 'portfolio') {
       kpis(k.em + k.c); pnlKpis(s); valueChart(k.em + k.c);
-      todaysTrades(); review(); alloc(s); risk(s); mix(s); positions(s);
+      todaysTrades(); review(); alloc(s); risk(k); mix(s); positions(s);
       table('ledger', 'pnl_ledger', [['date', null, (v) => dayFmt(new Date(v))], ['symbol', 'wd-name'], ['qty', 'wd-r'], ['buy_avg', 'wd-r', (v) => num.format(v)], ['sell_price', 'wd-r', (v, r) => num.format(v) + (r.estimated ? ' est.' : '')], ['realised', 'wd-r', (v) => inrS(v)], ['note', 'wd-wrap wd-muted']]);
     }
     if (current === 'market') { tiles(); nifty(); catalysts(); signals(); table('mreview', 'market_review', [['metric', 'wd-name'], ['value'], ['change'], ['read', 'wd-wrap']]); }

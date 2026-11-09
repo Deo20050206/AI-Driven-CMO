@@ -21,6 +21,8 @@ Page files live in the dashboard's store, mirrored in this folder: `index.html` 
 Publish a page change with ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`.
 Before every publish of `index.html`, run `node wealth-desk/tests/check_totals.mjs` and publish only if it passes. Add a case to it
 whenever a new kind of trade or account state appears (same-day sell, T1, MTF, SIP units, intraday, F&O).
+Every number follows `FORMULAS.md` (fixed formulas, Kite as the source of truth). Don't type numbers that a formula gives:
+R, reward:risk, risk and money put in are all worked out on the page. Risk counts live GTTs (`gtts` dataset) only.
 Portfolio value = holdings at today's price (Kite already removes today's sells) + today's delivery buys + funds at NAV +
 free cash. Unrealised P&L is already inside the market value: never add it again. The page shows a second, independent
 check of the total under the big number ("Checked against Kite"); if it ever says "Off by", fix the maths before anything else. The accepted v1 page
@@ -102,8 +104,9 @@ Nothing due → update `trades` only and finish quietly.
      the idea conditional on the post-results trigger. Pick one or none. Never force an idea.
    - Size it: `python engine/allocate.py state.json idea.json [size_factor]`.
    - Write `opportunity` (status Active or Conditional) and append to `trades` as `proposed`.
-7. **P&L.** Append a `nav_history` row for every trading day since the last row (value each day from
-   Kite daily closes), with `put_in` and `flow` as defined below. Compare today's holdings with `holdings_snap`: any quantity
+7. **P&L.** Call `get_trades` and add every sale fill to `pnl_ledger` (realised = qty × (fill − average cost)); every closed
+   idea in `trades` needs a ledger row. Append a `nav_history` row for every trading day since the last row (value each day from
+   Kite daily closes), with `put_in` = cost + cash − Σ realised and `flow` = change in put_in. Refresh `gtts_snap` from `get_gtts`. Compare today's holdings with `holdings_snap`: any quantity
    that fell is a sale. Record it in `pnl_ledger` with `get_trades` fill prices when the sale was today,
    otherwise the closing price that day with `estimated: true`.
 8. **Publish.** For each changed file: Artifact publish (`asset: true`, the dashboard url), then
