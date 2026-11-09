@@ -97,7 +97,9 @@
   .wd-tick { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--color-fg); }
   .wd-stack { display: grid; gap: 16px; }
   .wd-trades { display: grid; gap: 8px; }
-  .wd-trade { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: baseline; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .wd-trade { display: grid; grid-template-columns: 4.6rem minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline; font-size: .9rem; font-variant-numeric: tabular-nums; padding-block: 4px; }
+  .wd-trade .wd-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .wd-trade .wd-what { grid-column: 2 / -1; font-size: .8rem; }
   .wd-trade .wd-side { font-size: .72rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
   .wd-new { font-size: .7rem; font-weight: 600; color: var(--color-ok); margin-left: 6px; letter-spacing: .02em; }
   .wd-more { font: inherit; font-size: .88rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px; cursor: pointer; }
@@ -432,12 +434,13 @@
   // Key letters: holdings, mutual funds, cash (L = live, S = saved snapshot).
   // Today's delivery trades sit in Kite positions until they settle into holdings tonight.
   dash.loader('kite_positions', {
-    description: "Kite positions as rows: today's delivery (CNC) trades, one row per stock (the answer lists net and day views; the first is kept).",
+    description: "Kite positions as rows: every product (delivery, intraday, F&O, commodity, MTF), open or closed today, one row per instrument and product (the answer lists net and day views; the first is kept).",
     fn: ({ answer }) => {
       const a = parse(answer), list = Array.isArray(a) ? a : [...(a.net || []), ...(a.day || [])];
       const seen = new Set();
-      return list.filter((p) => { const k = p.exchange + ':' + p.tradingsymbol + ':' + p.product; if (seen.has(k)) return false; seen.add(k); return p.product === 'CNC' && p.quantity; })
-        .map((p) => ({ symbol: p.tradingsymbol, exchange: p.exchange, quantity: p.quantity, average_price: p.average_price, last_price: p.last_price, close_price: p.close_price }));
+      return list.filter((p) => { const k = p.exchange + ':' + p.tradingsymbol + ':' + p.product; if (seen.has(k)) return false; seen.add(k); return p.quantity || p.buy_quantity || p.sell_quantity; })
+        .map((p) => ({ symbol: p.tradingsymbol, exchange: p.exchange, product: p.product, quantity: p.quantity, average_price: p.average_price, last_price: p.last_price, close_price: p.close_price,
+          pnl: p.pnl, realised: p.realised, unrealised: p.unrealised, buy_quantity: p.buy_quantity, sell_quantity: p.sell_quantity, buy_price: p.buy_price, sell_price: p.sell_price }));
     },
   });
   // Each Kite feed can fail on its own, so every live/saved combination gets its own calculation.
@@ -452,8 +455,8 @@
       fn: (holdings, mf, positions, classify) => {
         const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
         // legs: settled + T1 holdings, today's buys (+) or sells (−) from positions, mutual funds
-        const legs = holdings.map((h) => { const q = (h.quantity || 0) + (h.t1_quantity || 0); return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, invested: q * h.average_price, ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
-        positions.forEach((p) => {
+        const legs = holdings.map((h) => { const mq = (h.mtf && h.mtf.quantity) || 0, q = (h.quantity || 0) + (h.t1_quantity || 0) + mq; return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, invested: (q - mq) * h.average_price + mq * ((h.mtf && h.mtf.average_price) || h.average_price), ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
+        positions.filter((p) => p.product === 'CNC' && p.quantity).forEach((p) => {
           const held = legs.find((l) => l.symbol === p.symbol), q = p.quantity;
           const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
           legs.push({ symbol: p.symbol, name: p.symbol, qty: q, today: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
@@ -493,12 +496,13 @@
       },
     });
     LS.forEach((c) => dash.calc('totals_' + k + c, {
-      title: 'Portfolio totals', description: 'Value (holdings + net cash), cost, unrealised and today\'s P&L.',
-      inputs: ['positions_' + k, SRC.c[c]],
-      fn: (positions, margins) => {
+      title: 'Portfolio totals', description: 'Value (holdings + net cash), cost, unrealised and today\'s P&L, including intraday, F&O, commodity and MTF trades.',
+      inputs: ['positions_' + k, SRC.c[c], SRC.p[pp]],
+      fn: (positions, margins, trades) => {
+        const other = trades.filter((t) => t.product !== 'CNC').reduce((a, t) => a + (t.pnl || 0), 0);
         const value = positions.reduce((a, r) => a + r.value, 0), invested = positions.reduce((a, r) => a + r.invested, 0);
         const cash = margins.length ? margins[0].net : 0;
-        return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((a, r) => a + r.day_pnl, 0), cash }];
+        return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((a, r) => a + r.day_pnl, 0) + other, other_pnl: other, cash }];
       },
     }));
   })));
@@ -778,16 +782,21 @@
   // Today's trades: one line per stock bought or sold today (Kite positions), shown on Home and Portfolio
   function todaysTrades() {
     const T = D('kite_positions'), rows = T.status === 'ok' ? T.data : [];
+    const KIND = { CNC: 'Delivery', MIS: 'Intraday', NRML: 'F&O', MTF: 'Margin (MTF)', CO: 'Cover', BO: 'Bracket' };
+    const kindOf = (p) => (p.exchange === 'MCX' ? 'Commodity' : p.product === 'NRML' && !/^(NFO|BFO|CDS)$/.test(p.exchange) ? 'Carry' : KIND[p.product] || p.product);
     const line = (p) => {
-      const d = el('div', 'wd-trade'), buy = p.quantity > 0, pnl = buy ? (p.last_price - p.average_price) * p.quantity : null;
-      d.append(el('span', 'wd-side ' + (buy ? 'wd-good' : 'wd-bad'), buy ? 'Bought' : 'Sold'), el('span', 'wd-name', p.symbol),
-        el('span', 'wd-muted', `${Math.abs(p.quantity)} at ${num.format(p.average_price)}`),
-        el('span', pnl == null ? 'wd-muted' : tone(pnl), pnl == null ? 'now ' + num.format(p.last_price) : inrS(pnl)));
+      const d = el('div', 'wd-trade'), closed = !p.quantity, side = closed ? 'Closed' : p.quantity > 0 ? 'Bought' : 'Sold';
+      const pnl = p.pnl != null ? p.pnl : p.quantity > 0 ? (p.last_price - p.average_price) * p.quantity : null;
+      const what = closed ? `${p.buy_quantity || 0} in at ${num.format(p.buy_price || 0)}, out at ${num.format(p.sell_price || 0)}` : `${Math.abs(p.quantity)} at ${num.format(p.average_price)}`;
+      const sideEl = el('span', 'wd-side ' + (closed ? 'wd-neutral' : p.quantity > 0 ? 'wd-good' : 'wd-bad'), side);
+      tip(sideEl, kindOf(p), p.product === 'CNC' ? 'A delivery trade. It is counted in your holdings and settles into your demat tonight.' : `${kindOf(p)} trade on ${p.exchange}. Its profit or loss is counted in today's P&L.`);
+      const name = el('span', 'wd-name', p.symbol); if (p.product !== 'CNC') name.append(el('span', 'wd-new', kindOf(p).toUpperCase()));
+      d.append(sideEl, name, el('span', pnl == null ? 'wd-muted' : tone(pnl), pnl == null ? 'now ' + num.format(p.last_price) : inrS(pnl)), el('span', 'wd-muted wd-what', what));
       return d;
     };
     const home = document.getElementById('home-trades');
     home.hidden = !rows.length;
-    home.replaceChildren(...(rows.length ? [el('span', 'wd-muted', "Today's trades, counted below")] : []), ...rows.map(line));
+    home.replaceChildren(...(rows.length ? [el('span', 'wd-muted', "Today's trades, all counted in your totals")] : []), ...rows.map(line));
     const card = document.getElementById('pf-trades-card');
     card.hidden = !rows.length;
     document.getElementById('pf-trades').replaceChildren(...rows.map(line));
