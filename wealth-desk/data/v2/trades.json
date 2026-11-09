@@ -38,5 +38,15 @@
   "entered": "2026-11-09",
   "gtt": "OCO 497/594 (id 344035527)",
   "note": "Bought 25 at 539.25 on Nov 9 (order placed by Claude at Dev's request)"
+ },
+ {
+  "id": "WD-2026-11-09-TORNTPOWER",
+  "date": "2026-11-09",
+  "symbol": "TORNTPOWER",
+  "entry": 1235,
+  "sl": 1134,
+  "tp": 1356,
+  "qty": 15,
+  "status": "proposed"
  }
 ]
