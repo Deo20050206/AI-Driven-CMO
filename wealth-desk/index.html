@@ -456,9 +456,12 @@
       fn: (holdings, mf, positions, classify) => {
         const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
         // legs: settled + T1 holdings, today's buys (+) or sells (−) from positions, mutual funds
-        const legs = holdings.map((h) => { const mq = (h.mtf && h.mtf.quantity) || 0, q = (h.quantity || 0) + (h.t1_quantity || 0) + mq; return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, invested: (q - mq) * h.average_price + mq * ((h.mtf && h.mtf.average_price) || h.average_price), ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
+        const legs = holdings.map((h) => { const mq = (h.mtf && h.mtf.quantity) || 0, q = (h.quantity || 0) + (h.t1_quantity || 0) + mq; return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, used: h.used_quantity || 0, invested: (q - mq) * h.average_price + mq * ((h.mtf && h.mtf.average_price) || h.average_price), ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
         positions.filter((p) => (p.product || 'CNC') === 'CNC' && p.quantity).forEach((p) => {
-          const held = legs.find((l) => l.symbol === p.symbol), q = p.quantity;
+          // Kite already takes today's sells out of holdings (shown as used_quantity): subtract only what it hasn't
+          const held = legs.find((l) => l.symbol === p.symbol && l.used !== undefined);
+          const q = p.quantity > 0 ? p.quantity : -Math.max(0, -p.quantity - (held ? held.used : 0));
+          if (!q) return;
           const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
           legs.push({ symbol: p.symbol, name: p.symbol, qty: q, today: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
         });
