@@ -104,6 +104,7 @@
   .wd-new { font-size: .7rem; font-weight: 600; color: var(--color-ok); margin-left: 6px; letter-spacing: .02em; }
   .wd-more { font: inherit; font-size: .88rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px; cursor: pointer; }
   .wd-more:active { opacity: .6; }
+  .wd-link { color: var(--color-fg); font-weight: 600; text-decoration: none; }
 
   /* Segmented toggle: responds on press */
   .wd-toggle { display: inline-flex; gap: 14px; }
@@ -245,7 +246,7 @@
 
     <div class="wd-glass" id="home-holdings-card">
       <div class="wd-trades" id="home-trades" data-source="kite_positions" hidden></div>
-      <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted" id="home-holdings-src"></span></div>
+      <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted"><span id="home-holdings-src"></span> · <a class="wd-link" href="https://claude.ai/artifact/TdcnqqxzA2LoDBbRRcXPza" target="_blank" rel="noopener">Trade ›</a></span></div>
       <div class="wd-tablewrap">
         <table id="home-positions" data-source="positions_LLL" data-row-key="symbol">
           <thead><tr>
@@ -456,7 +457,7 @@
         const cls = Object.fromEntries(classify.map((c) => [c.symbol, c.asset_class]));
         // legs: settled + T1 holdings, today's buys (+) or sells (−) from positions, mutual funds
         const legs = holdings.map((h) => { const mq = (h.mtf && h.mtf.quantity) || 0, q = (h.quantity || 0) + (h.t1_quantity || 0) + mq; return { symbol: h.tradingsymbol, name: h.tradingsymbol, qty: q, invested: (q - mq) * h.average_price + mq * ((h.mtf && h.mtf.average_price) || h.average_price), ltp: h.last_price, value: q * h.last_price, day: h.close_price ? (h.last_price - h.close_price) * q : 0, prev: h.close_price }; });
-        positions.filter((p) => p.product === 'CNC' && p.quantity).forEach((p) => {
+        positions.filter((p) => (p.product || 'CNC') === 'CNC' && p.quantity).forEach((p) => {
           const held = legs.find((l) => l.symbol === p.symbol), q = p.quantity;
           const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
           legs.push({ symbol: p.symbol, name: p.symbol, qty: q, today: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
@@ -499,7 +500,7 @@
       title: 'Portfolio totals', description: 'Value (holdings + net cash), cost, unrealised and today\'s P&L, including intraday, F&O, commodity and MTF trades.',
       inputs: ['positions_' + k, SRC.c[c], SRC.p[pp]],
       fn: (positions, margins, trades) => {
-        const other = trades.filter((t) => t.product !== 'CNC').reduce((a, t) => a + (t.pnl || 0), 0);
+        const other = trades.filter((t) => t.product && t.product !== 'CNC').reduce((a, t) => a + (t.pnl || 0), 0);
         const value = positions.reduce((a, r) => a + r.value, 0), invested = positions.reduce((a, r) => a + r.invested, 0);
         const cash = margins.length ? margins[0].net : 0;
         return [{ value: value + cash, invested, pnl: value - invested, pnl_pct: invested ? value / invested - 1 : 0, day_pnl: positions.reduce((a, r) => a + r.day_pnl, 0) + other, other_pnl: other, cash }];
@@ -729,6 +730,7 @@
     if (o.entered) { const d = new Date(o.entered); let k = 0; while (k < n) { d.setDate(d.getDate() + 1); if (d.getDay() % 6) k++; } return 'by ' + dayFmt(d); }
     return `in ${n} sessions`;
   }
+  const TRADE_DESK = 'https://claude.ai/artifact/TdcnqqxzA2LoDBbRRcXPza';
   function ticket(id = 'ticket', full = false) {
     const box = document.getElementById(id), s = D('opportunity'), q = D('idea_quotes');
     settle(box, s);
@@ -772,7 +774,14 @@
       P('Confidence', o.confidence + ' · ' + o.backtest));
     det.append(kv);
     box.replaceChildren(head, trig, lv, lad, facts, det);
-    if (!full) { const more = el('button', 'wd-more', 'Full idea ›'); more.type = 'button'; more.style.justifySelf = 'start'; more.addEventListener('click', () => show('ideas')); box.append(more); }
+    const acts = el('div', 'wd-row'); acts.style.justifyContent = 'flex-start';
+    if (o.status !== 'Bought' && o.status !== 'Closed') {
+      const h = (v) => String(v).replace('.', 'p'), a = el('a', 'wd-btn', 'Place this order ›');
+      a.href = `${TRADE_DESK}#buy-${o.symbol}-${o.qty}-${h(o.entry)}-${h(o.sl)}-${h(o.tp)}`; a.target = '_blank'; a.rel = 'noopener';
+      tip(a, 'Trade desk', 'Opens your Trade desk with this order filled in. You review it there and tap once more to send it to Kite.'); acts.append(a);
+    }
+    if (!full) { const more = el('button', 'wd-more', 'Full idea ›'); more.type = 'button'; more.addEventListener('click', () => show('ideas')); acts.append(more); }
+    box.append(acts);
   }
 
   // ---------- Holdings ----------
@@ -781,9 +790,9 @@
   const vt = { Exit: 'wd-bad', Trim: 'wd-warn', Add: 'wd-good' };
   // Today's trades: one line per stock bought or sold today (Kite positions), shown on Home and Portfolio
   function todaysTrades() {
-    const T = D('kite_positions'), rows = T.status === 'ok' ? T.data : [];
+    const T = D('kite_positions'), rows = (T.status === 'ok' ? T.data : []).map((p) => ({ ...p, product: p.product || 'CNC' }));
     const KIND = { CNC: 'Delivery', MIS: 'Intraday', NRML: 'F&O', MTF: 'Margin (MTF)', CO: 'Cover', BO: 'Bracket' };
-    const kindOf = (p) => (p.exchange === 'MCX' ? 'Commodity' : p.product === 'NRML' && !/^(NFO|BFO|CDS)$/.test(p.exchange) ? 'Carry' : KIND[p.product] || p.product);
+    const kindOf = (p) => String(p.exchange === 'MCX' ? 'Commodity' : p.product === 'NRML' && !/^(NFO|BFO|CDS)$/.test(p.exchange) ? 'Carry' : KIND[p.product] || p.product || 'Trade');
     const line = (p) => {
       const d = el('div', 'wd-trade'), closed = !p.quantity, side = closed ? 'Closed' : p.quantity > 0 ? 'Bought' : 'Sold';
       const pnl = p.pnl != null ? p.pnl : p.quantity > 0 ? (p.last_price - p.average_price) * p.quantity : null;

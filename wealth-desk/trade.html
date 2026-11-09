@@ -1,0 +1,344 @@
+<title>Dev's Trade Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+  /* Layout: one column, the order ticket first, then what Kite holds right now: orders, trades, GTTs, positions */
+  :root {
+    --bg: #faf9f5; --fg: #1f1e1b; --sub: #6f6b62; --hair: #e4e1d8; --panel: #f1efe8; --ok: #2e8b57; --bad: #c4453c; --warn: #b7791f; --ink: #1f1e1b; --on-ink: #faf9f5;
+    --sans: var(--font-anthropic-sans, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif);
+    --serif: var(--font-anthropic-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif);
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #1d1c1a; --fg: #efede6; --sub: #a29e94; --hair: #34322e; --panel: #262522; --ok: #5fbf86; --bad: #e0736a; --warn: #d9a441; --ink: #efede6; --on-ink: #1d1c1a; color-scheme: dark } }
+  :root[data-theme="dark"] { --bg: #1d1c1a; --fg: #efede6; --sub: #a29e94; --hair: #34322e; --panel: #262522; --ok: #5fbf86; --bad: #e0736a; --warn: #d9a441; --ink: #efede6; --on-ink: #1d1c1a; color-scheme: dark }
+  body { background: var(--bg); color: var(--fg); font: 15px/1.45 var(--sans); -webkit-font-smoothing: antialiased; }
+  [hidden] { display: none !important; }
+  .wrap { max-width: 760px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 56px; display: grid; gap: 32px; }
+  h1 { font: 400 1.9rem/1.1 var(--serif); margin: 0; }
+  h2 { font-size: 1.05rem; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+  p { margin: 0; }
+  .sub { color: var(--sub); font-size: .84rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .good { color: var(--ok); } .bad { color: var(--bad); } .warn { color: var(--warn); }
+  .num { font-variant-numeric: tabular-nums; }
+  section { display: grid; gap: 12px; padding-top: 20px; border-top: 1px solid var(--hair); }
+  .top { display: grid; gap: 6px; }
+  .status { font-size: .84rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; margin-right: 6px; }
+  a { color: inherit; }
+
+  /* Ticket: the one surface on the page */
+  .ticket { display: grid; gap: 14px; padding: 18px; border-radius: 16px; background: var(--panel); }
+  .grid { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  @media (min-width: 560px) { .grid.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  label { display: grid; gap: 4px; font-size: .78rem; color: var(--sub); min-width: 0; }
+  input, select { font: inherit; font-size: 1rem; color: var(--fg); background: var(--bg); border: 1px solid var(--hair); border-radius: 10px; padding: 10px 12px; min-height: 44px; width: 100%; box-sizing: border-box; font-variant-numeric: tabular-nums; }
+  input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+  #sym { text-transform: uppercase; }
+  .seg { display: inline-grid; grid-auto-flow: column; gap: 4px; padding: 3px; border-radius: 12px; background: var(--bg); border: 1px solid var(--hair); }
+  .seg button { font: inherit; font-weight: 600; border: 0; border-radius: 9px; padding: 8px 18px; min-height: 38px; background: none; color: var(--sub); cursor: pointer; }
+  .seg button[aria-pressed="true"].buy { background: var(--ok); color: var(--on-ink); }
+  .seg button[aria-pressed="true"].sell { background: var(--bad); color: var(--on-ink); }
+  .seg button[aria-pressed="true"]:not(.buy):not(.sell) { background: var(--ink); color: var(--on-ink); }
+  .btn { font: inherit; font-weight: 600; border: 0; border-radius: 22px; min-height: 46px; padding: 0 20px; cursor: pointer; background: var(--ink); color: var(--on-ink); transition: transform 100ms ease-out, opacity .15s; }
+  .btn:active { transform: scale(.97); }
+  .btn.quiet { background: color-mix(in srgb, var(--fg) 9%, transparent); color: var(--fg); }
+  .btn.danger { background: var(--bad); color: var(--on-ink); }
+  .btn.go-buy { background: var(--ok); color: var(--on-ink); }
+  .btn[disabled] { opacity: .45; cursor: default; }
+  .btn.small { min-height: 34px; padding: 0 14px; font-size: .84rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .facts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: .88rem; color: var(--sub); font-variant-numeric: tabular-nums; }
+  .facts b { color: var(--fg); font-weight: 600; }
+  .gtt { display: grid; gap: 10px; }
+  .check { display: flex; gap: 10px; align-items: center; font-size: .9rem; color: var(--fg); }
+  .check input { width: 22px; min-height: 22px; height: 22px; }
+  .review { display: grid; gap: 10px; padding: 14px; border-radius: 12px; border: 1px solid var(--hair); background: var(--bg); }
+  .review .what { font: 400 1.15rem/1.35 var(--serif); }
+  .msg { font-size: .88rem; padding: 10px 12px; border-radius: 10px; background: color-mix(in srgb, var(--fg) 6%, transparent); }
+  .msg.err { background: color-mix(in srgb, var(--bad) 14%, transparent); }
+  .msg.okm { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+
+  /* Lists */
+  .list { display: grid; }
+  .item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 12px; padding-block: 10px; border-bottom: 1px solid var(--hair); font-variant-numeric: tabular-nums; }
+  .item:last-child { border-bottom: 0; }
+  .item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .item .meta { grid-column: 1 / -1; font-size: .8rem; color: var(--sub); display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+  .tag { font-size: .7rem; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+  .empty { font-size: .86rem; color: var(--sub); padding-block: 6px; }
+  .foot { font-size: .75rem; color: var(--sub); max-width: 66ch; }
+  @media (prefers-reduced-motion: reduce) { .btn { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Dev's Trade Desk</h1>
+    <div class="status" id="status"><span class="sub">Connecting to Kite…</span></div>
+    <p class="sub">Orders go to your own Kite account through your Zerodha Kite connector. Nothing is sent until you review it and tap the final button.</p>
+  </header>
+
+  <form class="ticket" id="ticket" novalidate>
+    <div class="row"><h2>New order</h2><div class="seg" role="group" aria-label="Buy or sell"><button type="button" class="buy" data-side="BUY" aria-pressed="true">Buy</button><button type="button" class="sell" data-side="SELL" aria-pressed="false">Sell</button></div></div>
+    <div class="grid">
+      <label>Stock (NSE symbol)<input id="sym" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="KPITTECH" maxlength="30"></label>
+      <label>Exchange<select id="exch"><option>NSE</option><option>BSE</option></select></label>
+      <label>Quantity<input id="qty" type="number" inputmode="numeric" min="1" step="1" placeholder="25"></label>
+      <label>Limit price (₹)<input id="price" type="number" inputmode="decimal" min="0" step="0.05" placeholder="540"></label>
+    </div>
+    <div class="row">
+      <div class="seg" role="group" aria-label="Order type"><button type="button" data-type="LIMIT" aria-pressed="true">Limit</button><button type="button" data-type="MARKET" aria-pressed="false">Market</button></div>
+      <div class="seg" role="group" aria-label="Product"><button type="button" data-prod="CNC" aria-pressed="true">Delivery</button><button type="button" data-prod="MIS" aria-pressed="false">Intraday</button></div>
+    </div>
+    <div class="facts" id="quote"><span>Enter a stock to see its live price.</span></div>
+    <div class="gtt">
+      <label class="check"><input type="checkbox" id="usegtt"> Protect with a stop-loss and target (GTT) after it fills</label>
+      <div class="grid" id="gttfields" hidden>
+        <label>Stop-loss trigger (₹)<input id="sl" type="number" inputmode="decimal" step="0.05" placeholder="497"></label>
+        <label>Target trigger (₹)<input id="tp" type="number" inputmode="decimal" step="0.05" placeholder="594"></label>
+      </div>
+    </div>
+    <div class="facts" id="calc"></div>
+    <div class="actions"><button class="btn" id="reviewBtn" type="submit">Review order</button><button class="btn quiet" id="clearBtn" type="button">Clear</button></div>
+    <div class="review" id="review" hidden>
+      <p class="what" id="reviewText"></p>
+      <p class="sub" id="reviewNote"></p>
+      <div class="actions"><button class="btn go-buy" id="placeBtn" type="button">Place order</button><button class="btn quiet" id="backBtn" type="button">Change</button></div>
+    </div>
+    <div id="result"></div>
+  </form>
+
+  <section id="orders-sec"><div class="row"><h2>Today's orders</h2><span class="sub" id="orders-at"></span></div><div class="list" id="orders"></div></section>
+  <section id="trades-sec"><div class="row"><h2>Today's fills</h2></div><div class="list" id="trades"></div></section>
+  <section id="gtts-sec"><div class="row"><h2>Stop-losses and targets (GTT)</h2></div><div class="list" id="gtts"></div></section>
+  <section id="pos-sec"><div class="row"><h2>Open positions</h2></div><div class="list" id="positions"></div></section>
+
+  <p class="foot">Research and tools for Dev's own use, not SEBI-registered advice. Orders are placed only when you tap Place order; GTTs only when you tap Set stop and target; nothing is cancelled unless you confirm. Stop-losses limit damage but prices can gap past them.</p>
+</div>
+
+<script>
+(() => {
+  const K = 'Zerodha Kite';
+  const $ = (id) => document.getElementById(id);
+  const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+  const num = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 });
+  const sgn = (v) => (v > 0 ? '+' : v < 0 ? '−' : '');
+  const inrS = (v) => sgn(v) + inr.format(Math.abs(v));
+  const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x != null) e.textContent = x; return e; };
+  const tick = (v) => Math.round(v * 20) / 20;   // NSE tick size 0.05
+  let mcp = null, cash = null, ltp = null, side = 'BUY', otype = 'LIMIT', prod = 'CNC', pending = null, placed = null;
+
+  // ---------- connection ----------
+  const needsLogin = (e) => /log ?in/i.test((e && (e.message || '')) + JSON.stringify((e && e.result) || ''));
+  async function showLogin() {
+    const s = $('status'); s.replaceChildren(el('span', 'warn', 'Kite is logged out.'));
+    try {
+      const r = await mcp.callTool(K, 'login', {}, { cache: false });
+      const text = JSON.stringify(r.payload ?? r.content);
+      const m = text.match(/https:\/\/mcp\.kite\.trade\/authorize\?[^\s)"'\\\]]+/);
+      if (m) {
+        const a = el('a', 'btn small', 'Log in to Kite'); a.href = m[0]; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        const again = el('button', 'btn small quiet', "I've logged in"); again.type = 'button'; again.onclick = () => refreshAll(true);
+        s.append(a, again, el('span', 'sub', 'Zerodha warns: AI systems are unpredictable; you use your account via AI at your own risk.'));
+      }
+    } catch (e) { s.append(el('span', 'sub', ' Say "log in to Kite" in Claude, then reopen this page.')); }
+  }
+  function connError(e, box) {
+    if (!e) return;
+    if (needsLogin(e)) return showLogin();
+    const copy = { needs_reauth: 'Reconnect Zerodha Kite in claude.ai Settings → Connectors.', server_not_connected: 'Add the Zerodha Kite connector in claude.ai Settings → Connectors.',
+      not_in_manifest: 'Kite is not allowed for this page. Allow it from the page’s permissions.', approval_required: 'Kite needs your approval for this page.',
+      selection_required: 'Choose which Kite connector to use when claude.ai asks.' }[e.code];
+    if (box) box.replaceChildren(el('p', 'empty', copy || ('Could not load: ' + (e.message || e.code))));
+  }
+
+  // ---------- live lists ----------
+  const watches = [];
+  function watch(tool, input, render, box) {
+    watches.push(mcp.watchTool(K, tool, input, (ev) => {
+      if (ev.type === 'data') render(ev.result.payload, ev.result.cache);
+      else { if (['needs_reauth', 'server_not_connected', 'not_in_manifest', 'approval_required'].includes(ev.error.code)) box && box.replaceChildren(); connError(ev.error, box); }
+    }, { refetchInterval: 60000 }));
+  }
+  const list = (x) => (Array.isArray(x) ? x : x && Array.isArray(x.data) ? x.data : []);
+  function renderOrders(p, cache) {
+    const rows = list(p), box = $('orders');
+    $('orders-at').textContent = 'Updated ' + new Date(cache ? cache.storedAt : Date.now()).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    if (!rows.length) return box.replaceChildren(el('p', 'empty', 'No orders today.'));
+    box.replaceChildren(...rows.slice().reverse().map((o) => {
+      const it = el('div', 'item'), open = /OPEN|TRIGGER PENDING|AMO REQ RECEIVED/.test(o.status);
+      it.append(el('span', 'name', `${o.transaction_type === 'BUY' ? 'Buy' : 'Sell'} ${o.tradingsymbol}`),
+        el('span', o.status === 'COMPLETE' ? 'good' : o.status === 'REJECTED' || o.status === 'CANCELLED' ? 'bad' : 'warn', o.status.toLowerCase()));
+      const m = el('div', 'meta'); m.append(el('span', null, `${o.filled_quantity || 0}/${o.quantity} · ${o.order_type} ${o.price ? '@ ' + num.format(o.price) : ''} · ${o.product}`));
+      if (o.average_price) m.append(el('span', null, 'filled at ' + num.format(o.average_price)));
+      if (o.status_message) m.append(el('span', 'bad', o.status_message));
+      if (open) { const c = el('button', 'btn small quiet', 'Cancel'); c.type = 'button'; c.onclick = () => confirmThen(c, 'Cancel this order?', () => mcp.callTool(K, 'cancel_order', { variety: o.variety || 'regular', order_id: String(o.order_id) }, { cache: false })); m.append(c); }
+      it.append(m); return it;
+    }));
+  }
+  function renderTrades(p) {
+    const rows = list(p), box = $('trades');
+    if (!rows.length) return box.replaceChildren(el('p', 'empty', 'No fills today.'));
+    box.replaceChildren(...rows.map((t) => { const it = el('div', 'item'); it.append(el('span', 'name', `${t.transaction_type === 'BUY' ? 'Bought' : 'Sold'} ${t.tradingsymbol}`), el('span', null, `${t.quantity} @ ${num.format(t.average_price)}`)); const m = el('div', 'meta'); m.append(el('span', null, `${t.product} · ${new Date(t.fill_timestamp || t.exchange_timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })} · ${inr.format(t.quantity * t.average_price)}`)); it.append(m); return it; }));
+  }
+  function renderGtts(p) {
+    const rows = list(p).filter((g) => g.status === 'active'), box = $('gtts');
+    if (!rows.length) return box.replaceChildren(el('p', 'empty', 'No active GTTs. Every holding should have one.'));
+    box.replaceChildren(...rows.map((g) => {
+      const it = el('div', 'item'), sym = g.condition.tradingsymbol, tv = g.condition.trigger_values, qty = g.orders[0] ? g.orders[0].quantity : '';
+      it.append(el('span', 'name', sym), el('span', null, tv.length === 2 ? `stop ${num.format(tv[0])} · target ${num.format(tv[1])}` : `trigger ${num.format(tv[0])}`));
+      const m = el('div', 'meta'); m.append(el('span', null, `${qty} shares · last ${num.format(g.condition.last_price)} · expires ${new Date(g.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}`));
+      const d = el('button', 'btn small quiet', 'Delete'); d.type = 'button'; d.onclick = () => confirmThen(d, `Delete the GTT on ${sym}? It will no longer protect it.`, () => mcp.callTool(K, 'delete_gtt_order', { trigger_id: Number(g.id) }, { cache: false })); m.append(d);
+      it.append(m); return it;
+    }));
+  }
+  function renderPositions(p) {
+    const raw = list(p), seen = new Set(), rows = raw.filter((x) => { const k = x.exchange + x.tradingsymbol + x.product; if (seen.has(k)) return false; seen.add(k); return x.quantity || x.buy_quantity || x.sell_quantity; });
+    const box = $('positions');
+    if (!rows.length) return box.replaceChildren(el('p', 'empty', 'No positions today.'));
+    box.replaceChildren(...rows.map((x) => { const it = el('div', 'item'); it.append(el('span', 'name', x.tradingsymbol), el('span', x.pnl > 0 ? 'good' : x.pnl < 0 ? 'bad' : null, inrS(x.pnl || 0))); const m = el('div', 'meta'); m.append(el('span', 'tag', x.product), el('span', null, x.quantity ? `${x.quantity} @ ${num.format(x.average_price)} · now ${num.format(x.last_price)}` : `closed · ${x.buy_quantity} in, ${x.sell_quantity} out`)); it.append(m); return it; }));
+  }
+  function renderMargins(p) {
+    const e = (p && p.equity) || {}; cash = e.available ? e.available.cash : e.net;
+    const s = $('status'), live = el('span', 'good'); live.append(el('span', 'dot'), document.createTextNode('Kite connected'));
+    s.replaceChildren(live, el('span', 'sub', 'Cash free'), el('b', 'num', cash != null ? inr.format(cash) : '—')); updateCalc();
+  }
+  function refreshAll(force) { if (!mcp) return; mcp.invalidate(K).catch(() => {}); if (force) $('status').replaceChildren(el('span', 'sub', 'Checking Kite…')); }
+
+  // A confirm step built into the page: first tap arms, second tap acts
+  function confirmThen(btn, question, act) {
+    if (btn.dataset.armed) return;
+    const holder = btn.parentElement, q = el('span', 'warn', question), yes = el('button', 'btn small danger', 'Yes'), no = el('button', 'btn small quiet', 'No');
+    yes.type = no.type = 'button'; btn.hidden = true; btn.dataset.armed = '1'; holder.append(q, yes, no);
+    const reset = () => { q.remove(); yes.remove(); no.remove(); btn.hidden = false; delete btn.dataset.armed; };
+    no.onclick = reset;
+    yes.onclick = async () => { yes.disabled = no.disabled = true; try { await act(); q.textContent = 'Done.'; q.className = 'good'; yes.remove(); no.remove(); refreshAll(); } catch (e) { q.textContent = 'Failed: ' + (e.message || e.code); q.className = 'bad'; yes.remove(); no.textContent = 'OK'; no.disabled = false; } };
+  }
+
+  // ---------- ticket ----------
+  const segs = (attr, set) => document.querySelectorAll(`[data-${attr}]`).forEach((b) => b.addEventListener('click', () => { document.querySelectorAll(`[data-${attr}]`).forEach((x) => x.setAttribute('aria-pressed', String(x === b))); set(b.dataset[attr]); updateCalc(); }));
+  segs('side', (v) => { side = v; $('placeBtn').className = 'btn ' + (v === 'BUY' ? 'go-buy' : 'danger'); });
+  segs('type', (v) => { otype = v; $('price').disabled = v === 'MARKET'; });
+  segs('prod', (v) => { prod = v; });
+  $('usegtt').addEventListener('change', () => { $('gttfields').hidden = !$('usegtt').checked; updateCalc(); });
+  ['qty', 'price', 'sl', 'tp'].forEach((id) => $(id).addEventListener('input', updateCalc));
+  let qTimer = 0;
+  $('sym').addEventListener('input', () => { clearTimeout(qTimer); qTimer = setTimeout(quote, 500); });
+  $('exch').addEventListener('change', quote);
+  async function quote() {
+    const s = $('sym').value.trim().toUpperCase(); ltp = null;
+    if (!s || !mcp) { $('quote').replaceChildren(el('span', null, 'Enter a stock to see its live price.')); return updateCalc(); }
+    const key = $('exch').value + ':' + s;
+    try {
+      const r = await mcp.callTool(K, 'get_quotes', { instruments: [key] }, { cache: false }), q = (r.payload || {})[key];
+      if (!q) { $('quote').replaceChildren(el('span', 'bad', `No ${key} on Kite. Check the symbol.`)); return updateCalc(); }
+      ltp = q.last_price; const prev = q.ohlc && q.ohlc.close, ch = prev ? ltp / prev - 1 : 0;
+      const f = $('quote'); f.replaceChildren();
+      const add = (l, v, c) => { const sp = el('span', null, l + ' '); sp.append(el('b', c || null, v)); f.append(sp); };
+      add('Now', num.format(ltp)); add('Today', (ch >= 0 ? '+' : '') + (ch * 100).toFixed(2) + '%', ch > 0 ? 'good' : ch < 0 ? 'bad' : null);
+      add('Day range', `${num.format(q.ohlc.low)}–${num.format(q.ohlc.high)}`); add('Circuit', `${num.format(q.lower_circuit_limit)}–${num.format(q.upper_circuit_limit)}`);
+      if (!$('price').value && otype === 'LIMIT') $('price').placeholder = num.format(ltp);
+    } catch (e) { if (needsLogin(e)) showLogin(); $('quote').replaceChildren(el('span', 'bad', 'Live price unavailable: ' + (e.message || e.code))); }
+    updateCalc();
+  }
+  function values() {
+    const sym = $('sym').value.trim().toUpperCase(), qty = Math.floor(Number($('qty').value)), price = otype === 'LIMIT' ? Number($('price').value) : ltp;
+    const sl = Number($('sl').value), tp = Number($('tp').value), gtt = $('usegtt').checked;
+    return { sym, exch: $('exch').value, qty, price, sl, tp, gtt };
+  }
+  function problems(v) {
+    const p = [];
+    if (!/^[A-Z0-9&_-]{1,30}$/.test(v.sym)) p.push('Enter a valid symbol.');
+    if (!(v.qty > 0)) p.push('Enter a whole number of shares.');
+    if (otype === 'LIMIT' && !(v.price > 0)) p.push('Enter a limit price.');
+    if (v.gtt) {
+      if (!(v.sl > 0) || !(v.tp > 0)) p.push('Enter both stop-loss and target.');
+      else if (side === 'BUY' && !(v.sl < (v.price || ltp) && v.tp > (v.price || ltp))) p.push('For a buy, the stop must be below the price and the target above it.');
+      if (prod !== 'CNC') p.push('GTT protection is for delivery trades.');
+    }
+    if (side === 'BUY' && cash != null && v.qty * (v.price || ltp || 0) > cash) p.push(`Needs ${inr.format(v.qty * (v.price || ltp))}; you have ${inr.format(cash)} free.`);
+    if (otype === 'LIMIT' && ltp && v.price && Math.abs(v.price / ltp - 1) > 0.1) p.push('That limit is more than 10% from the live price. Check it.');
+    return p;
+  }
+  function updateCalc() {
+    const v = values(), f = $('calc'); f.replaceChildren(); $('review').hidden = true; pending = null;
+    const px = v.price || ltp;
+    if (v.qty > 0 && px) {
+      const cost = v.qty * px, add = (l, val, c) => { const sp = el('span', null, l + ' '); sp.append(el('b', c || null, val)); f.append(sp); };
+      add(side === 'BUY' ? 'Cost' : 'Proceeds', inr.format(cost));
+      if (cash != null && side === 'BUY') add('Cash after', inr.format(cash - cost), cash - cost < 0 ? 'bad' : null);
+      if (v.gtt && v.sl > 0 && v.tp > 0 && side === 'BUY') { add('At risk if stopped', inr.format(v.qty * (px - v.sl)), 'bad'); add('If target hits', '+' + inr.format(v.qty * (v.tp - px)), 'good'); add('Reward:risk', ((v.tp - px) / (px - v.sl)).toFixed(2)); }
+    }
+  }
+  $('ticket').addEventListener('submit', (ev) => {
+    ev.preventDefault(); $('result').replaceChildren();
+    const v = values(), p = problems(v);
+    if (p.length) { $('result').replaceChildren(el('p', 'msg err', p.join(' '))); return; }
+    pending = { ...v, side, otype, prod };
+    $('reviewText').textContent = `${side === 'BUY' ? 'Buy' : 'Sell'} ${v.qty} ${v.sym} on ${v.exch}, ${otype === 'LIMIT' ? 'limit ₹' + num.format(v.price) : 'at market'}, ${prod === 'CNC' ? 'delivery' : 'intraday'}, valid today.`;
+    $('reviewNote').textContent = v.gtt ? `Once it fills you can set a GTT: stop ₹${num.format(v.sl)} (sells at ₹${num.format(tick(v.sl * 0.994))}), target ₹${num.format(v.tp)} (sells at ₹${num.format(tick(v.tp * 0.997))}).` : 'No stop-loss will be set. Add one after it fills.';
+    $('placeBtn').textContent = side === 'BUY' ? `Place buy · ${inr.format(v.qty * (v.price || ltp || 0))}` : 'Place sell';
+    $('review').hidden = false; $('placeBtn').disabled = false; $('placeBtn').focus();
+  });
+  $('backBtn').onclick = () => { $('review').hidden = true; pending = null; };
+  $('clearBtn').onclick = () => { ['sym', 'qty', 'price', 'sl', 'tp'].forEach((id) => ($(id).value = '')); $('usegtt').checked = false; $('gttfields').hidden = true; $('result').replaceChildren(); ltp = null; quote(); };
+
+  // Place: exactly one call per tap; a lost reply is treated as "unknown" and the order list is the truth
+  $('placeBtn').onclick = async () => {
+    if (!pending || !mcp) return;
+    const o = pending; pending = null; $('placeBtn').disabled = true; $('backBtn').disabled = true;
+    const box = $('result'); box.replaceChildren(el('p', 'msg', 'Sending to Kite…'));
+    const input = { variety: 'regular', exchange: o.exch, tradingsymbol: o.sym, transaction_type: o.side, quantity: o.qty, product: o.prod, order_type: o.otype, validity: 'DAY', tag: 'TRADEDESK' };
+    if (o.otype === 'LIMIT') input.price = o.price;
+    try {
+      const r = await mcp.callTool(K, 'place_order', input, { cache: false });
+      const id = (r.payload && r.payload.order_id) || JSON.stringify(r.payload);
+      placed = { ...o, order_id: String(id) };
+      box.replaceChildren(el('p', 'msg okm', `Order sent. Kite order ${id}. Its status shows under Today's orders.`));
+      $('review').hidden = true; refreshAll();
+      if (o.gtt) offerGtt(box);
+    } catch (e) {
+      const unknown = ['server_unavailable', 'upstream_error', 'cancelled'].includes(e.code);
+      box.replaceChildren(el('p', 'msg err', unknown ? 'Kite did not answer in time. The order may or may not have gone through: check Today\'s orders below before trying again.' : needsLogin(e) ? 'Kite is logged out. Log in at the top, then review the order again.' : 'Kite refused the order: ' + (e.message || e.code)));
+      if (needsLogin(e)) showLogin();
+      refreshAll();
+    } finally { $('backBtn').disabled = false; }
+  };
+  function offerGtt(box) {
+    const o = placed, b = el('button', 'btn small', 'Set stop and target'); b.type = 'button';
+    const note = el('p', 'sub', `Sets one GTT on ${o.qty} ${o.sym}: stop ₹${num.format(o.sl)}, target ₹${num.format(o.tp)}. Tap it once the order shows complete.`);
+    b.onclick = async () => {
+      b.disabled = true;
+      try {
+        const q = await mcp.callTool(K, 'get_quotes', { instruments: [o.exch + ':' + o.sym] }, { cache: false }), last = q.payload[o.exch + ':' + o.sym].last_price;
+        const r = await mcp.callTool(K, 'place_gtt_order', { exchange: o.exch, tradingsymbol: o.sym, last_price: last, transaction_type: o.side === 'BUY' ? 'SELL' : 'BUY', product: 'CNC', trigger_type: 'two-leg',
+          lower_trigger_value: o.sl, lower_limit_price: tick(o.sl * 0.994), lower_quantity: o.qty, upper_trigger_value: o.tp, upper_limit_price: tick(o.tp * 0.997), upper_quantity: o.qty }, { cache: false });
+        note.textContent = `GTT set (id ${(r.payload && r.payload.trigger_id) || ''}). It shows below.`; note.className = 'good'; b.remove(); refreshAll();
+      } catch (e) { note.textContent = 'GTT not set: ' + (e.message || e.code) + '. Check the GTT list before trying again.'; note.className = 'bad'; b.disabled = false; }
+    };
+    box.append(note, b);
+  }
+
+  // Prefill from the dashboard: #buy-KPITTECH-25-540-497-594 (a "p" stands for the decimal point: 539p25)
+  function prefill() {
+    const m = location.hash.slice(1).match(/^(buy|sell)-([A-Za-z0-9&_]+)-(\d+)-([\dp]+)(?:-([\dp]+)-([\dp]+))?$/);
+    if (!m) return;
+    const n = (x) => Number(String(x).replace('p', '.'));
+    document.querySelector(`[data-side="${m[1].toUpperCase()}"]`).click();
+    $('sym').value = m[2].toUpperCase(); $('qty').value = m[3]; $('price').value = n(m[4]);
+    if (m[5]) { $('usegtt').checked = true; $('gttfields').hidden = false; $('sl').value = n(m[5]); $('tp').value = n(m[6]); }
+    updateCalc();
+  }
+  prefill(); window.addEventListener('hashchange', prefill);
+
+  // ---------- start ----------
+  (window.claude && window.claude.use ? window.claude.use('mcp') : Promise.resolve(null)).then((m) => {
+    if (!m) { $('status').replaceChildren(el('span', 'bad', 'This view cannot reach your Kite connector. Open the page in the Claude app or claude.ai.')); $('reviewBtn').disabled = true; return; }
+    mcp = m;
+    watch('get_margins', null, renderMargins, null);
+    watch('get_orders', null, renderOrders, $('orders'));
+    watch('get_trades', null, renderTrades, $('trades'));
+    watch('get_gtts', null, renderGtts, $('gtts'));
+    watch('get_positions', null, renderPositions, $('positions'));
+    if ($('sym').value) quote();
+  });
+})();
+</script>
