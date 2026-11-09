@@ -18,7 +18,12 @@ Five pages, swipe or tap between them:
 - **Scorecard**: every idea scored against real prices.
 
 Page files live in the dashboard's store, mirrored in this folder: `index.html` → `files/index.html`, `art.js` → `files/art.js`.
-Publish a page change with ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`. The accepted v1 page
+Publish a page change with ArtifactData `set` on `files/<name>` as `{text}`, pinned with `if_version`.
+Before every publish of `index.html`, run `node wealth-desk/tests/check_totals.mjs` and publish only if it passes. Add a case to it
+whenever a new kind of trade or account state appears (same-day sell, T1, MTF, SIP units, intraday, F&O).
+Portfolio value = holdings at today's price (Kite already removes today's sells) + today's delivery buys + funds at NAV +
+free cash. Unrealised P&L is already inside the market value: never add it again. The page shows a second, independent
+check of the total under the big number ("Checked against Kite"); if it ever says "Off by", fix the maths before anything else. The accepted v1 page
 is kept at `versions/v1/index.html`.
 
 ## Wallpapers (keep adding new ones)

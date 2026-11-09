@@ -104,6 +104,7 @@
   .wd-new { font-size: .7rem; font-weight: 600; color: var(--color-ok); margin-left: 6px; letter-spacing: .02em; }
   .wd-more { font: inherit; font-size: .88rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px; cursor: pointer; }
   .wd-more:active { opacity: .6; }
+  .wd-check { font-size: .75rem; }
   .wd-link { color: var(--color-fg); font-weight: 600; text-decoration: none; }
 
   /* Segmented toggle: responds on press */
@@ -231,6 +232,7 @@
       <div class="wd-chart-head">
         <span class="wd-big"><b class="kpi" data-kpi="value">—</b></span>
         <span class="wd-muted" id="home-chart-sub"></span>
+        <span class="wd-muted wd-check" data-check></span>
       </div>
       <div class="wd-chart" id="home-chart" data-source="nav_history"></div>
     </div>
@@ -288,6 +290,7 @@
       <div class="wd-chart-head">
         <span class="wd-big"><b class="dash-skeleton kpi" data-kpi="value">—</b></span>
         <span class="wd-muted" id="value-sub"></span>
+        <span class="wd-muted wd-check" data-check></span>
       </div>
       <div class="wd-chart" id="history-chart" data-source="nav_history" style="min-height:220px"></div>
       <span class="wd-muted" data-tip="How to read this|The solid line is what your portfolio was worth each day. The dashed step is the money you've put in. ▲ marks cash added, ▼ cash withdrawn, so deposits never look like gains.">▲ cash in · ▼ cash out · dashed = money put in</span>
@@ -511,6 +514,19 @@
     }));
   })));
 
+  // A second, independent total straight from Kite's fields, used to check the main one:
+  // holdings (settled + T1 + MTF, today's sells already removed by Kite) + today's delivery buys + funds + free cash.
+  LS.forEach((e) => LS.forEach((m) => LS.forEach((pp) => LS.forEach((c) => dash.calc('value_check_' + e + m + pp + c, {
+    title: 'Value check', description: "Portfolio value computed a second way from Kite's raw fields, to catch calculation mistakes.",
+    inputs: [SRC.e[e], SRC.m[m], SRC.p[pp], SRC.c[c]],
+    fn: (holdings, mf, trades, margins) => {
+      const h = holdings.reduce((a, x) => a + ((x.quantity || 0) + (x.t1_quantity || 0) + ((x.mtf && x.mtf.quantity) || 0)) * x.last_price, 0);
+      const buys = trades.filter((t) => (t.product || 'CNC') === 'CNC' && t.quantity > 0).reduce((a, t) => a + t.quantity * t.last_price, 0);
+      const f = mf.reduce((a, x) => a + x.quantity * x.last_price, 0), cash = margins.length ? margins[0].net : 0;
+      return [{ value: h + buys + f + cash }];
+    },
+  })))));
+
   dash.calc('track_stats', {
     title: 'Scorecard', description: 'Closed ideas, win rate and average result in R from the ideas log.',
     inputs: ['trades'],
@@ -705,6 +721,14 @@
       if (m.dataset.kpi === 'pnl' || m.dataset.kpi === 'day_pnl') { m.textContent = inrS(v); if (tone(v)) m.classList.add(tone(v)); }
       else if (m.dataset.kpi === 'pnl_pct') { m.textContent = pctS(v); if (tone(v)) m.classList.add(tone(v)); }
       else m.textContent = inr.format(v);
+    });
+    const C = D('value_check_' + k);
+    document.querySelectorAll('[data-check]').forEach((n) => {
+      n.dataset.source = 'value_check_' + k; n.className = 'wd-muted wd-check';
+      if (T.status !== 'ok' || C.status !== 'ok') { n.textContent = ''; return; }
+      const gap = T.data[0].value - C.data[0].value;
+      if (Math.abs(gap) < 2) { n.textContent = '✓ Checked against Kite'; tip(n, 'Value check', 'The total is worked out two independent ways from your Kite data and both agree.'); }
+      else { n.textContent = `⚠ Off by ${inr.format(Math.abs(gap))} against Kite. Tell Claude.`; n.classList.add('wd-bad'); tip(n, 'Value check failed', `Main total ${inr.format(T.data[0].value)}, Kite cross-check ${inr.format(C.data[0].value)}. The page's maths is wrong somewhere; the cross-check is the one to trust.`); }
     });
   }
 
