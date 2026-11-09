@@ -96,6 +96,10 @@
   .wd-fill { position: absolute; inset: 0 auto 0 0; border-radius: 2px; }
   .wd-tick { position: absolute; top: -3px; bottom: -3px; width: 1.5px; background: var(--color-fg); }
   .wd-stack { display: grid; gap: 16px; }
+  .wd-trades { display: grid; gap: 8px; }
+  .wd-trade { display: grid; grid-template-columns: auto 1fr auto auto; gap: 4px 12px; align-items: baseline; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .wd-trade .wd-side { font-size: .72rem; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
+  .wd-new { font-size: .7rem; font-weight: 600; color: var(--color-ok); margin-left: 6px; letter-spacing: .02em; }
   .wd-more { font: inherit; font-size: .88rem; font-weight: 500; color: var(--wd-sub); background: none; border: 0; padding: 6px 0; min-height: 36px; cursor: pointer; }
   .wd-more:active { opacity: .6; }
 
@@ -238,6 +242,7 @@
     <div class="wd-glass wd-opp dash-skeleton" id="ticket" data-source="opportunity"></div>
 
     <div class="wd-glass" id="home-holdings-card">
+      <div class="wd-trades" id="home-trades" data-source="kite_positions" hidden></div>
       <div class="wd-row"><h2>My portfolio</h2><span class="wd-muted" id="home-holdings-src"></span></div>
       <div class="wd-tablewrap">
         <table id="home-positions" data-source="positions_LLL" data-row-key="symbol">
@@ -292,6 +297,10 @@
       <div class="wd-glass wd-kpi"><span class="wd-muted" data-tip="Cash to deploy|Free equity margin in Kite that can buy shares today.">Cash</span><span class="wd-big"><b class="dash-skeleton kpi" data-kpi="cash">—</b></span><span class="wd-muted">free in Kite</span></div>
     </div>
 
+    <div class="wd-glass" id="pf-trades-card" hidden>
+      <div class="wd-row"><h2 data-tip="Today's trades|Delivery buys and sells you made today. They count in your holdings and totals straight away and settle into your demat tonight.">Today's trades</h2><span class="wd-muted">Live from Kite</span></div>
+      <div class="wd-trades" id="pf-trades" data-source="kite_positions"></div>
+    </div>
     <div class="wd-glass" id="review-card">
       <div class="wd-row"><h2>Review verdicts</h2><span class="wd-muted">Every 3 trading days</span></div>
       <div class="wd-tablewrap">
@@ -447,12 +456,12 @@
         positions.forEach((p) => {
           const held = legs.find((l) => l.symbol === p.symbol), q = p.quantity;
           const cost = q > 0 ? p.average_price : held && held.qty ? held.invested / held.qty : p.average_price;
-          legs.push({ symbol: p.symbol, name: p.symbol, qty: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
+          legs.push({ symbol: p.symbol, name: p.symbol, qty: q, today: q, invested: q * cost, ltp: p.last_price, value: q * p.last_price, day: q > 0 ? q * (p.last_price - p.average_price) : q * (p.last_price - (p.close_price || p.last_price)), prev: p.close_price });
         });
         mf.forEach((f) => legs.push({ symbol: f.tradingsymbol, name: 'Life Cycle 2041', qty: f.quantity, invested: f.quantity * f.average_price, ltp: f.last_price, value: f.quantity * f.last_price, day: 0, prev: null }));
         const by = {};
-        legs.forEach((l) => { const r = (by[l.symbol] = by[l.symbol] || { symbol: l.symbol, name: l.name, qty: 0, invested: 0, value: 0, day_pnl: 0, ltp: l.ltp, prev: l.prev }); r.qty += l.qty; r.invested += l.invested; r.value += l.value; r.day_pnl += l.day; r.ltp = l.ltp; r.prev = r.prev || l.prev; });
-        const rows = Object.values(by).filter((r) => r.qty > 0).map((r) => ({ symbol: r.symbol, name: r.name, qty: r.qty, ltp: r.ltp, avg: r.invested / r.qty, asset_class: cls[r.symbol] || 'Direct stocks',
+        legs.forEach((l) => { const r = (by[l.symbol] = by[l.symbol] || { symbol: l.symbol, name: l.name, qty: 0, today: 0, invested: 0, value: 0, day_pnl: 0, ltp: l.ltp, prev: l.prev }); r.qty += l.qty; r.today += l.today || 0; r.invested += l.invested; r.value += l.value; r.day_pnl += l.day; r.ltp = l.ltp; r.prev = r.prev || l.prev; });
+        const rows = Object.values(by).filter((r) => r.qty > 0).map((r) => ({ symbol: r.symbol, name: r.name, qty: r.qty, today_qty: r.today, ltp: r.ltp, avg: r.invested / r.qty, asset_class: cls[r.symbol] || 'Direct stocks',
           invested: r.invested, value: r.value, pnl: r.value - r.invested, pnl_pct: r.invested ? r.value / r.invested - 1 : 0,
           day_pnl: r.day_pnl, day_pct: r.value - r.day_pnl ? r.day_pnl / (r.value - r.day_pnl) : 0, prev_missing: !r.prev }));
         const total = rows.reduce((a, r) => a + r.value, 0);
@@ -766,6 +775,24 @@
   const srcText = (s) => (s === 'LLL' ? "Live from Kite, today's trades included" : s.slice(0, 2) === 'LL' ? "Live from Kite · today's trades not loaded" : s[0] === 'L' ? 'Live stocks · saved fund values' : 'Saved snapshot');
   const nameOf = (r) => (r.name === r.symbol ? r.symbol : r.name);
   const vt = { Exit: 'wd-bad', Trim: 'wd-warn', Add: 'wd-good' };
+  // Today's trades: one line per stock bought or sold today (Kite positions), shown on Home and Portfolio
+  function todaysTrades() {
+    const T = D('kite_positions'), rows = T.status === 'ok' ? T.data : [];
+    const line = (p) => {
+      const d = el('div', 'wd-trade'), buy = p.quantity > 0, pnl = buy ? (p.last_price - p.average_price) * p.quantity : null;
+      d.append(el('span', 'wd-side ' + (buy ? 'wd-good' : 'wd-bad'), buy ? 'Bought' : 'Sold'), el('span', 'wd-name', p.symbol),
+        el('span', 'wd-muted', `${Math.abs(p.quantity)} at ${num.format(p.average_price)}`),
+        el('span', pnl == null ? 'wd-muted' : tone(pnl), pnl == null ? 'now ' + num.format(p.last_price) : inrS(pnl)));
+      return d;
+    };
+    const home = document.getElementById('home-trades');
+    home.hidden = !rows.length;
+    home.replaceChildren(...(rows.length ? [el('span', 'wd-muted', "Today's trades, counted below")] : []), ...rows.map(line));
+    const card = document.getElementById('pf-trades-card');
+    card.hidden = !rows.length;
+    document.getElementById('pf-trades').replaceChildren(...rows.map(line));
+  }
+  const nameCell = (r) => { const td = el('td', 'wd-name', nameOf(r)); if (r.today_qty > 0) tip(td.appendChild(el('span', 'wd-new', 'NEW')), 'Bought today', `${r.today_qty} shares bought today. They settle into your demat tonight.`); return td; };
   function homePositions(s) {
     const t = document.getElementById('home-positions'), body = t.tBodies[0], P = D('positions_' + s), R = D('portfolio_review');
     t.dataset.source = 'positions_' + s + ' portfolio_review';
@@ -780,7 +807,7 @@
         const p = el('span', 'wd-pill ' + (vt[v.verdict] || (label === 'Set stop' ? 'wd-warn' : 'wd-neutral')), label);
         tip(p, v.verdict + ': ' + nameOf(r), v.action + '. ' + v.reason); vc.append(p);
       }
-      tr.append(el('td', 'wd-name', nameOf(r)), el('td', 'wd-r', inr.format(r.value)),
+      tr.append(nameCell(r), el('td', 'wd-r', inr.format(r.value)),
         el('td', 'wd-r ' + tone(r.day_pct), r.day_pct ? pctS(r.day_pct) : '—'), el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)),
         el('td', 'wd-r wd-hide-sm ' + tone(r.pnl_pct), pctS(r.pnl_pct)), vc);
       return tr;
@@ -792,7 +819,7 @@
     if (P.status !== 'ok') { body.replaceChildren(); return; }
     body.replaceChildren(...P.data.map((r) => {
       const tr = el('tr'); tr.dataset.key = r.symbol;
-      tr.append(el('td', 'wd-name', nameOf(r)), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r wd-hide-sm', num.format(r.qty ? r.invested / r.qty : 0)),
+      tr.append(nameCell(r), el('td', 'wd-r', num.format(r.qty)), el('td', 'wd-r wd-hide-sm', num.format(r.qty ? r.invested / r.qty : 0)),
         el('td', 'wd-r', inr.format(r.value)), el('td', 'wd-r ' + tone(r.pnl), inrS(r.pnl)), el('td', 'wd-r wd-hide-sm ' + tone(r.pnl_pct), pctS(r.pnl_pct)), el('td', 'wd-r', pct(r.weight)));
       return tr;
     }));
@@ -1103,11 +1130,11 @@
   function render() {
     const k = key(), s = k.em;
     kiteStatus(); fillMarks();
-    if (current === 'today') { kpis(k.em + k.c); homeChart(k.em + k.c); ticket(); homePositions(s); }
+    if (current === 'today') { kpis(k.em + k.c); homeChart(k.em + k.c); ticket(); homePositions(s); todaysTrades(); }
     if (current === 'ideas') ticket('idea-full', true);
     if (current === 'portfolio') {
       kpis(k.em + k.c); pnlKpis(s); valueChart(k.em + k.c);
-      review(); alloc(s); risk(s); mix(s); positions(s);
+      todaysTrades(); review(); alloc(s); risk(s); mix(s); positions(s);
       table('ledger', 'pnl_ledger', [['date', null, (v) => dayFmt(new Date(v))], ['symbol', 'wd-name'], ['qty', 'wd-r'], ['buy_avg', 'wd-r', (v) => num.format(v)], ['sell_price', 'wd-r', (v, r) => num.format(v) + (r.estimated ? ' est.' : '')], ['realised', 'wd-r', (v) => inrS(v)], ['note', 'wd-wrap wd-muted']]);
     }
     if (current === 'market') { tiles(); nifty(); catalysts(); signals(); table('mreview', 'market_review', [['metric', 'wd-name'], ['value'], ['change'], ['read', 'wd-wrap']]); }
