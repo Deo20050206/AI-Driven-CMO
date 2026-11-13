@@ -82,6 +82,15 @@ listed as not counted. "Drop from best day" is time-weighted from `nav_history` 
 
 Nothing due → update `trades` only and finish quietly.
 
+## Kite connector tools (renamed Nov 2026)
+Kite's connector now has a few tools with a `mode` argument. Old names in this runbook map like this:
+`get_profile` → `portfolio mode=profile` (login check: `session mode=status`) · `get_holdings` → `portfolio mode=holdings` ·
+`get_positions` → `portfolio mode=positions` (rows carry view=day/net: never add both) · `get_margins` → `portfolio mode=margins` ·
+`get_mf_holdings` → `mutual_funds mode=holdings` · `get_gtts` → `gtt mode=list` · `get_quotes`/`get_ohlc`/`get_ltp`/
+`get_historical_data` → `market mode=quote/ohlc/ltp/historical` · `get_trades` → `orders mode=all_trades`.
+List answers come wrapped as `{data, pagination}`; the page's loaders unwrap both formats (tested in `check_totals.mjs`).
+There is no `login` tool any more: when Kite's session lapses, Dev reconnects it from Claude's connector settings.
+
 ## Procedure
 1. **Kite.** Call `get_profile`. If it says to log in, call `login`, show Dev the warning and link,
    and continue with steps that don't need Kite. Resume Kite steps after Dev replies.

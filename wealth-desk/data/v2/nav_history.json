@@ -102,5 +102,13 @@
   "flow": 19761.23,
   "flow_note": "Added ≈₹19,761 since Oct 29 (derived: cost + cash − realised), incl. the ≈₹5,000 SIP (509 new fund units) and deposits that funded KPITTECH and Torrent Power. Oct 30–Nov 6 not backfilled.",
   "estimated": true
+ },
+ {
+  "date": "2026-11-12",
+  "value": 134612.52,
+  "put_in": 127164.51,
+  "flow": -38.22,
+  "flow_note": "Charges on the UNIMECH sale and GOLDCASE buy (no deposits). Nov 11 not backfilled.",
+  "estimated": true
  }
 ]

@@ -1,7 +1,34 @@
 [
- {"tradingsymbol": "TORNTPOWER", "exchange": "NSE", "id": 344046830, "stop": 1134, "target": 1356, "qty": 15},
- {"tradingsymbol": "KPITTECH", "exchange": "NSE", "id": 344035527, "stop": 497, "target": 594, "qty": 25},
- {"tradingsymbol": "UNIMECH", "exchange": "NSE", "id": 343362342, "stop": 1700, "target": 1990, "qty": 11},
- {"tradingsymbol": "JIOFIN", "exchange": "NSE", "id": 343362478, "stop": 196, "target": 245, "qty": 24},
- {"tradingsymbol": "JPL", "exchange": "NSE", "id": 342769088, "stop": 1378.9, "target": 1485, "qty": 12}
+ {
+  "tradingsymbol": "TORNTPOWER",
+  "exchange": "NSE",
+  "id": 344046830,
+  "stop": 1134,
+  "target": 1356,
+  "qty": 15
+ },
+ {
+  "tradingsymbol": "KPITTECH",
+  "exchange": "NSE",
+  "id": 344035527,
+  "stop": 497,
+  "target": 594,
+  "qty": 25
+ },
+ {
+  "tradingsymbol": "JIOFIN",
+  "exchange": "NSE",
+  "id": 343362478,
+  "stop": 196,
+  "target": 245,
+  "qty": 24
+ },
+ {
+  "tradingsymbol": "JPL",
+  "exchange": "NSE",
+  "id": 342769088,
+  "stop": 1378.9,
+  "target": 1485,
+  "qty": 12
+ }
 ]

@@ -135,9 +135,27 @@ check("Today's trades: A1L sale line = realised vs cost", near(lineP, kRealisedT
 
 // Value history: the live point's P&L (value − money put in) must match the page's own P&L.
 // Fails while put_in is frozen at Oct 29: the Rs 5,000 SIP (2,340 → 2,849 units) and later deposits count as gain.
-const nav = [...D.nav_history].sort((a, b) => (a.date < b.date ? -1 : 1)), lastNav = nav[nav.length - 1];
+// LIVE above is Nov 9's answers, so compare with Nov 9's history row and the sales booked up to Nov 9
+const LIVE_DATE = '2026-11-09';
+const nav = [...D.nav_history].filter((r) => r.date <= LIVE_DATE).sort((a, b) => (a.date < b.date ? -1 : 1)), lastNav = nav[nav.length - 1];
+const realisedToDate = D.pnl_ledger.filter((r) => r.date <= LIVE_DATE).reduce((a, r) => a + r.realised, 0);
 const unitsThen = file('mf_snap')[0].quantity, sip = D.mf_holdings[0].quantity * D.mf_holdings[0].average_price - unitsThen * file('mf_snap')[0].average_price;
 check('History: SIP units are recorded as a deposit', nav.some((r) => r.date > '2026-11-03' && r.flow >= sip - 1), `SIP ≈ ${Math.round(sip)}, last nav row ${lastNav.date}`);
-check('History: live value − put_in ≈ unrealised + realised', near(T.value - lastNav.put_in, S.total, 2500), `value − put_in ${(T.value - lastNav.put_in).toFixed(0)}, P&L ${S.total.toFixed(0)}`);
+check('History: live value − put_in ≈ unrealised + realised', near(T.value - lastNav.put_in, S.unrealised + realisedToDate, 2), `value − put_in ${(T.value - lastNav.put_in).toFixed(0)}, P&L ${(S.unrealised + realisedToDate).toFixed(0)}`);
+
+// ---------------- Loaders: Kite connector answer formats (old bare, new {data, pagination}) ----------------
+const L = (id, answer) => loaders[id].fn({ answer: JSON.stringify(answer) });
+const wrapped = (data) => ({ data, pagination: { from: 0, limit: 100, total: data.length, has_more: false } });
+check('Loader: holdings, new wrapped format', L('holdings', wrapped(LIVE.holdings)).length === 6);
+check('Loader: holdings, old bare format', L('holdings', LIVE.holdings).length === 6);
+check('Loader: mutual funds, new wrapped format', L('mf_holdings', { data: LIVE.mf_holdings })[0].quantity === 2849.12);
+check('Loader: margins, new format', L('margins', { equity: { net: 21858.2, available: { cash: 21858.2 }, utilised: { debits: 0 } } })[0].net === 21858.2);
+check('Loader: quotes, new {data, meta} format', L('market', { data: { 'NSE:NIFTY 50': { last_price: 25299.35, ohlc: { close: 25200 } } }, meta: {} })[0].prev_close === 25200);
+const posRow = { tradingsymbol: 'KPITTECH', exchange: 'NSE', product: 'CNC', quantity: 25, average_price: 539.25, last_price: 540 };
+const pl = L('kite_positions', wrapped([{ ...posRow, view: 'day' }, { ...posRow, view: 'net' }]));
+check('Loader: positions keep one row per instrument (net view), never both views', pl.length === 1 && pl[0].quantity === 25);
+check('Loader: positions, empty wrapped answer', L('kite_positions', wrapped([])).length === 0);
+const gtl = L('gtts', wrapped([{ id: 1, type: 'two-leg', status: 'active', condition: { tradingsymbol: 'JPL', exchange: 'NSE', last_price: 1444, trigger_values: [1378.9, 1485] }, orders: [{ transaction_type: 'SELL', quantity: 12 }] }]));
+check('Loader: GTTs, new wrapped format', gtl.length === 1 && gtl[0].stop === 1378.9 && gtl[0].target === 1485 && gtl[0].qty === 12);
 
 process.exit(failed ? 1 : 0);

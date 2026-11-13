@@ -2,67 +2,78 @@
  {
   "tradingsymbol": "A1L",
   "exchange": "BSE",
-  "instrument_token": 138755076,
-  "quantity": 5000,
+  "quantity": 3600,
   "t1_quantity": 0,
+  "used_quantity": 0,
   "average_price": 5.1,
-  "last_price": 5.18,
-  "close_price": 5.17,
-  "pnl": 400.0
+  "last_price": 5.02,
+  "close_price": 5.02,
+  "pnl": -288.0
  },
  {
   "tradingsymbol": "GOLDBEES",
   "exchange": "BSE",
-  "instrument_token": 151064324,
   "quantity": 54,
   "t1_quantity": 0,
+  "used_quantity": 0,
   "average_price": 117.641481,
-  "last_price": 116.34,
-  "close_price": 117.14,
-  "pnl": -70.28
+  "last_price": 112.74,
+  "close_price": 112.74,
+  "pnl": -264.68
  },
  {
   "tradingsymbol": "GOLDCASE",
   "exchange": "BSE",
-  "instrument_token": 139297796,
-  "quantity": 253,
+  "quantity": 263,
   "t1_quantity": 0,
-  "average_price": 23.610948,
-  "last_price": 22.17,
-  "close_price": 22.3,
-  "pnl": -364.56
+  "used_quantity": 0,
+  "average_price": 23.549315,
+  "last_price": 21.46,
+  "close_price": 21.46,
+  "pnl": -549.49
  },
  {
   "tradingsymbol": "JIOFIN",
   "exchange": "BSE",
-  "instrument_token": 139248644,
   "quantity": 24,
   "t1_quantity": 0,
-  "average_price": 231.93,
-  "last_price": 207,
-  "close_price": 205.4,
-  "pnl": -598.32
+  "used_quantity": 0,
+  "average_price": 231.933333,
+  "last_price": 231.3,
+  "close_price": 231.3,
+  "pnl": -15.2
  },
  {
   "tradingsymbol": "JPL",
-  "exchange": "NSE",
-  "instrument_token": 196308481,
+  "exchange": "BSE",
   "quantity": 12,
   "t1_quantity": 0,
+  "used_quantity": 0,
   "average_price": 1119,
-  "last_price": 1421.6,
-  "close_price": 1417.5,
-  "pnl": 3631.2
+  "last_price": 1396.35,
+  "close_price": 1396.35,
+  "pnl": 3328.2
  },
  {
-  "tradingsymbol": "UNIMECH",
+  "tradingsymbol": "KPITTECH",
   "exchange": "NSE",
-  "instrument_token": 7413761,
-  "quantity": 11,
+  "quantity": 25,
   "t1_quantity": 0,
-  "average_price": 1599.4088235294118,
-  "last_price": 1811.0,
-  "close_price": 1638.1,
-  "pnl": 2327.5
+  "used_quantity": 0,
+  "average_price": 539.25,
+  "last_price": 558.05,
+  "close_price": 558.05,
+  "pnl": 470.0
+ },
+ {
+  "tradingsymbol": "TORNTPOWER",
+  "exchange": "BSE",
+  "quantity": 15,
+  "t1_quantity": 0,
+  "used_quantity": 0,
+  "average_price": 1231.893333,
+  "last_price": 1230.9,
+  "close_price": 1230.9,
+  "pnl": -14.9
  }
 ]

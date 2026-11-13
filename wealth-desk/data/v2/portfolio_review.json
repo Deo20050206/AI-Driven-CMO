@@ -1,13 +1,12 @@
 [
  {
   "symbol": "UNIMECH",
-  "verdict": "Hold",
-  "action": "Keep 11 (6 sold Nov 5 at ~Rs 1,811). GTT OCO set: stop 1,700 / target 1,990",
-  "sl": 1700,
-  "tp": 1990,
-  "reason": "Q2 revenue ~2x YoY; stop sits above your Rs 1,599 average, so the worst case is a small profit.",
-  "gtt": "Set",
-  "keep_qty": 11
+  "verdict": "Sold",
+  "action": "Target hit Nov 12: all 11 sold at about 1,985 (GTT 1990/1980)",
+  "sl": null,
+  "tp": null,
+  "reason": "Booked about +Rs 4,240 over your Rs 1,600 average.",
+  "gtt": "n/a"
  },
  {
   "symbol": "CGPOWER",

@@ -417,17 +417,22 @@
 
 <script>
   const parse = (a) => (typeof a === 'string' ? JSON.parse(a) : a);
+  // Kite's connector answers either a bare value or { data, pagination/meta }: always read through `body`.
+  const body = (answer) => { const a = parse(answer); return a && !Array.isArray(a) && a.data !== undefined ? a.data : a; };
+  const listOf = (answer) => { const d = body(answer); return Array.isArray(d) ? d : []; };
   const quoteRows = ({ answer }) => {
-    const a = parse(answer);
+    const a = body(answer);
     if (Array.isArray(a)) return a;
-    return Object.entries(a).map(([instrument, q]) => ({ instrument, last_price: q.last_price, prev_close: q.ohlc ? q.ohlc.close : null }));
+    return Object.entries(a || {}).map(([instrument, q]) => ({ instrument, last_price: q.last_price, prev_close: q.ohlc ? q.ohlc.close : null }));
   };
+  dash.loader('holdings', { description: 'Kite demat holdings as rows (one per stock).', fn: ({ answer }) => listOf(answer) });
+  dash.loader('mf_holdings', { description: 'Kite (Coin) mutual fund holdings as rows.', fn: ({ answer }) => listOf(answer) });
   dash.loader('market', { description: 'Kite quotes as rows: last price and previous close.', fn: quoteRows });
   dash.loader('idea_quotes', { description: 'Kite quotes as rows: last price and previous close.', fn: quoteRows });
   dash.loader('margins', {
     description: 'Kite equity margins as one row: cash, net available and debits.',
     fn: ({ answer }) => {
-      const a = parse(answer);
+      const a = body(answer);
       if (Array.isArray(a)) return a;
       const e = a.equity || {};
       return [{ segment: 'equity', cash: e.available ? e.available.cash : null, net: e.net, debits: e.utilised ? e.utilised.debits : null }];
@@ -440,7 +445,8 @@
   dash.loader('kite_positions', {
     description: "Kite positions as rows: every product (delivery, intraday, F&O, commodity, MTF), open or closed today, one row per instrument and product (the answer lists net and day views; the first is kept).",
     fn: ({ answer }) => {
-      const a = parse(answer), list = Array.isArray(a) ? a : [...(a.net || []), ...(a.day || [])];
+      // net view first (current exposure); the day view of the same row is dropped, never added to it
+      const a = body(answer), list = (Array.isArray(a) ? a : [...(a.net || []), ...(a.day || [])]).slice().sort((x, y) => (x.view === 'day') - (y.view === 'day'));
       const seen = new Set();
       return list.filter((p) => { const k = p.exchange + ':' + p.tradingsymbol + ':' + p.product; if (seen.has(k)) return false; seen.add(k); return p.quantity || p.buy_quantity || p.sell_quantity; })
         .map((p) => ({ symbol: p.tradingsymbol, exchange: p.exchange, product: p.product, quantity: p.quantity, average_price: p.average_price, last_price: p.last_price, close_price: p.close_price,
@@ -452,8 +458,7 @@
   dash.loader('gtts', {
     description: 'Kite GTTs as rows: symbol, stop trigger, target trigger, quantity (active sell GTTs only).',
     fn: ({ answer }) => {
-      const a = parse(answer);
-      return (Array.isArray(a) ? a : []).filter((g) => g.status === 'active' && g.orders && g.orders[0] && g.orders[0].transaction_type === 'SELL').map((g) => {
+      return listOf(answer).filter((g) => g.status === 'active' && g.orders && g.orders[0] && g.orders[0].transaction_type === 'SELL').map((g) => {
         const tv = g.condition.trigger_values || [], lp = g.condition.last_price;
         const stop = g.type === 'two-leg' ? Math.min(...tv) : tv[0] < lp ? tv[0] : null;
         const target = g.type === 'two-leg' ? Math.max(...tv) : tv[0] >= lp ? tv[0] : null;

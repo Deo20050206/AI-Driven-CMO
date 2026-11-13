@@ -42,5 +42,16 @@
   "realised": -60.83,
   "estimated": false,
   "note": "Kite fills: 1,400 at avg 5.05655. Sold to fund Torrent Power; 3,600 still held"
+ },
+ {
+  "id": "R-2026-11-12-UNIMECH",
+  "date": "2026-11-12",
+  "symbol": "UNIMECH",
+  "qty": 11,
+  "buy_avg": 1599.577272,
+  "sell_price": 1985.0,
+  "realised": 4239.65,
+  "estimated": true,
+  "note": "Target GTT (trigger 1990, limit 1980) fired Nov 12 (high 2025.6). Fill ≈1985, worked back from the cash change; Kite's API doesn't return past fills."
  }
 ]
