@@ -1,0 +1,133 @@
+[
+ {
+  "rank": 1,
+  "symbol": "KEI",
+  "exchange": "NSE",
+  "name": "KEI Industries",
+  "sector": "Capital goods - wires and cables",
+  "last_close": 4135.7,
+  "setup": "Higher low after the results gap-down. Fell from 4755 (Oct 15) to 3666 (Oct 23) on the Q2 miss, made a higher low at 3750 (Oct 30 / Nov 2) and another at 3850 (Nov 6), then closed +3.2% at 4135.7 on Nov 12 on above-average volume. Back above the 20-day average (4024); the 50-day average (4416) is the first hurdle. About 30% below the high since Apr 27 (5899 on Aug 18); 90-session return -21%; -4.7% vs Nifty over 15 sessions.",
+  "trigger": "Delivery buy on Monday at or below 4,140 while the price holds above the 20-day average (about 4,024). Do not chase: skip if it opens above 4,145, because the fixed stop and target then give less than 1.2 reward:risk. If it dips, 4,030-4,100 is a better zone. Re-derive stop and target from the live price.",
+  "entry": 4135.7,
+  "sl": 3805,
+  "tp": 4549,
+  "rr": 1.25,
+  "atr14": 125.13,
+  "swing_low": 3850.1,
+  "results_date": "2026-10-21 (Q2 FY27, already out; next results due around late Jan 2027)",
+  "catalysts": [
+   "Sanand plant ramp: management targets a Rs 150-200 cr monthly revenue run rate in Q3 FY27, then Rs 250-300 cr/month; FY27 Sanand revenue guided at Rs 1,500-2,000 cr (Motilal Oswal note, Oct 22, via DSIJ)",
+   "Pending cables and wires order book about Rs 4,930 cr incl. about Rs 990 cr exports, up from Rs 4,292 cr at Jun 30 (reported; another outlet gives Rs 5,185 cr)",
+   "Management reiterated about 11% EBITDA margin for FY27 and 11.5-12% for FY28",
+   "Domestic cable demand from power transmission, real estate and infrastructure capex"
+  ],
+  "fundamentals": "Q2 FY27 (reported Oct 21): revenue about Rs 3,777 cr, +38.5% YoY; PAT about Rs 262 cr, +29% YoY; EBITDA margin about 10.6% (down YoY); PAT -4.3% QoQ. Profit came in below analyst estimates and the stock fell about 8% on Oct 22. Capex plan Rs 600-700 cr a year for 3-4 years; H1 FY27 operating cash outflow of about Rs 490 cr from higher working capital. Shareholding (Jun 2026, Trendlyne): promoters 35.0%, FPIs 27.3%, mutual funds 22.5%. No promoter pledge reported in the sources found (Sep 2026 shareholding pattern not yet checked).",
+  "risks": [
+   "Margin pressure and competition: Q2 EBITDA margin slipped and profit missed estimates",
+   "Working capital and debt rising with Sanand capex (operating cash outflow in H1)",
+   "Overlaps with power-capex demand; Dev already holds TORNTPOWER",
+   "Copper price swings feed straight into cable margins",
+   "The 50-day average (4416) and the 4650-4755 October supply zone sit below the target"
+  ],
+  "invalidation": "A daily close below 3,850 (Nov 6 swing low) weakens the setup; the stop at 3,805 ends it. Also cancel if it closes back below the 20-day average (about 4,024) before entry.",
+  "sources": [
+   "https://www.kotakneo.com/news/stocks/kei-industries-share-price-and-q2-fy-27-results/",
+   "https://insights.dsij.in/dsijarticledetail/wires-and-cables-stock-kei-industries-crashes-8-what-triggered-the-sharp-fall-and-what-should-investors-know-60113",
+   "https://www.angelone.in/news/stocks/kei-industries-share-price-declines-over-8-reports-q2-fy27-results",
+   "https://insights.dsij.in/dsijarticledetail/kei-industries-q2-profit-rises-29-per-cent-as-domestic-cable-demand-offsets-margin-pressure-60112",
+   "https://www.tndindia.com/kei-industries-outlines-medium-term-capex-of-rs-600-700-crore-per-year/",
+   "https://trendlyne.com/equity/share-holding/729/KEI/latest/kei-industries-ltd"
+  ],
+  "score": 57.3,
+  "screen": {"dd52_window": -0.299, "r90": -0.212, "r15_excess": -0.047, "turnover_cr": 160.7, "higher_low": true, "sma20": 4024.39, "sma50": 4416.13, "base_low": 3666.1},
+  "confidence": "Medium",
+  "data_note": "Kite daily candles to Nov 12, 2026. dd52 uses the high since Apr 27, 2026 (138 sessions pulled to save context), not a full 252-session high."
+ },
+ {
+  "rank": 2,
+  "symbol": "GRSE",
+  "exchange": "NSE",
+  "name": "Garden Reach Shipbuilders & Engineers",
+  "sector": "Defence - shipbuilding (PSU)",
+  "last_close": 2211.5,
+  "setup": "Base and higher lows. Bottomed at 1842 (Oct 26), made higher lows at 1914.8 (Nov 2) and 2050.6 (Nov 3), and has held above 2125 since. Closed 2211.5 on Nov 12, just above the 50-day average (2206) and well above the 20-day (2055). About 34% below the high since Apr 27 (3339 on Apr 29); 90-session return -20%; +1.6% vs Nifty over 15 sessions, so it has not run away.",
+  "trigger": "Delivery buy on a hold above the 50-day average (about 2,206). The fixed stop and target give 1.2 reward:risk only up to an entry of about 2,213, so skip any open above that. A dip to 2,150-2,180 gives a better ratio (about 1.4-1.7 with the same stop and a +10% target). Re-derive stop and target from the live price.",
+  "entry": 2211.5,
+  "sl": 2030,
+  "tp": 2433,
+  "rr": 1.22,
+  "atr14": 93.79,
+  "swing_low": 2050.6,
+  "results_date": "2026-11-11 (Q2 FY27, already out)",
+  "catalysts": [
+   "Next Generation Corvette contract (five ships, reported about Rs 32,000 cr): sources conflict on whether it is signed; one says formal signing was expected in Q2 FY27. A signing announcement would be a direct trigger.",
+   "H1 FY27: revenue +21.9%, PAT +25.9%",
+   "Shipbuilding capacity being raised to 32 vessels (company commentary reported by Sahi)"
+  ],
+  "fundamentals": "Q2 FY27 (reported Nov 11): revenue from operations Rs 1,826.7 cr, +8.9% YoY (reported as below estimates); standalone PAT Rs 172.0 cr, +11.8% YoY. Q1 FY27: revenue about Rs 1,815 cr, PAT about Rs 173 cr (+44% YoY). Order book reported at about Rs 13,596 cr at end-Q1 FY27, down from about Rs 17,000 cr in April 2026; a preview notes four straight quarters of decline. Government of India is the promoter (PSU), so a promoter pledge is not expected; exact holding % not re-checked this run.",
+  "risks": [
+   "Order book has fallen four quarters in a row; the thesis leans on the corvette contract actually being signed",
+   "Q2 revenue growth slowed to about 9% and missed estimates",
+   "Defence-shipbuilding peers are weak: Mazagon Dock Q2 PAT -54%, Cochin Shipyard Q2 PAT -50%, so sector sentiment is fragile",
+   "Volatile: ATR is about 4.2% of price; already about +20% off the Oct 26 low",
+   "PSU defence names have been under exchange surveillance (ASM) in past rallies; not verified this run"
+  ],
+  "invalidation": "A daily close below 2,050 (Nov 3 swing low) ends the setup; stop 2,030. Also cancel if it closes back below 2,125 (Nov 9 low) before entry.",
+  "sources": [
+   "https://www.kotakneo.com/news/stocks/garden-reach-shipbuilders-q2-fy27-results-put-share-price-in-focus/",
+   "https://indianmasterminds.com/news/grse-q2-fy27-results-net-profit-revenue-growth-249768/",
+   "https://www.zeebiz.com/market-news/news-grse-q2-results-revenue-at-rs-1827-crore-net-profit-rises-to-rs-172-crore-405429",
+   "https://compoundingai.in/market-news/grse-q2-fy27-earnings-preview",
+   "https://idrw.org/grse-confirms-formal-signing-of-3-7-billion-next-generation-corvette-contract-expected-in-q2-fy27/",
+   "https://business-news-today.com/garden-reach-shipbuilders-grse-signs-rs-32000cr-navy-corvette-contract-as-shares-jump-5-3/",
+   "https://www.sahi.com/news/grse-ramps-up-capacity-to-32-vessels-by-year-end-amid-high-margin-defense-project-focus-2904-PE1_COR"
+  ],
+  "score": 59.1,
+  "screen": {"dd52_window": -0.338, "r90": -0.2, "r15_excess": 0.016, "turnover_cr": 116.3, "higher_low": true, "sma20": 2054.96, "sma50": 2206.29, "base_low": 1842.0},
+  "confidence": "Medium-Low",
+  "data_note": "Kite daily candles to Nov 12, 2026. dd52 uses the high since Apr 27, 2026. The stop sits at 8.2% (about 1.9x ATR), just below the Nov 3 swing low; the engine's 2x ATR stop (2023.9) gives 1.18 reward:risk at a +10% target, which fails the 1.2 floor."
+ },
+ {
+  "rank": 3,
+  "symbol": "NMDC",
+  "exchange": "NSE",
+  "name": "NMDC",
+  "sector": "Metals and mining - iron ore (PSU)",
+  "last_close": 71.07,
+  "setup": "Higher low in a basing pattern. Low of 65.15 (Oct 23), higher low 66.76 (Oct 30), then steady higher lows up to 71.07. Above the 20-day average (69.4), below the 50-day (75.1). About 27% below the high since Apr 27 (97.49 on Jun 3); 90-session return -16.5%; -8.3% vs Nifty over 15 sessions.",
+  "trigger": "CONDITIONAL on the post-results reaction. Q2 results came out on Nov 12 and the market reacts on Fri Nov 13. Buy Monday only if Friday closes at or above 69.4 (20-day average) and Monday holds above it. Skip if Friday closes below 68.5 (Nov 6 low) or gaps down on the results. Re-derive stop and target from the live price.",
+  "entry": 71.07,
+  "sl": 65.38,
+  "tp": 78.18,
+  "rr": 1.25,
+  "atr14": 1.57,
+  "swing_low": 66.76,
+  "results_date": "2026-11-12 (Q2 FY27, out the day before this run; price reaction not yet seen in the data)",
+  "catalysts": [
+   "October 2026 production +18% YoY to 5.04 MT; Apr-Oct output 32.32 MT, about +22%",
+   "No new iron ore price cut found since the Aug 8, 2026 revision (lump Rs 5,250/t, fines Rs 4,500/t)",
+   "Deep discount to the June high and a cheap absolute price; liquid (about Rs 106 cr/day)"
+  ],
+  "fundamentals": "Q2 FY27 (Nov 12, single source so far): consolidated PAT about Rs 1,664 cr, -17% QoQ from Rs 2,006 cr and about -2% YoY vs Rs 1,694 cr (YoY figure derived); EBITDA about Rs 1,940 cr, -21.4% QoQ. Q1 FY27: PAT Rs 2,006 cr (+2% YoY), revenue Rs 6,795 cr (+0.8%). Sales are lagging output: October sales -11.6% YoY to 3.44 MT; Apr-Oct sales -1.7%. Government of India is the promoter (PSU); exact holding % not re-checked this run.",
+  "risks": [
+   "The Q2 profit drop and falling sales volumes mean the results reaction could be negative; that is why this idea is conditional",
+   "Stock is building inventory (output up, sales down), which can push price cuts",
+   "Iron ore and steel price cycle; export duty or royalty changes",
+   "The stop is about 3.6x ATR because the 8% minimum stop applies, so the position size will be smaller for the same rupee risk",
+   "Only one source so far for the Q2 numbers"
+  ],
+  "invalidation": "A close below 68.5 (Nov 6 low) before entry cancels it. After entry, a close below 66.76 (Oct 30 swing low) weakens it; the stop at 65.38 ends it.",
+  "sources": [
+   "https://businessupturn.com/finance/stock-market/quarterly-results/nmdc-q2-results-net-profit-falls-17-qoq-to-rs-1-664-crore-ebitda-declines-21-4/",
+   "https://www.psuconnect.in/financial/nmdc-board-meeting-on-november-12-to-consider-q2-and-half-year-fy27-results",
+   "https://compoundingai.in/market-news/nmdc-q2-fy27-earnings-preview",
+   "https://www.steelorbis.com/steel-news/latest-news/indias-nmdc-sees-18-rise-in-iron-ore-output-in-oct-2026-sales-fall-12-1487796.htm",
+   "https://psuwatch.com/amp/story/newsupdates/nmdc-q1-profit-rises-2-to-rs-2006-crore-as-iron-ore-revenue-climbs-10",
+   "https://www.sahi.com/news/nmdc-sets-iron-ore-lump-price-at-5250-ton-and-fines-at-4500-ton-2812-PE1_COR"
+  ],
+  "score": 51.7,
+  "screen": {"dd52_window": -0.271, "r90": -0.165, "r15_excess": -0.083, "turnover_cr": 106.5, "higher_low": true, "sma20": 69.42, "sma50": 75.11, "base_low": 65.15},
+  "confidence": "Low-Medium (conditional)",
+  "data_note": "Kite daily candles to Nov 12, 2026. dd52 uses the high since Apr 27, 2026."
+ }
+]
